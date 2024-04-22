@@ -7,14 +7,14 @@ namespace IFAuthenticator.Controllers
     public class HomeController : ControllerBase
     {
         private ILogger<AuthClass> _logger;
-        public readonly AuthClass AuthObject;
+        private readonly AuthClass _authClass;
         private LdapSettings _ldapSettings;
 
         public HomeController(ILogger<AuthClass> logger, IOptions<LdapSettings> ldapSettings)
         {
             _logger = logger;
 
-            AuthObject = new AuthClass(logger, ldapSettings);
+            _authClass = new AuthClass(logger, ldapSettings);
 
             _ldapSettings = ldapSettings.Value;
         }
@@ -23,7 +23,7 @@ namespace IFAuthenticator.Controllers
         [Route("Authenticate")]
         public async Task<string> Authenticate([FromBody] UserPass userPass)
         {
-            var (isAuthenticated, token) = await AuthObject.AuthenticateUserAsync(userPass.User, userPass.Pass);
+            var (isAuthenticated, token) = await _authClass.AuthenticateUserAsync(userPass.User, userPass.Pass);
 
             return isAuthenticated ? token : "";
         }
@@ -33,7 +33,7 @@ namespace IFAuthenticator.Controllers
         [Route("Authorise")]
         public async Task<bool> Authorise([FromBody] TokenClaim tokenClaim)
         {
-            return await AuthObject.AuthoriseAsync(tokenClaim.Token, tokenClaim.Claim);
+            return await _authClass.AuthoriseAsync(tokenClaim.Token, tokenClaim.Claim);
         }
     }
 }
