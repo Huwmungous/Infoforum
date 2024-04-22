@@ -157,9 +157,6 @@ namespace IFAuthenticator.Controllers
             {
                 _logger.LogError($"{_ldapSettings.Server}:{_ldapSettings.Port} user '{username}'@{_ldapSettings.Domain} attempting to connect : {ex.Message}");
 
-                if(ex.InnerException is not null)
-                    _logger.LogError(ex.InnerException.Message);
-
                 return null;
             }
         }
