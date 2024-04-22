@@ -118,7 +118,7 @@ namespace IFAuthenticator.Controllers
                 // Check if the user is listed as a member of the group
                 foreach (string member in entry.Attributes["member"].GetValues(typeof(string)))
                 {
-                    if (member.Contains(userPass.User, StringComparison.OrdinalIgnoreCase))
+                    if (member.Contains(userPass!.User, StringComparison.OrdinalIgnoreCase))
                     {
                         // Optionally, cache the claim
                         if (!_claims[token].Contains(claim))
