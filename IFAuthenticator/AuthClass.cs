@@ -148,6 +148,7 @@ namespace IFAuthenticator.Controllers
                 LdapDirectoryIdentifier identifier = new(_ldapSettings.Server, _ldapSettings.Port);
                 LdapConnection connection = new LdapConnection(identifier);
                 connection.SessionOptions.SecureSocketLayer = _ldapSettings.UseSSL;
+                connection.AuthType = AuthType.Basic;
                 connection.SessionOptions.ProtocolVersion = 3;
                 NetworkCredential credential = new($"{username}@{_ldapSettings.Domain}", password);
                 connection.Credential = credential;
