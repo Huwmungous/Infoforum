@@ -1,6 +1,6 @@
 using IFGlobal;
 
-int port = PortResolver.GetPort();
+int port = PortResolver.GetPort("IFAuthenticator");
 
 var builder = WebApplication.CreateBuilder(args);
 
