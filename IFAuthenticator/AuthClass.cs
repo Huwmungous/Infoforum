@@ -142,6 +142,7 @@ namespace IFAuthenticator.Controllers
 
         private LdapConnection? GetLdapConnection(string username, string password)
         {
+            _logger.LogInformation($"{_ldapSettings.Server}:{_ldapSettings.Port} user {username}@{_ldapSettings.Domain} attempting to connect");
             try
             {
                 LdapDirectoryIdentifier identifier = new(_ldapSettings.Server, _ldapSettings.Port);
@@ -155,7 +156,7 @@ namespace IFAuthenticator.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{_ldapSettings.Server}:{_ldapSettings.Port} user {username}@{_ldapSettings.Domain} attempting to connect : {ex.Message}");
+                _logger.LogError($"Connection Failed for user {username}@{_ldapSettings.Domain} : {ex.Message}");
 
                 return null;
             }
