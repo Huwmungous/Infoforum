@@ -143,7 +143,8 @@ namespace IFAuthenticator.Controllers
             {
                 _logger.LogError($"user '{username}' attempting to connect : {ex.Message}");
 
-                _logger.LogError(ex.InnerException!.Message);
+                if(ex.InnerException is not null)
+                    _logger.LogError(ex.InnerException.Message);
 
                 throw;
             }
