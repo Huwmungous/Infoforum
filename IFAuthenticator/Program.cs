@@ -6,8 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    // serverOptions.ListenLocalhost(port); 
-    serverOptions.ListenAnyIP(port);
+    serverOptions.ListenLocalhost(port); 
+    // serverOptions.ListenAnyIP(port);
 });
 
 // Add services to the container.

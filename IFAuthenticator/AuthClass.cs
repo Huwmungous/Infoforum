@@ -20,29 +20,33 @@ namespace IFAuthenticator.Controllers
 
         public async Task<(bool isAuthenticated, string token)> AuthenticateUserAsync(string username, string password)
         {
-            string token = string.Empty;
-            try
-            {
-                await Task.Run(() => GetLdapConnection(username, password)).ConfigureAwait(false);
+            var result = (false, "");
 
-                // If we reach here, authentication was successful
-                token = Guid.NewGuid().ToString().Replace("-", "");
-                _authenticatedUsers[token] = new() { User = username, Pass = password };
-                _claims[token] = [];
-
-                return (true, token);
-            }
-            catch(LdapException ex)
+            await Task.Run(() =>
             {
-                _logger.LogError($"Login Failed: {ex.Message}");
-                return (false, token);
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError($"An error occurred: {ex.Message}");
+                try
+                {
+                    using var conn = GetLdapConnection(username, password);
 
-                return (false, token);
-            }
+                    if (conn is not null)
+                    {
+                        string token = Guid.NewGuid().ToString().Replace("-", "");
+                        _authenticatedUsers[token] = new() { User = username, Pass = password };
+                        _claims[token] = [];
+                        result = (true, token);
+                    }
+                }
+                catch (LdapException ex)
+                {
+                    _logger.LogError($"Login Failed: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"An error occurred: {ex.Message}");
+                }
+            }).ConfigureAwait(false);
+
+            return result;
         }
 
         public async Task<bool> AuthoriseAsync(string token, string claim)
@@ -80,31 +84,16 @@ namespace IFAuthenticator.Controllers
                     if(serviceuser is null || servicePass is null)
                         throw new ArgumentException("Failed to Identify the ldap Service Account or Password");
 
-                    using var connection = GetLdapConnection(serviceuser, servicePass);
+                    using var conn = GetLdapConnection(serviceuser, servicePass);
 
-                    SearchRequest searchRequest = new("DC=longmanrd,DC=infoforum,DC=co,DC=uk", $"(&(objectClass=group)(cn={claim}))", SearchScope.Subtree, "member");
-
-                    // Perform the search
-                    var response = (SearchResponse)connection.SendRequest(searchRequest);
-
-                    // Check each group found (though typically should be just one) for user membership
-                    foreach(SearchResultEntry entry in response.Entries)
+                    if (conn is not null)
                     {
-                        // Check if the user is listed as a member of the group
-                        foreach(string member in entry.Attributes["member"].GetValues(typeof(string)))
-                        {
-                            if(member.Contains(userPass.User, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Optionally, cache the claim
-                                if(!_claims[token].Contains(claim))
-                                {
-                                    _claims[token].Add(claim);
-                                }
-                                result = true; // User is a member of the group
+                        SearchRequest searchRequest = new("DC=longmanrd,DC=infoforum,DC=co,DC=uk", $"(&(objectClass=group)(cn={claim}))", SearchScope.Subtree, "member");
 
-                                break;
-                            }
-                        }
+                        // Perform the search
+                        var response = (SearchResponse)conn.SendRequest(searchRequest);
+
+                        result = CheckMemberships(token, claim, result, userPass, response);
                     }
                 }
                 catch(LdapException ex)
@@ -121,32 +110,57 @@ namespace IFAuthenticator.Controllers
             return result;
         }
 
+        private static bool CheckMemberships(string token, string claim, bool result, UserPass? userPass, SearchResponse response)
+        {
+            // Check each group found (though typically should be just one) for user membership
+            foreach (SearchResultEntry entry in response.Entries)
+            {
+                // Check if the user is listed as a member of the group
+                foreach (string member in entry.Attributes["member"].GetValues(typeof(string)))
+                {
+                    if (member.Contains(userPass.User, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Optionally, cache the claim
+                        if (!_claims[token].Contains(claim))
+                        {
+                            _claims[token].Add(claim);
+                        }
+                        result = true; // User is a member of the group
+
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
         private bool CacheHasClaim(string token, string claim)
         {
             return _claims[token].Contains(claim);
         }
 
-        private LdapConnection GetLdapConnection(string username, string password)
+        private LdapConnection? GetLdapConnection(string username, string password)
         {
             try
             {
-                LdapDirectoryIdentifier identifier = new LdapDirectoryIdentifier(_ldapSettings.Server, _ldapSettings.Port);
+                LdapDirectoryIdentifier identifier = new(_ldapSettings.Server, _ldapSettings.Port);
                 LdapConnection connection = new LdapConnection(identifier);
                 connection.SessionOptions.SecureSocketLayer = _ldapSettings.UseSSL;
                 connection.SessionOptions.ProtocolVersion = 3;
-                NetworkCredential credential = new NetworkCredential($"{username}@{_ldapSettings.Domain}", password);
+                NetworkCredential credential = new($"{username}@{_ldapSettings.Domain}", password);
                 connection.Credential = credential;
                 connection.Bind();
                 return connection;
             }
             catch (Exception ex)
             {
-                _logger.LogError($"user '{username}' attempting to connect : {ex.Message}");
+                _logger.LogError($"{_ldapSettings.Server}:{_ldapSettings.Port} user '{username}'@{_ldapSettings.Domain} attempting to connect : {ex.Message}");
 
                 if(ex.InnerException is not null)
                     _logger.LogError(ex.InnerException.Message);
 
-                throw;
+                return null;
             }
         }
 
