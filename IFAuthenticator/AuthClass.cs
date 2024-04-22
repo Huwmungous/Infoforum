@@ -155,7 +155,7 @@ namespace IFAuthenticator.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{_ldapSettings.Server}:{_ldapSettings.Port} user '{username}'@{_ldapSettings.Domain} attempting to connect : {ex.Message}");
+                _logger.LogError($"{_ldapSettings.Server}:{_ldapSettings.Port} user {username}@{_ldapSettings.Domain} attempting to connect : {ex.Message}");
 
                 return null;
             }
