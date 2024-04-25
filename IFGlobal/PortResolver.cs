@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Reflection;
 
 namespace IFGlobal
 {
@@ -34,7 +35,7 @@ namespace IFGlobal
             get
             {
                 if (_appName == null)
-                    _appName = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
+                    _appName = Assembly.GetEntryAssembly()?.GetName().Name;
                 return _appName!;
             }
         }
