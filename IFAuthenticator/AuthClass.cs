@@ -194,7 +194,7 @@ namespace IFAuthenticator.Controllers
                 var connection = new LdapConnection(
                     new LdapDirectoryIdentifier(_ldapSettings.Server, _ldapSettings.Port),
                     new NetworkCredential($"{username}@{_ldapSettings.Domain}", password),
-                    AuthType.Negotiate
+                    AuthType.Kerberos
                 );
 
                 connection.SessionOptions.ReferralChasing = ReferralChasingOptions.None;
