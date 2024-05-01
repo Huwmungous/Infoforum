@@ -78,7 +78,7 @@ namespace IFAuthenticator.Controllers
                 try
                 {
                     using var conn = GetLdapConnection(username, password);
-                    if (conn != null && conn.Connected)
+                    if (conn is not null && conn.Connected)
                     {
                         string token = Guid.NewGuid().ToString().Replace("-", "");
                         _authenticatedUsers[token] = new UserPass { User = username, Pass = password };
@@ -180,25 +180,24 @@ namespace IFAuthenticator.Controllers
         {
             try
             {
-                var connection = new LdapConnection();
-                connection.SecureSocketLayer = _ldapSettings.UseSSL;
+                var conn = new LdapConnection() { SecureSocketLayer = _ldapSettings.UseSSL };
 
                 if (_ldapSettings.UseSSL)
                 {
 #pragma warning disable CS0618 // Type or member is obsolete
-                    connection.UserDefinedServerCertValidationDelegate += (sender, certificate, chain, sslPolicyErrors) => { return true; };
+                    conn.UserDefinedServerCertValidationDelegate += (sender, certificate, chain, sslPolicyErrors) => { return true; };
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                    connection.Connect(_ldapSettings.Server, _ldapSettings.Port);
-                    connection.Bind(LdapConnection.LdapV3, $"{username}@{_ldapSettings.Domain}", password);
+                    conn.Connect(_ldapSettings.Server, _ldapSettings.Port);
+                    conn.Bind(LdapConnection.LdapV3, $"{username}@{_ldapSettings.Domain}", password);
                 }
                 else
                 {
-                    connection.Connect(_ldapSettings.Server, _ldapSettings.Port);
-                    connection.Bind($"{username}@{_ldapSettings.Domain}", password);
+                    conn.Connect(_ldapSettings.Server, _ldapSettings.Port);
+                    conn.Bind($"{username}@{_ldapSettings.Domain}", password);
                 }
 
-                return connection;
+                return conn;
             }
             catch (Exception ex)
             {
