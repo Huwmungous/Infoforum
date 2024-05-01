@@ -130,7 +130,7 @@ namespace IFAuthenticator.Controllers
 
                     var searchFilter = $"(&(objectClass=group)(cn={claim}))";
                     var searchBase = "DC=your,DC=domain,DC=com";
-                    var search = _claimsConnection.Search(searchBase, LdapConnection.ScopeSub, searchFilter, new string[] { "member" }, false);
+                    var search = ClaimsConnection!.Search(searchBase, LdapConnection.ScopeSub, searchFilter, new string[] { "member" }, false);
                     while (search.HasMore())
                     {
                         var entry = search.Next();
@@ -165,7 +165,6 @@ namespace IFAuthenticator.Controllers
             return _claims[token].Contains(claim);
         }
 
-        [Obsolete]
         private LdapConnection? GetLdapConnection(string username, string password)
         {
             try
@@ -177,7 +176,9 @@ namespace IFAuthenticator.Controllers
                 if (_ldapSettings.UseSSL)
                 {
                     // Obsolete, but do not know how to resolve
+#pragma warning disable CS0618 // Type or member is obsolete
                     connection.UserDefinedServerCertValidationDelegate += (sender, certificate, chain, sslPolicyErrors) => { return true; };
+#pragma warning restore CS0618 // Type or member is obsolete
 
                     // Default port for LDAPS is usually 636, ensure it's set correctly in _ldapSettings
                     connection.Connect(_ldapSettings.Server, _ldapSettings.Port);
