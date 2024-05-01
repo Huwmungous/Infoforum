@@ -6,6 +6,6 @@
 
         public string Pass { get; set; } = string.Empty;
 
-        public DateTime Expires { get; set; } = DateTime.Now.AddMinutes(10);
+        public DateTime Expires { get; set; } = DateTime.Now.AddMinutes(30);
     }
 }

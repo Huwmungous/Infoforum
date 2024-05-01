@@ -1,6 +1,8 @@
 ﻿using System.DirectoryServices.Protocols;
 using System.Net;
 using Microsoft.Extensions.Options;
+using System.Timers;
+using System.Collections.Concurrent;
 
 namespace IFAuthenticator.Controllers
 {
@@ -8,14 +10,68 @@ namespace IFAuthenticator.Controllers
     {
         private readonly ILogger<AuthClass> _logger;
         private readonly LdapSettings _ldapSettings;
-        private static readonly Dictionary<string, List<string>> _claims = new();
-        private static readonly Dictionary<string, UserPass> _authenticatedUsers = new();
+        private static readonly ConcurrentDictionary<string, List<string>> _claims = new();
+        private static readonly ConcurrentDictionary<string, UserPass> _authenticatedUsers = new();
+
+        private static readonly string serviceuser = Environment.GetEnvironmentVariable("LDAP_SERVICE_USER") ?? "";
+        private static readonly string servicePass = Environment.GetEnvironmentVariable("LDAP_SERVICE_PASSWORD") ?? "";
+
+        private static LdapConnection? _claimsConnection;
+        private static DateTime _lastClaimsRequest;
+
+        public LdapConnection ClaimsConnection
+        {
+            get 
+            {
+                _lastClaimsRequest = DateTime.UtcNow;
+
+                _claimsConnection = _claimsConnection ?? GetLdapConnection(serviceuser, servicePass);
+
+                return _claimsConnection!;
+            }
+        }
 
         public AuthClass(ILogger<AuthClass> logger, IOptions<LdapSettings> ldapSettings)
         {
             _logger = logger;
 
             _ldapSettings = ldapSettings.Value;
+
+            InitializeCleanupTimer();
+        }
+
+        private static System.Timers.Timer? _cleanupTimer;
+
+        private void InitializeCleanupTimer()
+        {
+            if (_cleanupTimer is null)
+            {
+                _cleanupTimer = new System.Timers.Timer(59999); // Set the interval to about 60000 milliseconds (1 minute)
+                _cleanupTimer.Elapsed += (object? sender, ElapsedEventArgs e) =>
+                    {
+                        // Close Claims ldap connection if it has been unused for 5 minutes, or so
+                        if ((_lastClaimsRequest.AddMinutes(5) < DateTime.UtcNow) && _claimsConnection is not null)
+                        {
+                            _claimsConnection.Dispose();
+                            _claimsConnection = null;
+                            _logger.LogInformation("Inactive Claims Connection Closed.");
+                        }
+
+                        // Remove expired authenticated users and their claims
+                        var expiredTokens = _authenticatedUsers.Where(kvp => kvp.Value.Expires <= DateTime.UtcNow)
+                                                               .Select(kvp => kvp.Key)
+                                                               .ToList(); // To avoid collection modification during enumeration
+
+                        foreach (var token in expiredTokens)
+                        {
+                            _authenticatedUsers.TryRemove(token, out var removedUser);
+                            _claims.TryRemove(token, out var removedClaims);
+                            _logger.LogInformation($"Removed Expired User {removedUser!.User} and Claims.");
+                        }
+                    };
+                _cleanupTimer.AutoReset = true;
+                _cleanupTimer.Enabled = true;
+            }
         }
 
         public async Task<(bool isAuthenticated, string token)> AuthenticateUserAsync(string username, string password)
@@ -75,32 +131,23 @@ namespace IFAuthenticator.Controllers
                 {
                     var userPass = _authenticatedUsers[token];
 
-                    if(userPass is null)
+                    if (userPass is null)
                         throw new Exception($"Token not found {token}");
 
-                    var serviceuser = Environment.GetEnvironmentVariable("LDAP_SERVICE_USER");
-                    var servicePass = Environment.GetEnvironmentVariable("LDAP_SERVICE_PASSWORD");
-
-                    if(serviceuser is null || servicePass is null)
+                    if (serviceuser is null || servicePass is null)
                         throw new ArgumentException("Failed to Identify the ldap Service Account or Password");
+                    
+                    SearchRequest searchRequest = new("DC=longmanrd,DC=infoforum,DC=co,DC=uk", $"(&(objectClass=group)(cn={claim}))", SearchScope.Subtree, "member");
 
-                    using var conn = GetLdapConnection(serviceuser, servicePass);
+                    var response = (SearchResponse)ClaimsConnection.SendRequest(searchRequest);
 
-                    if (conn is not null)
-                    {
-                        SearchRequest searchRequest = new("DC=longmanrd,DC=infoforum,DC=co,DC=uk", $"(&(objectClass=group)(cn={claim}))", SearchScope.Subtree, "member");
-
-                        // Perform the search
-                        var response = (SearchResponse)conn.SendRequest(searchRequest);
-
-                        result = CheckMemberships(token, claim, result, userPass, response);
-                    }
+                    result = CheckMemberships(token, claim, result, userPass, response);
                 }
-                catch(LdapException ex)
+                catch (LdapException ex)
                 {
                     _logger.LogError($"LDAP error occurred: {ex.Message}");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.LogError($"An error occurred: {ex.Message}");
                 }
@@ -145,13 +192,14 @@ namespace IFAuthenticator.Controllers
             _logger.LogInformation($"{_ldapSettings.Server}:{_ldapSettings.Port} user {username}@{_ldapSettings.Domain} attempting to connect");
             try
             {
-                LdapDirectoryIdentifier identifier = new(_ldapSettings.Server, _ldapSettings.Port);
-                LdapConnection connection = new LdapConnection(identifier);
+                var connection = new LdapConnection(
+                    new LdapDirectoryIdentifier(_ldapSettings.Server, _ldapSettings.Port),
+                    new NetworkCredential($"{username}@{_ldapSettings.Domain}", password),
+                    AuthType.Negotiate
+                );
+
+                connection.SessionOptions.ReferralChasing = ReferralChasingOptions.None;
                 connection.SessionOptions.SecureSocketLayer = _ldapSettings.UseSSL;
-                connection.AuthType = AuthType.Negotiate;
-                connection.SessionOptions.ProtocolVersion = 3;
-                NetworkCredential credential = new($"{username}@{_ldapSettings.Domain}", password);
-                connection.Credential = credential;
                 connection.Bind();
                 return connection;
             }
