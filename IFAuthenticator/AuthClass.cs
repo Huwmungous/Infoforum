@@ -110,42 +110,52 @@ namespace IFAuthenticator.Controllers
             });
         }
 
+        private string _searchBase;
+        public string SearchBase {
+            get 
+            {
+                if (string.IsNullOrEmpty(_searchBase))
+                    _searchBase = _ldapSettings.SearchBase;
+
+                return _searchBase;
+            } 
+        }
+
         private async Task<bool> LdapHasClaim(string token, string claim)
         {
-            var result = false;
+            bool result = false;
+
             await Task.Run(() =>
             {
                 try
                 {
                     var userPass = _authenticatedUsers[token];
-                    if (userPass == null)
-                    {
+
+                    if (userPass is null)
                         throw new Exception($"Token not found {token}");
-                    }
 
                     if (string.IsNullOrEmpty(serviceUser) || string.IsNullOrEmpty(servicePass))
-                    {
                         throw new ArgumentException("Service account credentials are not set.");
-                    }
 
                     var searchFilter = $"(&(objectClass=group)(cn={claim}))";
-                    var searchBase = "DC=your,DC=domain,DC=com";
-                    var search = ClaimsConnection!.Search(searchBase, LdapConnection.ScopeSub, searchFilter, new string[] { "member" }, false);
+
+                    var search = ClaimsConnection!.Search(SearchBase, LdapConnection.ScopeSub, searchFilter, ["member"], false);
+
                     while (search.HasMore())
                     {
-                        var entry = search.Next();
-                        var members = entry.GetAttributeSet()["member"];
-                        if (members != null)
+                        var members = search.Next().GetAttributeSet()["member"];
+
+                        if (members is not null)
                         {
                             foreach (var member in members.StringValueArray)
                             {
                                 if (member.Contains(userPass.User, StringComparison.OrdinalIgnoreCase))
                                 {
                                     if (!_claims[token].Contains(claim))
-                                    {
                                         _claims[token].Add(claim);
-                                    }
+
                                     result = true;
+
                                     break;
                                 }
                             }
@@ -157,6 +167,7 @@ namespace IFAuthenticator.Controllers
                     _logger.LogError($"LDAP query error: {ex.Message}");
                 }
             });
+
             return result;
         }
 
@@ -170,17 +181,14 @@ namespace IFAuthenticator.Controllers
             try
             {
                 var connection = new LdapConnection();
-                // Specify SSL and the appropriate port if necessary
                 connection.SecureSocketLayer = _ldapSettings.UseSSL;
 
                 if (_ldapSettings.UseSSL)
                 {
-                    // Obsolete, but do not know how to resolve
 #pragma warning disable CS0618 // Type or member is obsolete
                     connection.UserDefinedServerCertValidationDelegate += (sender, certificate, chain, sslPolicyErrors) => { return true; };
 #pragma warning restore CS0618 // Type or member is obsolete
 
-                    // Default port for LDAPS is usually 636, ensure it's set correctly in _ldapSettings
                     connection.Connect(_ldapSettings.Server, _ldapSettings.Port);
                     connection.Bind(LdapConnection.LdapV3, $"{username}@{_ldapSettings.Domain}", password);
                 }
