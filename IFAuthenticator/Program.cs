@@ -1,4 +1,5 @@
 using IFGlobal;
+using Microsoft.OpenApi.Models;
 
 int port = PortResolver.GetPort("IFAuthenticator");
 
@@ -6,14 +7,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    serverOptions.ListenLocalhost(port); 
-    // serverOptions.ListenAnyIP(port);
+    // serverOptions.ListenLocalhost(port); 
+    serverOptions.ListenAnyIP(port);
 });
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "IFAuthenticator API", Version = "v1" }); });
 
 // Add CORS services with a specific policy
 builder.Services.AddCors(options =>
@@ -21,27 +22,33 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigins",
         policyBuilder => policyBuilder
             .WithOrigins(
-              $"http://localhost:{port}", // for testing 
-              $"http://thehybrid:{port}", // for testing
-              $"http://gambit:{port}",    // for testing
+              "https://longmanrd.net",
+             $"http://localhost:{port}",
+             $"http://thehybrid:{port}",
+             $"http://gambit:{port}",
               "http://localhost:4200")
+            .SetIsOriginAllowedToAllowWildcardSubdomains()
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-//if(app.Environment.IsDevelopment())
-//{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-//}
+app.UseStaticFiles(); // Serve static files
 
-// Enable CORS with the specified policy
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowSpecificOrigins"); // Enable CORS with the specified policy
 
-app.UseAuthorization();
+app.UseRouting(); // This should be explicitly added if it’s not already there
+
+app.UseSwagger(); // Swagger must be accessible without authorization
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "IFAuthenticator API V1");
+    c.RoutePrefix = "swagger";
+});
+
+app.UseAuthentication(); // If using authentication
+app.UseAuthorization(); // Apply authorization
 
 app.MapControllers();
 
