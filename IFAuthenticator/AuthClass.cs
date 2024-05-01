@@ -175,6 +175,8 @@ namespace IFAuthenticator.Controllers
 
                 if (_ldapSettings.UseSSL)
                 {
+                    connection.UserDefinedServerCertValidationDelegate += (sender, certificate, chain, sslPolicyErrors) => { return true; };
+
                     // Default port for LDAPS is usually 636, ensure it's set correctly in _ldapSettings
                     connection.Connect(_ldapSettings.Server, _ldapSettings.Port);
                     connection.Bind(LdapConnection.LdapV3, $"{username}@{_ldapSettings.Domain}", password);
