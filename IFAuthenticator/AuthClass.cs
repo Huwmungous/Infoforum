@@ -110,7 +110,7 @@ namespace IFAuthenticator.Controllers
             });
         }
 
-        private string _searchBase;
+        private string _searchBase = string.Empty;
         public string SearchBase {
             get 
             {
