@@ -1,4 +1,5 @@
 ﻿using System.DirectoryServices.Protocols;
+using System.DirectoryServices.AccountManagement;
 using System.Net;
 using Microsoft.Extensions.Options;
 using System.Timers;
@@ -77,6 +78,35 @@ namespace IFAuthenticator.Controllers
         public async Task<(bool isAuthenticated, string token)> AuthenticateUserAsync(string username, string password)
         {
             var result = (false, "");
+            await Task.Run(() =>
+            {
+                try
+                {
+                    using (var context = new PrincipalContext(ContextType.Domain, _ldapSettings.Domain))
+                    {
+                        if (context.ValidateCredentials(username, password))
+                        {
+                            string token = Guid.NewGuid().ToString().Replace("-", "");
+                            _authenticatedUsers[token] = new() { User = username, Pass = password };
+                            _claims[token] = [];
+                            result = (true, token);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Handle or log the error as needed
+                    _logger.LogError($"An error occurred: {ex.Message}");
+                }
+            });
+
+            return result;
+        }
+
+        /*
+        public async Task<(bool isAuthenticated, string token)> AuthenticateUserAsync(string username, string password)
+        {
+            var result = (false, "");
 
             await Task.Run(() =>
             {
@@ -103,6 +133,7 @@ namespace IFAuthenticator.Controllers
 
             return result;
         }
+        */
 
         public async Task<bool> AuthoriseAsync(string token, string claim)
         {
