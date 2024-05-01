@@ -83,7 +83,6 @@ namespace IFAuthenticator.Controllers
                 try
                 {
                     using var conn = GetLdapConnection(username, password);
-
                     if (conn is not null)
                     {
                         string token = Guid.NewGuid().ToString().Replace("-", "");
@@ -205,7 +204,7 @@ namespace IFAuthenticator.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Connection Failed for user {username}@{_ldapSettings.Domain} : {ex.Message}");
+                _logger.LogError($"Connection Failed for user {username}@{_ldapSettings.Domain} : {ex}");
 
                 return null;
             }
