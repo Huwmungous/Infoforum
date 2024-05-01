@@ -1,8 +1,8 @@
-﻿using Novell.Directory.Ldap;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using System.Timers;
 using System.Collections.Concurrent;
 using System.Net;
+using Novell.Directory.Ldap;
 
 namespace IFAuthenticator.Controllers
 {
@@ -16,10 +16,10 @@ namespace IFAuthenticator.Controllers
         private static readonly string serviceUser = Environment.GetEnvironmentVariable("LDAP_SERVICE_USER") ?? "";
         private static readonly string servicePass = Environment.GetEnvironmentVariable("LDAP_SERVICE_PASSWORD") ?? "";
 
-        private static LdapConnection _claimsConnection;
+        private static LdapConnection? _claimsConnection;
         private static DateTime _lastClaimsRequest;
 
-        public LdapConnection ClaimsConnection
+        public LdapConnection? ClaimsConnection
         {
             get
             {
@@ -165,7 +165,8 @@ namespace IFAuthenticator.Controllers
             return _claims[token].Contains(claim);
         }
 
-        private LdapConnection GetLdapConnection(string username, string password)
+        [Obsolete]
+        private LdapConnection? GetLdapConnection(string username, string password)
         {
             try
             {
@@ -175,6 +176,7 @@ namespace IFAuthenticator.Controllers
 
                 if (_ldapSettings.UseSSL)
                 {
+                    // Obsolete, but do not know how to resolve
                     connection.UserDefinedServerCertValidationDelegate += (sender, certificate, chain, sslPolicyErrors) => { return true; };
 
                     // Default port for LDAPS is usually 636, ensure it's set correctly in _ldapSettings
