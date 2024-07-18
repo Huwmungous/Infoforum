@@ -16,6 +16,7 @@ namespace IFGlobal
         {
             switch (appname)
             {
+                case "BreakTackle": return 5000;
                 case "BreakTackleAPI": return 5001;
                 case "JibberJabber": return 5002;
                 case "BTAuthenticator": return 5003;
