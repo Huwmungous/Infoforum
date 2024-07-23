@@ -21,6 +21,7 @@ namespace IFGlobal
                 case "JibberJabber": return 5002;
                 case "BTAuthenticator": return 5003;
                 case "IFAuthenticator": return 5004;
+                case "SvgApi": return 5005;
 
                 default:
                     string msg = $"PortResolver Does Not Recognise {appname}";
