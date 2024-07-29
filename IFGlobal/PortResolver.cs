@@ -21,7 +21,7 @@ namespace IFGlobal
                 case "SvgApi": return 5005;
 
                 default:
-                    string msg = $"PortResolver Does Not Recognise {appname}";
+                    string msg = $"PortResolver Does Not Recognise '{appname}'";
 
                     Console.WriteLine(msg);
                     
