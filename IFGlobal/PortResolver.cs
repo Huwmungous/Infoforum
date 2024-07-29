@@ -7,10 +7,7 @@ namespace IFGlobal
     {
         static string? _appName;
 
-        public static int GetPort()
-        {
-            return GetPort(AppName);
-        }
+        public static int GetPort() { return GetPort(AppName); }
 
         public static int GetPort(string appname)
         {
@@ -31,7 +28,6 @@ namespace IFGlobal
                     throw new ArgumentException(msg);
             }
         }
-
         private static string AppName
         {
             get
