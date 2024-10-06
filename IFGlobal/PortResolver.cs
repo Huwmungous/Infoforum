@@ -19,6 +19,8 @@ namespace IFGlobal
                 case "BTAuthenticator": return 5003;
                 case "IFAuthenticator": return 5004;
                 case "SvgApi": return 5005;
+                case "KeyCloak_Reserved_1": return 5006;
+                case "KeyCloak_Reserved_2": return 5007;
 
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";
