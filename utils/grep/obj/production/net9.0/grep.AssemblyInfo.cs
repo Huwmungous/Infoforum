@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("grep")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("production")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5a2bc262e02a5de6578f3c7bcdbb6f62ce86354d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f1a781222f833a477c36a1cc6a8634c3b76c4093")]
 [assembly: System.Reflection.AssemblyProductAttribute("grep")]
 [assembly: System.Reflection.AssemblyTitleAttribute("grep")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

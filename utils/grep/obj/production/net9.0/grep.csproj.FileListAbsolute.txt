@@ -18,3 +18,13 @@ c:\program files\IFUtils\grep.deps.json
 c:\program files\IFUtils\grep.runtimeconfig.json
 c:\program files\IFUtils\grep.dll
 c:\program files\IFUtils\grep.pdb
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.GeneratedMSBuildEditorConfig.editorconfig
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.AssemblyInfoInputs.cache
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.AssemblyInfo.cs
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.csproj.CoreCompileInputs.cache
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.sourcelink.json
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.dll
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\refint\grep.dll
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.pdb
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.genruntimeconfig.cache
+D:\repos\Infoforum\utils\grep\obj\production\net9.0\ref\grep.dll
