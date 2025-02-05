@@ -1,45 +1,42 @@
 ﻿using System;
 using System.IO;
 
-class Program
+class Ls
 {
     static void Main(string[] args)
     {
         // Default directory to display files from
         string directoryPath = ".";
-        string filter = "*";
+        string nameFilter = "*";
 
         // Parse command-line arguments
         if (args.Length > 0)
         {
-            for (int i = 0; i < args.Length; i++)
+            string inputPath = args[0];
+            string fullPath = Path.GetFullPath(inputPath);
+
+            if (Directory.Exists(fullPath))
             {
-                if (args[i] == "-d" && i + 1 < args.Length)
-                {
-                    directoryPath = args[i + 1];
-                    i++;
-                }
-                else if (args[i] == "-f" && i + 1 < args.Length)
-                {
-                    filter = args[i + 1];
-                    i++;
-                }
+                directoryPath = fullPath;
+                nameFilter = "*";
+            }
+            else
+            {
+                directoryPath = Path.GetDirectoryName(fullPath) ?? ".";
+                nameFilter = Path.GetFileName(fullPath) ?? "*";
             }
         }
 
         // Validate the directory path
         if (!Directory.Exists(directoryPath))
-        {
-            Console.WriteLine($"The specified directory '{directoryPath}' does not exist.");
-            return;
-        }
+            throw new Exception($"The specified directory '{directoryPath}' does not exist.");
 
         try
         {
             // Get all files in the specified directory that match the filter
-            string[] files = Directory.GetFiles(directoryPath, filter);
+            string[] files = Directory.GetFiles(directoryPath, nameFilter);
 
-            // Display the list of files
+            // Display the files
             foreach (string file in files)
             {
                 Console.WriteLine(file);
@@ -47,7 +44,7 @@ class Program
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message}");
         }
     }
 }

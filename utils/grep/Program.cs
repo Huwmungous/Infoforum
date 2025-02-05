@@ -3,12 +3,12 @@ using System.IO;
 
 class Grep
 {
-    static bool useStdin = false;
-    static string searchPattern = "";
-    static string inputFilePath = ".";
-    static string outputFilePath = "";
-    static bool writeToConsole = true;
-    static bool recursive = false;
+    public static string searchPattern = "";
+    public static string? inputFilePath = "";
+    public static string? outputFilePath = "";
+    public static bool writeToConsole = true;
+    public static bool recursive = false;
+    public static bool useStdin = false;
 
     static void Main(string[] args)
     {
@@ -22,95 +22,77 @@ class Grep
 
         parseCommandLine(args);
 
-        if (Grep.useStdin == false && string.IsNullOrEmpty(Grep.inputFilePath))
+        if (Console.IsInputRedirected)
         {
-            Console.WriteLine("Usage: grep <search_pattern> [-r] [<file_path>] [<output_file_path>]");
-            return;
-        }
-
-        if (Grep.useStdin)
-        {
-            // Read from stdin
-            while ((Grep.inputFilePath? = Console.ReadLine()) != null)
+            // Read file paths from standard input
+            string? line;
+            while ((line = Console.ReadLine()) != null)
             {
-                if (Grep.recursive || Grep.inputFilePath.Contains(searchPattern))
-                {
-                    WriteLineToDestination(Grep.inputFilePath, Grep.outputFilePath, Grep.writeToConsole);
-                }
+                ProcessFile(line);
             }
         }
         else
         {
-            // Read from file path provided as argument and search recursively if needed
+            if (Grep.useStdin)
+            {
+                Console.WriteLine("Enter the file path:");
+                Grep.inputFilePath = Console.ReadLine();
+            }
+
+            if (string.IsNullOrEmpty(Grep.inputFilePath))
+            {
+                Console.WriteLine("Usage: grep <search_pattern> [-r] [<file_path>] [<output_file_path>]");
+                return;
+            }
+
             try
             {
-                SearchDirectoryForPattern(inputFilePath, searchPattern, outputFilePath, recursive, writeToConsole);
+                if (Grep.recursive)
+                {
+                    foreach (var file in Directory.GetFiles(Grep.inputFilePath, "*", SearchOption.AllDirectories))
+                    {
+                        ProcessFile(file);
+                    }
+                }
+                else
+                {
+                    ProcessFile(Grep.inputFilePath);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
-    }
-
-    static void parseSwitch(string sw)
-    {
-        if(sw == "-r")
-          recursive = true;
     }
 
     static void parseCommandLine(string[] args)
     {
         for (int i = 1; i < args.Length; i++)
         {
-            Console.WriteLine(args[i]);
-            
-            if (args[i].StartsWith("-")) 
-              parseSwitch(args[i]);
-
-            else if (!useStdin)
+            if (args[i] == "-r")
             {
-                if (i + 1 < args.Length && args[i + 1] != "-r" && !args[i + 1].StartsWith("-"))
-                {
-                    inputFilePath = args[i];
-                    outputFilePath = args[++i];
-                }
-                else
-                {
-                    searchPattern = args[i];
-                }
+                Grep.recursive = true;
+            }
+            else if (args[i] == "-")
+            {
+                Grep.useStdin = true;
+            }
+            else if (i == args.Length - 1)
+            {
+                Grep.outputFilePath = args[i];
+                Grep.writeToConsole = false;
+            }
+            else
+            {
+                Grep.inputFilePath = args[i];
             }
         }
     }
 
-    static void SearchDirectoryForPattern(string directoryPath, string searchPattern, string outputFilePath, bool recursive, bool writeToConsole)
+    static void WriteLineToDestination(string line, string? outputFilePath, bool writeToConsole)
     {
-        foreach (string file in Directory.GetFiles(directoryPath))
-        {
-            if (File.Exists(file)) // Ensure the path is a file and not a directory entry
-            {
-                foreach (string line in File.ReadLines(file))
-                {
-                    if (line.Contains(searchPattern))
-                    {
-                        WriteLineToDestination(line, outputFilePath, writeToConsole);
-                    }
-                }
-            }
-        }
-
-        if (recursive)
-        {
-            foreach (string directory in Directory.GetDirectories(directoryPath))
-            {
-                SearchDirectoryForPattern(directory, searchPattern, outputFilePath, recursive, writeToConsole);
-            }
-        }
-    }
-
-    static void WriteLineToDestination(string line, string outputFilePath, bool writeToConsole)
-    {
-        if (writeToConsole)
+        if (writeToConsole || string.IsNullOrEmpty(outputFilePath))
         {
             Console.WriteLine(line);
         }
@@ -118,6 +100,19 @@ class Grep
         if (!string.IsNullOrEmpty(outputFilePath))
         {
             File.AppendAllText(outputFilePath, line + Environment.NewLine);
+        }
+    }
+
+    static void ProcessFile(string filePath)
+    {
+        foreach (var line in File.ReadLines(filePath))
+        {
+            if (line.Contains(Grep.searchPattern))
+            {
+                string outputLine = $"{filePath}: {line}";
+                System.Console.WriteLine( filePath, Grep.writeToConsole );
+                WriteLineToDestination(outputLine, Grep.outputFilePath, Grep.writeToConsole);
+            }
         }
     }
 }
