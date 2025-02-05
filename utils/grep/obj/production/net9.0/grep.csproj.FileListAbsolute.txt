@@ -1,0 +1,20 @@
+C:\repos\Infoforum\utils\grep\bin\production\net9.0\grep.exe
+C:\repos\Infoforum\utils\grep\bin\production\net9.0\grep.deps.json
+C:\repos\Infoforum\utils\grep\bin\production\net9.0\grep.runtimeconfig.json
+C:\repos\Infoforum\utils\grep\bin\production\net9.0\grep.dll
+C:\repos\Infoforum\utils\grep\bin\production\net9.0\grep.pdb
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.GeneratedMSBuildEditorConfig.editorconfig
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.AssemblyInfoInputs.cache
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.AssemblyInfo.cs
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.csproj.CoreCompileInputs.cache
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.sourcelink.json
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.dll
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\refint\grep.dll
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.pdb
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\grep.genruntimeconfig.cache
+C:\repos\Infoforum\utils\grep\obj\production\net9.0\ref\grep.dll
+c:\program files\IFUtils\grep.exe
+c:\program files\IFUtils\grep.deps.json
+c:\program files\IFUtils\grep.runtimeconfig.json
+c:\program files\IFUtils\grep.dll
+c:\program files\IFUtils\grep.pdb
