@@ -5,3 +5,5 @@
 /.vs
 /.obj
 /.bin
+/utils/cat/bin
+/utils/cat/obj
