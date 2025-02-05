@@ -1,0 +1,15 @@
+D:\repos\Infoforum\utils\cat\bin\Debug\net9.0\cat.exe
+D:\repos\Infoforum\utils\cat\bin\Debug\net9.0\cat.deps.json
+D:\repos\Infoforum\utils\cat\bin\Debug\net9.0\cat.runtimeconfig.json
+D:\repos\Infoforum\utils\cat\bin\Debug\net9.0\cat.dll
+D:\repos\Infoforum\utils\cat\bin\Debug\net9.0\cat.pdb
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.GeneratedMSBuildEditorConfig.editorconfig
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.AssemblyInfoInputs.cache
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.AssemblyInfo.cs
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.csproj.CoreCompileInputs.cache
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.sourcelink.json
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.dll
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\refint\cat.dll
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.pdb
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\cat.genruntimeconfig.cache
+D:\repos\Infoforum\utils\cat\obj\Debug\net9.0\ref\cat.dll

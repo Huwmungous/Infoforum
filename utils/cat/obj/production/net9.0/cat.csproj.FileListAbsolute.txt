@@ -1,0 +1,15 @@
+c:\program files\ifutils\cat.exe
+c:\program files\ifutils\cat.deps.json
+c:\program files\ifutils\cat.runtimeconfig.json
+c:\program files\ifutils\cat.dll
+c:\program files\ifutils\cat.pdb
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.GeneratedMSBuildEditorConfig.editorconfig
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.AssemblyInfoInputs.cache
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.AssemblyInfo.cs
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.csproj.CoreCompileInputs.cache
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.sourcelink.json
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.dll
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\refint\cat.dll
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.pdb
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\cat.genruntimeconfig.cache
+D:\repos\Infoforum\utils\cat\obj\production\net9.0\ref\cat.dll
