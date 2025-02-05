@@ -10,26 +10,32 @@ class Program
         string inputFilePath = "";
         string outputFilePath = "";
         bool writeToConsole = true;
+        bool recursive = false;
 
-        // Check if no arguments are provided, which means stdin should be used
-        if (args.Length == 0)
+        // Parse command line arguments to determine options and inputs
+        for (int i = 0; i < args.Length; i++)
         {
-            useStdin = true;
+            if (args[i] == "-r")
+            {
+                recursive = true;
+            }
+            else if (useStdin == false)
+            {
+                if (i + 1 < args.Length && args[i + 1] != "-r" && !args[i + 1].StartsWith("-"))
+                {
+                    inputFilePath = args[i];
+                    outputFilePath = args[++i];
+                }
+                else
+                {
+                    searchPattern = args[i];
+                }
+            }
         }
-        else if (args.Length >= 3)
+
+        if (args.Length == 0 || (useStdin == false && string.IsNullOrEmpty(inputFilePath)))
         {
-            searchPattern = args[0];
-            inputFilePath = args[1];
-            outputFilePath = args[2];
-        }
-        else if (args.Length == 2)
-        {
-            searchPattern = args[0];
-            inputFilePath = args[1];
-        }
-        else
-        {
-            Console.WriteLine("Usage: grep <search_pattern> [<file_path>] [<output_file_path>]");
+            Console.WriteLine("Usage: grep <search_pattern> [-r] [<file_path>] [<output_file_path>]");
             return;
         }
 
@@ -38,7 +44,7 @@ class Program
             // Read from stdin
             while ((inputFilePath = Console.ReadLine()) != null)
             {
-                if (inputFilePath.Contains(searchPattern))
+                if (recursive || inputFilePath.Contains(searchPattern))
                 {
                     WriteLineToDestination(inputFilePath, outputFilePath, writeToConsole);
                 }
@@ -46,10 +52,25 @@ class Program
         }
         else
         {
-            // Read from file path provided as argument
+            // Read from file path provided as argument and search recursively if needed
             try
             {
-                foreach (string line in File.ReadLines(inputFilePath))
+                SearchDirectoryForPattern(inputFilePath, searchPattern, outputFilePath, recursive, writeToConsole);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
+            }
+        }
+    }
+
+    static void SearchDirectoryForPattern(string directoryPath, string searchPattern, string outputFilePath, bool recursive, bool writeToConsole)
+    {
+        foreach (string file in Directory.GetFiles(directoryPath))
+        {
+            if (File.Exists(file)) // Ensure the path is a file and not a directory entry
+            {
+                foreach (string line in File.ReadLines(file))
                 {
                     if (line.Contains(searchPattern))
                     {
@@ -57,9 +78,13 @@ class Program
                     }
                 }
             }
-            catch (Exception ex)
+        }
+
+        if (recursive)
+        {
+            foreach (string directory in Directory.GetDirectories(directoryPath))
             {
-                Console.WriteLine($"An error occurred: {ex.Message}");
+                SearchDirectoryForPattern(directory, searchPattern, outputFilePath, recursive, writeToConsole);
             }
         }
     }
