@@ -12,33 +12,30 @@
     width: 100%;
     margin-bottom: 16px;
   }
-
+  
   button {
     min-width: 120px;
   }
-
+  
   .mat-progress-spinner {
     margin-left: 10px;
   }
-
-  .response-container {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 6px;
-    background: #f8f9fa; // Light gray background for contrast
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  }
   
-  pre {
-    font-family: "Courier New", monospace;
+  .response-card {
     font-size: 16px;          
     font-weight: 600;         
     color: #212529;          
-    background: #ffffff;     
+    background: #f8f9fa; // Light gray background for contrast
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);  
     padding: 10px;
-    border-radius: 5px;
+    margin: 15px;
+    border-radius: 6px;
+    border-style: ridge;
     white-space: pre-wrap;
     word-wrap: break-word;
-    border: 1px solid #ddd;  
+    border: 1px solid #ddd;
+
+    .code-block {
+      font-family: 'Courier New', Courier, monospace; 
+    }
   }
-  

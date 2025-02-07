@@ -1,12 +1,14 @@
+// deepseek.component.ts
 import { Component } from '@angular/core';
-import { OllamaService } from '../ollama.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { MatInputModule } from '@angular/material/input'; 
+import { FormatResponsePipe } from './format-response-pipe';
+import { OllamaService } from '../ollama.service';
 
 @Component({
   selector: 'app-deepseek',
@@ -20,12 +22,13 @@ import { MatInputModule } from '@angular/material/input';
     MatFormFieldModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    MatInputModule
+    MatInputModule,
+    FormatResponsePipe   
   ]
 })
 export class DeepseekComponent {
   prompt: string = '';
-  response: string = '';  // ✅ Changed from `string[]` to `string`
+  response: string = '';
   loading: boolean = false;
   error: string = '';
 
@@ -39,12 +42,13 @@ export class DeepseekComponent {
 
     this.loading = true;
     this.error = '';
-    this.response = ''; // ✅ Clear previous response
+    this.response = '';
 
     this.ollamaService.sendPrompt(this.prompt)
       .subscribe({
         next: (chunk: string) => {
-          this.response += chunk + ' ';  // ✅ Append streaming text to `response`
+          console.log('Chunk:', chunk);
+          this.response += chunk + ' ';
         },
         error: (err) => {
           console.error('Error:', err);
@@ -52,7 +56,7 @@ export class DeepseekComponent {
           this.loading = false;
         },
         complete: () => {
-          this.loading = false; // ✅ Stop loading when stream completes
+          this.loading = false;
         }
       });
   }

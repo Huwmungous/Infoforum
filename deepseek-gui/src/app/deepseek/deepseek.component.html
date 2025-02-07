@@ -1,49 +1,44 @@
-<!-- src/app/deepseek/deepseek.component.html -->
-<div class="container mt-5">
-    <mat-card>
-      <mat-card-title>Deepseek Coder Interface</mat-card-title>
-      <mat-card-content>
-        <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
-          <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Enter your prompt</mat-label>
-            <textarea
-              matInput
-              placeholder="How may I help?..."
-              [(ngModel)]="prompt"
-              name="prompt"
-              rows="20">
-            </textarea>
-          </mat-form-field>
-          <div class="d-flex align-items-center mt-3">
-            <button mat-raised-button color="primary" type="submit" [disabled]="loading">
-              {{ loading ? 'Processing...' : 'Send' }}
-            </button>
-            <!-- Loading spinner (Angular Material) -->
-            <mat-progress-spinner
-              *ngIf="loading"
-              mode="indeterminate"
-              diameter="30"
-              class="ml-3">
-            </mat-progress-spinner>
-          </div>
-        </form>
-        
-        <!-- Progress Bar below the form -->
-        <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-  
-        <div *ngIf="error" class="alert alert-danger mt-3">
-          {{ error }}
+<!-- deepseek.component.html -->
+<div>A simple c# 'Hello World' program</div>
+<div class="container mt-1">
+  <mat-card class="mb-4 request-card">
+    <mat-card-title class="title">Intelligence Coding Assistance</mat-card-title>
+    <mat-card-content>
+      <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Enter your prompt</mat-label>
+          <textarea
+            matInput
+            placeholder="How may I help?... "
+            [(ngModel)]="prompt"
+            name="prompt"
+            rows="20">
+          </textarea>
+        </mat-form-field>
+        <div class="d-flex align-items-center mt-3">
+          <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+            {{ loading ? 'Processing...' : 'Send' }}
+          </button>
+          <mat-progress-spinner
+            *ngIf="loading"
+            mode="indeterminate"
+            diameter="30"
+            class="ml-3">
+          </mat-progress-spinner>
         </div>
-  
-        <!-- Streamed response display -->
-        <div *ngIf="response.length > 0" class="mt-4">
-          <mat-card>
-            <mat-card-content>
-              <pre>{{ response }}</pre>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </mat-card-content>
-    </mat-card>
+      </form>
+
+      <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        {{ error }}
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="response-card" *ngIf="response.length > 0" class="mt-4">
+    <div [innerHTML]="response | formatResponse"></div> 
   </div>
-  
+</div>
+
+
