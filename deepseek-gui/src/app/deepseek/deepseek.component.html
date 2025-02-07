@@ -1,8 +1,8 @@
 <!-- deepseek.component.html -->
 <div>A simple c# 'Hello World' program</div>
-<div class="container mt-1">
+<div class="container mt-5">
   <mat-card class="mb-4 request-card">
-    <mat-card-title class="title">Intelligence Coding Assistance</mat-card-title>
+    <mat-card-title class="title mt-5 mb-5">Intelligence Coding Assistance</mat-card-title>
     <mat-card-content>
       <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
         <mat-form-field appearance="outline" class="w-100">
@@ -36,7 +36,7 @@
     </mat-card-content>
   </mat-card>
 
-  <div class="response-card" *ngIf="response.length > 0" class="mt-4">
+  <div class="response-card mt-5" *ngIf="response.length > 0" >
     <div [innerHTML]="response | formatResponse"></div> 
   </div>
 </div>
