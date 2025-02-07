@@ -7,3 +7,7 @@
 /.bin
 /utils/cat/bin
 /utils/cat/obj
+/utils/ls/.vs
+/utils/grep/obj
+/utils/grep/bin
+/utils/ls/obj
