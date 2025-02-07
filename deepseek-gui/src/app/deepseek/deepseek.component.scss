@@ -1,0 +1,44 @@
+// Main container styling
+.container { 
+    margin: 10px auto;
+    padding: 10px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  // Form field adjustments
+  mat-form-field {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  button {
+    min-width: 120px;
+  }
+
+  .mat-progress-spinner {
+    margin-left: 10px;
+  }
+
+  .response-container {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 6px;
+    background: #f8f9fa; // Light gray background for contrast
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  }
+  
+  pre {
+    font-family: "Courier New", monospace;
+    font-size: 16px;          
+    font-weight: 600;         
+    color: #212529;          
+    background: #ffffff;     
+    padding: 10px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    border: 1px solid #ddd;  
+  }
+  

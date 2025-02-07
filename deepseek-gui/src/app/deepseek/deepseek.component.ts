@@ -25,7 +25,7 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class DeepseekComponent {
   prompt: string = '';
-  response: string = '';
+  response: string = '';  // ✅ Changed from `string[]` to `string`
   loading: boolean = false;
   error: string = '';
 
@@ -36,21 +36,24 @@ export class DeepseekComponent {
       this.error = 'Please enter a prompt.';
       return;
     }
+
     this.loading = true;
     this.error = '';
-    this.response = '';
+    this.response = ''; // ✅ Clear previous response
 
-    this.ollamaService.sendPrompt(this.prompt).subscribe({
-      next: (data) => {
-        // Assuming the API returns a JSON object with a property "response"
-        this.response = data.response || JSON.stringify(data, null, 2);
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error:', err);
-        this.error = 'An error occurred while processing your request.';
-        this.loading = false;
-      }
-    });
+    this.ollamaService.sendPrompt(this.prompt)
+      .subscribe({
+        next: (chunk: string) => {
+          this.response += chunk + ' ';  // ✅ Append streaming text to `response`
+        },
+        error: (err) => {
+          console.error('Error:', err);
+          this.error = 'An error occurred while processing your request.';
+          this.loading = false;
+        },
+        complete: () => {
+          this.loading = false; // ✅ Stop loading when stream completes
+        }
+      });
   }
 }
