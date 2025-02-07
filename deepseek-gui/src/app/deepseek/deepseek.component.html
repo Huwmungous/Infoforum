@@ -1,0 +1,47 @@
+<!-- src/app/deepseek/deepseek.component.html -->
+<div class="container mt-5">
+    <mat-card>
+      <mat-card-title>Deepseek Coder Interface</mat-card-title>
+      <mat-card-content>
+        <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Enter your prompt</mat-label>
+            <textarea
+              matInput
+              placeholder="Type your code prompt here..."
+              [(ngModel)]="prompt"
+              name="prompt"
+              rows="5">
+            </textarea>
+          </mat-form-field>
+          <div class="d-flex align-items-center mt-3">
+            <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+              {{ loading ? 'Processing...' : 'Send' }}
+            </button>
+            <!-- Loading spinner (Angular Material) -->
+            <mat-progress-spinner
+              *ngIf="loading"
+              mode="indeterminate"
+              diameter="30"
+              class="ml-3">
+            </mat-progress-spinner>
+          </div>
+        </form>
+        <!-- Progress Bar below the form -->
+        <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+  
+        <div *ngIf="error" class="alert alert-danger mt-3">
+          {{ error }}
+        </div>
+        <div *ngIf="response" class="mt-4">
+          <h3>Response:</h3>
+          <mat-card>
+            <mat-card-content>
+              <pre>{{ response }}</pre>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  
