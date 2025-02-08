@@ -21,6 +21,7 @@ namespace IFGlobal
                 case "SvgApi": return 5005;
                 case "KeyCloak_Reserved_1": return 5006;
                 case "KeyCloak_Reserved_2": return 5007;
+                case "IFOllama": return 5008;
 
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";

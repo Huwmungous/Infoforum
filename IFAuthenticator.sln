@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFAuthenticator", "IFAuthen
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFGlobal", "IFGlobal\IFGlobal.csproj", "{230B3653-8C87-453F-9846-6F06440E725E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFOllama", "IFOllama\IFOllama.csproj", "{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{230B3653-8C87-453F-9846-6F06440E725E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{230B3653-8C87-453F-9846-6F06440E725E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{230B3653-8C87-453F-9846-6F06440E725E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
