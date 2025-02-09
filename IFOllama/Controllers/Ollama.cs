@@ -31,15 +31,15 @@ namespace IFOllama.Controllers
 
                 var response = await _httpClient.PostAsync(apiUrl, content);
 
-                if (!response.IsSuccessStatusCode) 
-                    return StatusCode((int)response.StatusCode, "Request failed"); 
+                if (!response.IsSuccessStatusCode)
+                    return StatusCode((int)response.StatusCode, "Request failed");
 
-                var responseStream = await response.Content.ReadAsStreamAsync();
-                var responseStreamReader = new StreamReader(responseStream);
+                var resultStream = await response.Content.ReadAsStreamAsync();
+                var resultStreamReader = new StreamReader(resultStream);
                 var responseStreamWriter = new MemoryStream();
-                var responseStreamWriterWriter = new StreamWriter(responseStreamWriter);
+                var formattedWriter = new StreamWriter(responseStreamWriter);
 
-                using (var jsonReader = new JsonTextReader(responseStreamReader))
+                using (var jsonReader = new JsonTextReader(resultStreamReader) { SupportMultipleContent = true })
                 {
                     var jsonSerializer = new JsonSerializer();
 
@@ -50,8 +50,8 @@ namespace IFOllama.Controllers
                             var responseObject = jsonSerializer.Deserialize<OllamaResponse>(jsonReader);
                             if (responseObject != null)
                             {
-                                await responseStreamWriterWriter.WriteLineAsync(responseObject.Response);
-                                await responseStreamWriterWriter.FlushAsync();
+                                await formattedWriter.WriteAsync(responseObject.Response);
+                                await formattedWriter.FlushAsync();
                             }
                         }
                     }
@@ -75,17 +75,17 @@ namespace IFOllama.Controllers
 
     public class OllamaResponse
     {
-        public string Model { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string Response { get; set; }
-        public bool Done { get; set; }
-        public string DoneReason { get; set; }
-        public List<int> Context { get; set; }
-        public long TotalDuration { get; set; }
-        public long LoadDuration { get; set; }
-        public int PromptEvalCount { get; set; }
-        public long PromptEvalDuration { get; set; }
-        public int EvalCount { get; set; }
-        public long EvalDuration { get; set; }
+        public required string Model { get; set; }
+        public required DateTime CreatedAt { get; set; }
+        public required string Response { get; set; }
+        public required bool Done { get; set; }
+        public required string DoneReason { get; set; }
+        public required List<int> Context { get; set; }
+        public required long TotalDuration { get; set; }
+        public required long LoadDuration { get; set; }
+        public required int PromptEvalCount { get; set; }
+        public required long PromptEvalDuration { get; set; }
+        public required int EvalCount { get; set; }
+        public required long EvalDuration { get; set; }
     }
 }
