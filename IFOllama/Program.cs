@@ -13,6 +13,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddHttpClient(); // Register HttpClient
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" }); });
 

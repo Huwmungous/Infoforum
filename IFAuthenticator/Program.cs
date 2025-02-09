@@ -7,14 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    // serverOptions.ListenLocalhost(port); 
+    // Configure Kestrel to listen on HTTP
     serverOptions.ListenAnyIP(port);
 });
 
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "IFAuthenticator API", Version = "v1" }); });
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "IFAuthenticator API", Version = "v1" });
+});
 
 // Add CORS services with a specific policy
 builder.Services.AddCors(options =>
@@ -22,7 +25,6 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowSpecificOrigins",
         policyBuilder => policyBuilder
             .WithOrigins(
-              "https://longmanrd.net",
              $"http://localhost:{port}",
              $"http://thehybrid:{port}",
              $"http://gambit:{port}",
@@ -40,11 +42,12 @@ app.UseCors("AllowSpecificOrigins"); // Enable CORS with the specified policy
 
 app.UseRouting(); // This should be explicitly added if it’s not already there
 
+// Enable Swagger middleware
 app.UseSwagger(); // Swagger must be accessible without authorization
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "IFAuthenticator API V1");
-    c.RoutePrefix = "swagger";
+    c.RoutePrefix = "swagger"; // Set Swagger UI at the /swagger endpoint
 });
 
 app.UseAuthentication(); // If using authentication
@@ -52,4 +55,4 @@ app.UseAuthorization(); // Apply authorization
 
 app.MapControllers();
 
-app.Run();
+app.Run($"http://*:{port}"); // Listen on HTTP port
