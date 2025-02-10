@@ -19,43 +19,18 @@ namespace IFOllama.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendPrompt([FromBody] string prompt)
+        public async Task<IActionResult> SendPrompt([FromBody] string prompt, string dest = "code")
         {
             try
             {
-                var apiUrl = _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is not configured.");
-                var model = _configuration["Model"] ?? throw new InvalidOperationException("Model is not configured.");
+                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = SelectModel(dest), Prompt = prompt }), Encoding.UTF8, "application/json");
 
-                var jsonString = JsonConvert.SerializeObject(new OllamaRequest { Model = model, Prompt = prompt });
-                var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync(apiUrl, content);
+                var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
 
                 if (!response.IsSuccessStatusCode)
                     return StatusCode((int)response.StatusCode, "Request failed");
 
-                var tokenStrem = await response.Content.ReadAsStreamAsync();
-                var tokenStreamReader = new StreamReader(tokenStrem);
-                var responseStreamWriter = new MemoryStream();
-                var formattedWriter = new StreamWriter(responseStreamWriter);
-
-                using (var jsonReader = new JsonTextReader(tokenStreamReader) { SupportMultipleContent = true })
-                {
-                    var jsonSerializer = new JsonSerializer();
-
-                    while (await jsonReader.ReadAsync())
-                    {
-                        if (jsonReader.TokenType == JsonToken.StartObject)
-                        {
-                            var responseObject = jsonSerializer.Deserialize<OllamaResponse>(jsonReader);
-                            if (responseObject != null)
-                            {
-                                await formattedWriter.WriteAsync(responseObject.Response);
-                                await formattedWriter.FlushAsync();
-                            }
-                        }
-                    }
-                }
+                MemoryStream responseStreamWriter = await HandleResponse(response);
 
                 responseStreamWriter.Seek(0, SeekOrigin.Begin);
                 return new FileStreamResult(responseStreamWriter, "text/plain");
@@ -65,27 +40,47 @@ namespace IFOllama.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
-    }
 
-    public class OllamaRequest
-    {
-        public required string Model { get; set; }
-        public required string Prompt { get; set; }
-    }
+        private static async Task<MemoryStream> HandleResponse(HttpResponseMessage response)
+        {
+            var tokenStream = await response.Content.ReadAsStreamAsync();
+            var tokenStreamReader = new StreamReader(tokenStream);
+            var responseStreamWriter = new MemoryStream();
+            var responseWriter = new StreamWriter(responseStreamWriter);
 
-    public class OllamaResponse
-    {
-        public required string Model { get; set; }
-        public required DateTime CreatedAt { get; set; }
-        public required string Response { get; set; }
-        public required bool Done { get; set; }
-        public required string DoneReason { get; set; }
-        public required List<int> Context { get; set; }
-        public required long TotalDuration { get; set; }
-        public required long LoadDuration { get; set; }
-        public required int PromptEvalCount { get; set; }
-        public required long PromptEvalDuration { get; set; }
-        public required int EvalCount { get; set; }
-        public required long EvalDuration { get; set; }
+            using (var jsonReader = new JsonTextReader(tokenStreamReader) { SupportMultipleContent = true })
+            {
+                var jsonSerializer = new JsonSerializer();
+
+                while (await jsonReader.ReadAsync())
+                {
+                    if (jsonReader.TokenType == JsonToken.StartObject)
+                    {
+                        var responseObject = jsonSerializer.Deserialize<OllamaResponse>(jsonReader);
+                        if (responseObject != null)
+                        {
+                            await responseWriter.WriteAsync(responseObject.Response);
+                            await responseWriter.FlushAsync();
+                        }
+                    }
+                }
+            }
+
+            return responseStreamWriter;
+        }
+
+        private string SelectAPIUrl()
+        {
+            return _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is not configured.");
+        }
+
+        private string SelectModel(string dest)
+        {
+            return dest == "code" ?
+                _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel is not configured.") :
+                dest == "chat" ?
+                  _configuration["ChatModel"] ?? throw new InvalidOperationException("ChatModel is not configured.") :
+                  throw new InvalidOperationException("Destination model must be 'code' or 'chat'.");
+        }
     }
 }
