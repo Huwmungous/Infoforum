@@ -19,6 +19,10 @@ mat-form-field {
   textarea {
     background: #f0f0f0; // Soft grey background
     color: #000; // Black text color
+    ::placeholder {
+      color: #000; // Black text color for placeholder
+      opacity: 1; // Ensure placeholder is not faint
+    }
   }
 }
 
@@ -32,14 +36,14 @@ button {
 
 .request-card, .response-card {
   font-size: 16px;          
-  font-weight: 600;         
+  font-weight: 400;         
   color: #000; // Black text color
   background: #f0f0f0; // Soft grey background
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);  
-  padding: 10px;
-  margin: 15px;
+  padding: 15px;
+  margin: 2px;
   border-radius: 6px;
-  border-style: ridge;
+  border-style: solid;
   white-space: pre-wrap;
   word-wrap: break-word;
   border: 1px solid #ddd; 
@@ -57,7 +61,7 @@ button {
   font-family: 'Courier New', Courier, monospace;
   background-color: #f5f5f5;
   padding: 10px;
-  border-radius: 4px;
+  border-radius: 2px;
   overflow-x: auto;
   margin: 10px 0;
   white-space: pre-wrap; /* Ensures that newlines and indentation are preserved */
