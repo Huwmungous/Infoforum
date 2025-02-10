@@ -2,21 +2,19 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root' 
 })
 export class OllamaService {
-  private apiUrl = 'http://intelligence:5008/api/generate';
+  private apiUrl = 'http://localhost:5008/Ollama';
 
   constructor() {}
 
   sendPrompt(prompt: string): Observable<string> {
-    const body = JSON.stringify({ model: 'deepseek-coder:33b', prompt: prompt });
-  
     return new Observable(observer => {
       fetch(this.apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: body
+        body: JSON.stringify(prompt)
       })
       .then(response => {
         if (!response.body) {
@@ -31,14 +29,7 @@ export class OllamaService {
           if (done) {
             // Process any remaining data in `partial`
             if (partial.trim().length > 0) {
-              try {
-                const json = JSON.parse(partial);
-                if (json.response) {
-                  observer.next(json.response.trim());
-                }
-              } catch (err) {
-                console.warn('Could not parse final JSON chunk:', partial);
-              }
+              observer.next(partial.trim());
             }
             observer.complete();
             return;
@@ -54,14 +45,7 @@ export class OllamaService {
           // Process all complete lines
           for (const line of lines) {
             if (line.trim().length === 0) continue;
-            try {
-              const json = JSON.parse(line);
-              if (json.response) {
-                observer.next(json.response.trim());
-              }
-            } catch (err) {
-              console.warn('Skipping invalid JSON chunk:', line);
-            }
+            observer.next(line.trim());
           }
   
           reader.read().then(processChunk);
@@ -72,5 +56,6 @@ export class OllamaService {
       .catch(error => observer.error(error));
     });
   }
-  
 }
+
+export default OllamaService;
