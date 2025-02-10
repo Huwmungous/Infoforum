@@ -23,29 +23,16 @@ export class OllamaService {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
-        let partial = '';
 
         const processChunk = ({ done, value }: { done: boolean, value?: Uint8Array }) => {
           if (done) {
-            if (partial.length > 0) {
-              observer.next(partial);
-            }
             observer.complete();
             return;
           }
 
-          // Decode the new chunk and add it to the partial string.
-          partial += decoder.decode(value, { stream: true });
-          // Split into lines. The last line might be incomplete.
-          const lines = partial.split('\n');
-          // Keep the last (possibly incomplete) line for the next round.
-          partial = lines.pop() || "";
-
-          // Process each complete line without trimming whitespace.
-          for (const line of lines) {
-            if (line === '') continue;
-            observer.next(line);
-          }
+          // Decode the chunk as is (do not trim or split it)
+          const chunk = decoder.decode(value, { stream: true });
+          observer.next(chunk);
 
           reader.read().then(processChunk);
         };

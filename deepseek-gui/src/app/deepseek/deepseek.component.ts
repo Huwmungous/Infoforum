@@ -1,5 +1,5 @@
-// deepseek.component.ts
 import { Component } from '@angular/core';
+import { OllamaService } from '../ollama.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -8,7 +8,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input'; 
 import { FormatResponsePipe } from './format-response-pipe';
-import { OllamaService } from '../ollama.service';
 
 @Component({
   selector: 'app-deepseek',
@@ -23,12 +22,12 @@ import { OllamaService } from '../ollama.service';
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatInputModule,
-    FormatResponsePipe   
+    FormatResponsePipe
   ]
 })
 export class DeepseekComponent {
   prompt: string = '';
-  response: string = '';
+  response: string = '';  // will contain the raw markdown text
   loading: boolean = false;
   error: string = '';
 
@@ -42,13 +41,13 @@ export class DeepseekComponent {
 
     this.loading = true;
     this.error = '';
-    this.response = '';
+    this.response = ''; // Clear previous response
 
     this.ollamaService.sendPrompt(this.prompt)
       .subscribe({
         next: (chunk: string) => {
-          console.log('Chunk:', chunk);
-          this.response += chunk + ' ';
+          console.log('Chunk:', chunk); 
+          this.response += chunk;
         },
         error: (err) => {
           console.error('Error:', err);

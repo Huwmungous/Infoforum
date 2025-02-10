@@ -4,7 +4,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Pipe({
   name: 'formatResponse',
-  standalone: true // Make the pipe standalone so it can be imported directly.
+  standalone: true
 })
 export class FormatResponsePipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
@@ -15,14 +15,12 @@ export class FormatResponsePipe implements PipeTransform {
     }
 
     // Replace code blocks delimited by triple backticks with <pre class="code-block"> ... </pre>
-    let formatted = value.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
+    const formatted = value.replace(/```([\s\S]*?)```/g, (match, codeContent) => {
       return `<pre class="code-block">${codeContent}</pre>`;
     });
 
-    // Wrap the entire response in a container with the default text styling.
-    formatted = `<div class="text-block">${formatted}</div>`;
-
-    // Bypass Angular's security for the formatted HTML.
-    return this.sanitizer.bypassSecurityTrustHtml(formatted);
+    // Wrap the rest of the text in a div with a custom font class
+    const wrapped = `<div class="text-block">${formatted}</div>`;
+    return this.sanitizer.bypassSecurityTrustHtml(wrapped);
   }
 }
