@@ -10,18 +10,21 @@
 // Form field adjustments
 mat-form-field {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 5px;
+  background: white; 
+  color: #000; // Black text color
 
   mat-label {
     color: #000; // Black text color for the label
   }
 
   textarea {
-    background: #f0f0f0; // Soft grey background
-    color: #000; // Black text color
     ::placeholder {
       color: #000; // Black text color for placeholder
       opacity: 1; // Ensure placeholder is not faint
+    }
+    ::content {
+      color: #000; // Black text color for content
     }
   }
 }
@@ -68,8 +71,7 @@ button {
 
 .text-block {
   font-family: Tahoma, sans-serif;
-  white-space: pre-wrap; /* Preserve whitespace and line breaks */
-  line-height: 1.6;
+  white-space: pre-wrap; /* Preserve whitespace and line breaks */ 
 }
 
 .code-block {
@@ -80,4 +82,5 @@ button {
   overflow-x: auto;
   margin: 10px 0;
   white-space: pre-wrap; /* Ensures that newlines and indentation are preserved */
+  line-height: 1.3;
 }

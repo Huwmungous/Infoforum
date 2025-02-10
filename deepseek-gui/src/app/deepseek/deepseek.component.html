@@ -6,7 +6,7 @@
       <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Enter your prompt</mat-label>
-          <textarea
+          <textarea class="input-area"
             matInput
             placeholder="How may I help?... "
             [(ngModel)]="prompt"
