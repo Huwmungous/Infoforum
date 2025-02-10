@@ -9,7 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';  
 import { MatIconModule } from '@angular/material/icon';
 import { mapDeepseekToHighlight } from './deepseek-to-highlight-map';
-import hljs from 'highlight.js';
+
+declare const hljs: any;
 
 @Component({
   selector: 'app-deepseek',
@@ -27,7 +28,8 @@ import hljs from 'highlight.js';
     MatIconModule
   ]
 })
-export class DeepseekComponent implements AfterViewChecked {
+export class DeepseekComponent implements AfterViewChecked { 
+
   prompt: string = '';
   response: string = '';
   sections: { type: string, content: string, language?: string }[] = [];
