@@ -2,3 +2,7 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+:root {
+    --mdc-outlined-text-field-input-text-color: #000; /* Override text color to black */
+}
