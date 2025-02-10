@@ -8,7 +8,7 @@ sudo mkdir -p /var/www/IFOllama/
 
 sudo rm -rf /var/www/IFOllama/*
 
-sudo cp /home/hugh/repos/IFOllama/bin/Release/net8.0/linux-x64/publish/* /var/www/IFOllama -r
+sudo cp /home/hugh/repos/infoforum/IFOllama/bin/Release/net8.0/linux-x64/publish/* /var/www/IFOllama -r
 
 # sudo ln -s /usr/lib64/libldap-2.4.so.2 /usr/lib64/dotnet/shared/Microsoft.NETCore.App/8.0.3
 
