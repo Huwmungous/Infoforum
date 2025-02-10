@@ -14,7 +14,7 @@ export class OllamaService {
       fetch(this.apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(prompt)
+        body: JSON.stringify({ prompt })
       })
       .then(response => {
         if (!response.body) {
