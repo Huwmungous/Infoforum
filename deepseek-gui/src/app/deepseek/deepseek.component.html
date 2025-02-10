@@ -1,4 +1,3 @@
-<!-- filepath: /d:/repos/Infoforum/deepseek-gui/src/app/deepseek/deepseek.component.html -->
 <div>A simple c# 'Hello World' program</div>
 <div class="container mt-5">
   <mat-card class="mb-4 request-card">
@@ -42,6 +41,9 @@
         <div *ngFor="let section of sections">
           <div *ngIf="section.type === 'text'" class="text-block">{{ section.content }}</div>
           <div *ngIf="section.type === 'code'" class="code-block">
+            <div class="code-header">
+              <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
+            </div>
             <pre><code [attr.data-lang]="section.language">{{ section.content }}</code></pre>
           </div>
         </div>

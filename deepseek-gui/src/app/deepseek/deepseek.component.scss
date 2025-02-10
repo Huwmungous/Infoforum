@@ -49,6 +49,21 @@ button {
   border: 1px solid #ddd; 
 }
 
+.code-block {
+  position: relative;
+}
+
+.code-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.copy-icon {
+  cursor: pointer;
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
 /* deepseek.component.scss or your global styles */
 
 .text-block {

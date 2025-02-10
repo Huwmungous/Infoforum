@@ -1,4 +1,3 @@
-// filepath: /d:/repos/Infoforum/deepseek-gui/src/app/deepseek/deepseek.component.ts
 import { Component } from '@angular/core';
 import { OllamaService } from '../ollama.service';
 import { CommonModule } from '@angular/common';
@@ -9,6 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input'; 
 import { FormatResponsePipe } from './format-response-pipe';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-deepseek',
@@ -23,7 +23,8 @@ import { FormatResponsePipe } from './format-response-pipe';
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatInputModule,
-    FormatResponsePipe
+    FormatResponsePipe,
+    MatIconModule
   ]
 })
 export class DeepseekComponent {
@@ -76,6 +77,14 @@ export class DeepseekComponent {
       } else {
         return { type: 'text', content: part.trim() };
       }
+    });
+  }
+
+  copyToClipboard(content: string) {
+    navigator.clipboard.writeText(content).then(() => {
+      console.log('Copied to clipboard');
+    }).catch(err => {
+      console.error('Could not copy text: ', err);
     });
   }
 }
