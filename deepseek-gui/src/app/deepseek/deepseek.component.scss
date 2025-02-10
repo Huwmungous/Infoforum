@@ -11,6 +11,15 @@
 mat-form-field {
   width: 100%;
   margin-bottom: 16px;
+
+  mat-label {
+    color: #000; // Black text color for the label
+  }
+
+  textarea {
+    background: #f0f0f0; // Soft grey background
+    color: #000; // Black text color
+  }
 }
 
 button {
