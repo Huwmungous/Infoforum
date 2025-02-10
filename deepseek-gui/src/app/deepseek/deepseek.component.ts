@@ -1,3 +1,4 @@
+// filepath: /d:/repos/Infoforum/deepseek-gui/src/app/deepseek/deepseek.component.ts
 import { Component } from '@angular/core';
 import { OllamaService } from '../ollama.service';
 import { CommonModule } from '@angular/common';
@@ -27,7 +28,8 @@ import { FormatResponsePipe } from './format-response-pipe';
 })
 export class DeepseekComponent {
   prompt: string = '';
-  response: string = '';  // will contain the raw markdown text
+  response: string = '';
+  sections: { type: string, content: string, language?: string }[] = [];
   loading: boolean = false;
   error: string = '';
 
@@ -41,13 +43,15 @@ export class DeepseekComponent {
 
     this.loading = true;
     this.error = '';
-    this.response = ''; // Clear previous response
+    this.response = '';
+    this.sections = []; // Clear previous sections
 
     this.ollamaService.sendPrompt(this.prompt)
       .subscribe({
         next: (chunk: string) => {
-          console.log('Chunk:', chunk); 
+          console.log('Chunk:', chunk);
           this.response += chunk;
+          this.processResponse();
         },
         error: (err) => {
           console.error('Error:', err);
@@ -58,5 +62,20 @@ export class DeepseekComponent {
           this.loading = false;
         }
       });
+  }
+
+  processResponse() {
+    const parts = this.response.split(/(```[\s\S]*?```)/g);
+    this.sections = parts.map(part => {
+      if (part.startsWith('```') && part.endsWith('```')) {
+        const content = part.slice(3, -3).trim();
+        const firstLineEnd = content.indexOf('\n');
+        const language = content.slice(0, firstLineEnd).trim();
+        const code = content.slice(firstLineEnd + 1).trim();
+        return { type: 'code', content: code, language: language };
+      } else {
+        return { type: 'text', content: part.trim() };
+      }
+    });
   }
 }
