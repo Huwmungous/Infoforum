@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, AfterViewChecked } from '@angular/core';
 import { OllamaService } from '../ollama.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -6,9 +6,10 @@ import { FormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input'; 
-import { FormatResponsePipe } from './format-response-pipe';
+import { MatInputModule } from '@angular/material/input';  
 import { MatIconModule } from '@angular/material/icon';
+import hljs from 'highlight.js';
+import { mapDeepseekToHighlight } from './deepseek-to-highlight-map';
 
 @Component({
   selector: 'app-deepseek',
@@ -22,12 +23,11 @@ import { MatIconModule } from '@angular/material/icon';
     MatFormFieldModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    MatInputModule,
-    FormatResponsePipe,
+    MatInputModule, 
     MatIconModule
   ]
 })
-export class DeepseekComponent {
+export class DeepseekComponent implements AfterViewChecked {
   prompt: string = '';
   response: string = '';
   sections: { type: string, content: string, language?: string }[] = [];
@@ -73,7 +73,7 @@ export class DeepseekComponent {
         const firstLineEnd = content.indexOf('\n');
         const language = content.slice(0, firstLineEnd).trim();
         const code = content.slice(firstLineEnd + 1).trim();
-        return { type: 'code', content: code, language: language };
+        return { type: 'code', content: code, language: mapDeepseekToHighlight(language) };
       } else {
         return { type: 'text', content: part.trim() };
       }
@@ -85,6 +85,16 @@ export class DeepseekComponent {
       console.log('Copied to clipboard');
     }).catch(err => {
       console.error('Could not copy text: ', err);
+    });
+  }
+
+  ngAfterViewChecked() {
+    this.highlightCode();
+  }
+
+  highlightCode() {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block as HTMLElement);
     });
   }
 }
