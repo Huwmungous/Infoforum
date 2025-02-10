@@ -26,7 +26,7 @@ namespace IFOllama.Controllers
                 var apiUrl = _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is not configured.");
                 var model = _configuration["Model"] ?? throw new InvalidOperationException("Model is not configured.");
 
-                var jsonString = JsonConvert.SerializeObject(new OllamaModel { Model = model, Prompt = prompt });
+                var jsonString = JsonConvert.SerializeObject(new OllamaRequest { Model = model, Prompt = prompt });
                 var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(apiUrl, content);
@@ -34,12 +34,12 @@ namespace IFOllama.Controllers
                 if (!response.IsSuccessStatusCode)
                     return StatusCode((int)response.StatusCode, "Request failed");
 
-                var resultStream = await response.Content.ReadAsStreamAsync();
-                var resultStreamReader = new StreamReader(resultStream);
+                var tokenStrem = await response.Content.ReadAsStreamAsync();
+                var tokenStreamReader = new StreamReader(tokenStrem);
                 var responseStreamWriter = new MemoryStream();
                 var formattedWriter = new StreamWriter(responseStreamWriter);
 
-                using (var jsonReader = new JsonTextReader(resultStreamReader) { SupportMultipleContent = true })
+                using (var jsonReader = new JsonTextReader(tokenStreamReader) { SupportMultipleContent = true })
                 {
                     var jsonSerializer = new JsonSerializer();
 
@@ -67,7 +67,7 @@ namespace IFOllama.Controllers
         }
     }
 
-    public class OllamaModel
+    public class OllamaRequest
     {
         public required string Model { get; set; }
         public required string Prompt { get; set; }
