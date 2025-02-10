@@ -1,7 +1,6 @@
-<div>A simple c# 'Hello World' program</div>
-<div class="container mt-5">
-  <mat-card class="mb-4 request-card">
-    <mat-card-title class="title mt-5 mb-5">Intelligence Coding Assistant</mat-card-title>
+<div class="container">
+  <mat-card class="request-card">
+    <mat-card-title class="title mb-5">Intelligence Coding Assistant</mat-card-title>
     <mat-card-content>
       <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
         <mat-form-field appearance="outline" class="w-100">
@@ -11,24 +10,20 @@
             placeholder="How may I help?... "
             [(ngModel)]="prompt"
             name="prompt"
-            rows="20">
+            rows="5">
           </textarea>
         </mat-form-field>
         <div class="d-flex align-items-center mt-3">
-          <button mat-raised-button color="primary" type="submit" [disabled]="loading">
+          <button mat-raised-button class="send-button" color="primary" type="submit" [disabled]="loading">
             {{ loading ? 'Processing...' : 'Send' }}
           </button>
           <mat-progress-spinner
             *ngIf="loading"
             mode="indeterminate"
-            diameter="30"
-            class="ml-3">
+            diameter="30">
           </mat-progress-spinner>
         </div>
       </form>
-
-      <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
-
       <div *ngIf="error" class="alert alert-danger mt-3">
         {{ error }}
       </div>
@@ -36,8 +31,8 @@
   </mat-card>
 
   <div *ngIf="sections.length > 0" class="mt-4">
-    <mat-card>
-      <mat-card-content class="response-card">
+    <mat-card class="response-card">
+      <mat-card-content>
         <div *ngFor="let section of sections">
           <div *ngIf="section.type === 'text'" class="text-block">{{ section.content }}</div>
           <div *ngIf="section.type === 'code'" class="code-block">
