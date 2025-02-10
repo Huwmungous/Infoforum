@@ -25,7 +25,7 @@ declare const hljs: any;
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatInputModule, 
-    MatIconModule
+    MatIconModule,
   ]
 })
 export class DeepseekComponent implements AfterViewChecked { 
