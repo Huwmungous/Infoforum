@@ -9,12 +9,12 @@ export class OllamaService {
 
   constructor() {}
 
-  sendPrompt(prompt: string): Observable<string> {
+  sendPrompt(prompt: string, dest: string = 'code'): Observable<string> {
     return new Observable(observer => {
-      fetch(this.apiUrl, {
+      fetch(`${this.apiUrl}?dest=${dest}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify(prompt) // Send only the prompt in the body
       })
       .then(response => {
         if (!response.body) {
