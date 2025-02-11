@@ -1,5 +1,5 @@
 import { Component, AfterViewChecked } from '@angular/core';
-import { OllamaService } from '../ollama.service';
+import { OllamaService } from '../../ollama.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -8,27 +8,30 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';  
 import { MatIconModule } from '@angular/material/icon';
-import { mapDeepseekToHighlight } from './deepseek-to-highlight-map';
+import { MatTabsModule } from '@angular/material/tabs'; 
+import { mapDeepseekToHighlight } from '../../deepseek/deepseek-to-highlight-map';
+
 
 declare const hljs: any;
 
 @Component({
-  selector: 'app-deepseek',
-  templateUrl: './deepseek.component.html',
-  styleUrls: ['./deepseek.component.scss'],
+  selector: 'app-code-gen',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    FormsModule,
-    MatFormFieldModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatInputModule, 
-    MatIconModule,
-  ]
+  imports: [    
+      CommonModule,
+      MatCardModule,
+      FormsModule,
+      MatFormFieldModule,
+      MatProgressSpinnerModule,
+      MatProgressBarModule,
+      MatInputModule, 
+      MatIconModule,
+      MatTabsModule
+  ],
+  templateUrl: './code-gen.component.html',
+  styleUrl: './code-gen.component.scss'
 })
-export class DeepseekComponent implements AfterViewChecked { 
+export class CodeGenComponent implements AfterViewChecked{
 
   prompt: string = '';
   response: string = '';
@@ -49,10 +52,9 @@ export class DeepseekComponent implements AfterViewChecked {
     this.response = '';
     this.sections = []; // Clear previous sections
 
-    this.ollamaService.sendPrompt(this.prompt)
+    this.ollamaService.sendPrompt(this.prompt, 'code')
       .subscribe({
         next: (chunk: string) => {
-          console.log('Chunk:', chunk);
           this.response += chunk;
           this.processResponse();
         },

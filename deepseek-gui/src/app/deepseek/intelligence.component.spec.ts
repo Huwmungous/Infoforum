@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DeepseekComponent } from './deepseek.component';
+import { IntelligenceComponent } from './intelligence.component';
 
 describe('DeepseekComponent', () => {
-  let component: DeepseekComponent;
-  let fixture: ComponentFixture<DeepseekComponent>;
+  let component: IntelligenceComponent;
+  let fixture: ComponentFixture<IntelligenceComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DeepseekComponent]
+      imports: [IntelligenceComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DeepseekComponent);
+    fixture = TestBed.createComponent(IntelligenceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -14,16 +14,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { AppComponent } from './app.component';
-import { DeepseekComponent } from './deepseek/deepseek.component';
+import { IntelligenceComponent } from './deepseek/intelligence.component';
 
 @NgModule({
-  declarations: [
-    DeepseekComponent
-  ],
+  declarations: [  ],
   imports: [
     BrowserModule,
     FormsModule,
-    HttpClientModule,
     BrowserAnimationsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -31,7 +28,8 @@ import { DeepseekComponent } from './deepseek/deepseek.component';
     MatButtonModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,
-    AppComponent
+    AppComponent,
+    IntelligenceComponent
   ],
   providers: [],
 })
