@@ -42,7 +42,6 @@ export class IntelligenceComponent implements OnInit {
 
   get name() {
     const claims = this.oauthService.getIdentityClaims();
-    if (!claims) return null;
-    return claims['name'];
+    return !claims ? null : claims['name'];
   }
 }

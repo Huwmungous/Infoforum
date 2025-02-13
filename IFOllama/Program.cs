@@ -48,8 +48,8 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger"; // Set the Swagger UI at the /swagger endpoint
 });
 
-app.UseAuthentication(); // If using authentication
-app.UseAuthorization(); // Apply authorization
+//app.UseAuthentication(); // If using authentication
+//app.UseAuthorization(); // Apply authorization
 
 app.MapControllers();
 
