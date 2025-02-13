@@ -23,12 +23,12 @@ namespace IFOllama.Controllers
         {
             try
             {
-                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = SelectModel(dest), Prompt = prompt }), Encoding.UTF8, "application/json");
+                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = "deepseek-coder:33b", Prompt = prompt }), Encoding.UTF8, "application/json");
 
                 Console.WriteLine( "api url is : ", SelectAPIUrl());
                 Console.WriteLine( "model is : ", SelectModel(dest));
 
-                var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
+                var response = await _httpClient.PostAsync(@"http://localhost:11434/api/generate", content);
 
                 if (!response.IsSuccessStatusCode)
                     return StatusCode((int)response.StatusCode, "Request failed");
