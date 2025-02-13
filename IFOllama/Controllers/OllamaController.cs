@@ -44,25 +44,25 @@ namespace IFOllama.Controllers
             }
         }
 
-        //[HttpGet("query")]
-        //public async Task<IActionResult> QueryCodebase([FromQuery] string query)
-        //{
-        //    if (string.IsNullOrWhiteSpace(query))
-        //        return BadRequest(new { error = "Query parameter is required." });
+        [HttpGet("query")]
+        public async Task<IActionResult> QueryCodebase([FromQuery] string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest(new { error = "Query parameter is required." });
 
-        //    try
-        //    {
-        //        // Call the Bash API (Netcat on Port 5050)
-        //        var response = await _httpClient.GetStringAsync($"{_configuration["QueryApiUrl"]}?query={Uri.EscapeDataString(query)}");
-        //        var results = response.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+            try
+            {
+                // Call the Bash API (Netcat on Port 5050)
+                var response = await _httpClient.GetStringAsync($"{_configuration["QueryApiUrl"]}?query={Uri.EscapeDataString(query)}");
+                var results = response.Split("\n", StringSplitOptions.RemoveEmptyEntries);
 
-        //        return Ok(new { query, results });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, new { error = "Internal server error", details = ex.Message });
-        //    }
-        //}
+                return Ok(new { query, results });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+            }
+        }
 
         private static async Task<MemoryStream> HandleResponse(HttpResponseMessage response)
         {
