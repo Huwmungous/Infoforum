@@ -25,6 +25,8 @@ namespace IFOllama.Controllers
             {
                 var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = SelectModel(dest), Prompt = prompt }), Encoding.UTF8, "application/json");
 
+                var ApiUrl = SelectAPIUrl();
+
                 var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
 
                 if (!response.IsSuccessStatusCode)
