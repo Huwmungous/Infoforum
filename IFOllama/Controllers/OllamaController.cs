@@ -23,10 +23,10 @@ namespace IFOllama.Controllers
         {
             try
             {
-                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = "deepseek-coder:33b", Prompt = prompt }), Encoding.UTF8, "application/json");
+                //var model = SelectModel(dest);
+                //var apiUrl = SelectAPIUrl();
 
-                Console.WriteLine( "api url is : ", SelectAPIUrl());
-                Console.WriteLine( "model is : ", SelectModel(dest));
+                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = "deepseek-coder:33b", Prompt = prompt }), Encoding.UTF8, "application/json");
 
                 var response = await _httpClient.PostAsync(@"http://localhost:11434/api/generate", content);
 
@@ -92,18 +92,18 @@ namespace IFOllama.Controllers
             return responseStreamWriter;
         }
 
-        private string SelectAPIUrl()
-        {
-            return _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is not configured.");
-        }
+        //private string SelectAPIUrl()
+        //{
+        //    return _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is not configured.");
+        //}
 
-        private string SelectModel(string dest)
-        {
-            return dest == "code" ?
-                _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel is not configured.") :
-                dest == "chat" ?
-                  _configuration["ChatModel"] ?? throw new InvalidOperationException("ChatModel is not configured.") :
-                  throw new InvalidOperationException("Destination model must be 'code' or 'chat'.");
-        }
+        //private string SelectModel(string dest)
+        //{
+        //    return dest == "code" ?
+        //        _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel is not configured.") :
+        //        dest == "chat" ?
+        //          _configuration["ChatModel"] ?? throw new InvalidOperationException("ChatModel is not configured.") :
+        //          throw new InvalidOperationException("Destination model must be 'code' or 'chat'.");
+        //}
     }
 }
