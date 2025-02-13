@@ -2,7 +2,7 @@
 
 sudo systemctl stop ifollama
 
-dotnet publish --configuration Release  
+dotnet publish --configuration Release -r linux-x64  
 
 sudo mkdir -p /var/www/IFOllama/
 
