@@ -17,3 +17,5 @@ sudo cp /mnt/ai-data/repos/infoforum/IFOllama/bin/Release/net8.0/linux-x64/publi
 sudo systemctl start ifollama
 
 sudo systemctl status ifollama
+
+
