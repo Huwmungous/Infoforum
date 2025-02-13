@@ -1,4 +1,7 @@
 <div class="container">
+  <button (click)="login()" *ngIf="!name">Login</button>
+  <button (click)="logout()" *ngIf="name">Logout</button>
+  <div *ngIf="name">Hello, {{ name }}</div>
   <mat-tab-group>
     <mat-tab label="Code">
       <app-code-gen></app-code-gen>

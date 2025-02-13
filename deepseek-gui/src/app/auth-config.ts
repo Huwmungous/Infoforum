@@ -1,10 +1,12 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
 
 export const authConfig: AuthConfig = {
-  issuer: 'https://your-identity-provider.com',
+  issuer: 'https://longmanrd.net/realms/master',
   redirectUri: window.location.origin,
-  clientId: 'your-client-id',
+  clientId: 'LongmanRd-realm',
   responseType: 'code',
   scope: 'openid profile email',
   showDebugInformation: true,
 };
+
+
