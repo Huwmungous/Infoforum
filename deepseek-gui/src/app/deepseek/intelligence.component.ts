@@ -4,6 +4,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { OAuthService, OAuthModule, AuthConfig } from 'angular-oauth2-oidc';
 import { authConfig } from '../auth-config';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-intelligence',
@@ -13,6 +14,7 @@ import { authConfig } from '../auth-config';
   imports: [
     CommonModule,
     MatTabsModule,
+    MatIconModule,
     CodeGenComponent,
     // OAuthModule.forRoot()
   ]

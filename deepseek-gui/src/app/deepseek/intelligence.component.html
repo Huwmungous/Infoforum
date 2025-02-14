@@ -4,18 +4,27 @@
   <div *ngIf="name">Hello, {{ name }}</div>
   <mat-tab-group>
     <mat-tab label="Code">
+      <ng-template mat-tab-label>
+        <mat-icon class="panel-icon">code</mat-icon>
+      </ng-template>
       <div class="code-tab-content">
         <button mat-raised-button class="start-new-button" color="primary" (click)="createNewConversation()">Start New</button>
         <app-code-gen></app-code-gen>
       </div>
     </mat-tab>
     <mat-tab label="Images">
+      <ng-template mat-tab-label>
+        <mat-icon class="panel-icon">image</mat-icon>
+      </ng-template>
       <!-- Content for Images tab -->
       <div class="images-tab-content">
         <!-- Add your content for the Images tab here -->
       </div>
     </mat-tab>
     <mat-tab label="Chat">
+      <ng-template mat-tab-label>
+        <mat-icon class="panel-icon">chat</mat-icon>
+      </ng-template>
       <!-- Content for Chat tab -->
       <div class="chat-tab-content">
         <!-- Add your content for the Chat tab here -->
