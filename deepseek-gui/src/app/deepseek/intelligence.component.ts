@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { MatTabsModule } from '@angular/material/tabs';
-import { CodeGenComponent } from '../components/code-gen/code-gen.component';
+import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { OAuthService, OAuthModule, AuthConfig } from 'angular-oauth2-oidc';
 import { authConfig } from '../auth-config';
 
@@ -14,10 +14,11 @@ import { authConfig } from '../auth-config';
     CommonModule,
     MatTabsModule,
     CodeGenComponent,
-    OAuthModule
+    // OAuthModule.forRoot()
   ]
 })
 export class IntelligenceComponent implements OnInit {
+  conversationId: string = generateGUID(); // Initialize with a new GUID
 
   constructor(private oauthService: OAuthService) {
     this.configureWithNewConfigApi();
@@ -42,6 +43,11 @@ export class IntelligenceComponent implements OnInit {
 
   get name() {
     const claims = this.oauthService.getIdentityClaims();
-    return !claims ? null : claims['name'];
+    if (!claims) return null;
+    return claims['name'];
+  }
+
+  createNewConversation() {
+    this.conversationId = generateGUID(); // Generate a new GUID for the conversationId
   }
 }

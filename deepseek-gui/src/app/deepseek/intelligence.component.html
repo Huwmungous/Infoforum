@@ -4,7 +4,10 @@
   <div *ngIf="name">Hello, {{ name }}</div>
   <mat-tab-group>
     <mat-tab label="Code">
-      <app-code-gen></app-code-gen>
+      <div class="code-tab-content">
+        <button mat-raised-button class="start-new-button" color="primary" (click)="createNewConversation()">Start New</button>
+        <app-code-gen></app-code-gen>
+      </div>
     </mat-tab>
     <mat-tab label="Images">
       <!-- Content for Images tab -->

@@ -1,4 +1,4 @@
-import { Component, AfterViewChecked } from '@angular/core';
+import { Component, AfterViewChecked, Inject } from '@angular/core';
 import { OllamaService } from '../../ollama.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -39,9 +39,12 @@ export class CodeGenComponent implements AfterViewChecked {
   sections: { type: string, content: string, language?: string }[] = [];
   loading: boolean = false;
   error: string = '';
-  conversationId: string = generateGUID();
 
-  constructor(private ollamaService: OllamaService) {}
+  static conversationId: string
+
+  constructor( 
+    private ollamaService: OllamaService) 
+  {}
 
   onSubmit() {
     if (!this.prompt.trim()) {
@@ -57,7 +60,7 @@ export class CodeGenComponent implements AfterViewChecked {
     // Add the prompt as a section
     this.sections.push({ type: 'prompt', content: this.prompt });
 
-    this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'code')
+    this.ollamaService.sendPrompt(CodeGenComponent.conversationId, this.prompt, 'code')
       .subscribe({
         next: (chunk: string) => {
           this.response += chunk;
