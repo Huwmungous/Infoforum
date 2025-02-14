@@ -11,9 +11,9 @@ export class OllamaService {
 
   constructor() {}
 
-  sendPrompt(prompt: string, dest: string = 'code'): Observable<string> {
+  sendPrompt(conversationId: string, prompt: string, dest: string = 'code'): Observable<string> {
     return new Observable(observer => {
-      fetch(`${this.apiUrl}?dest=${dest}`, {
+      fetch(`${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(prompt) // Send only the prompt in the body

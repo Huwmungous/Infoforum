@@ -39,6 +39,7 @@ export class CodeGenComponent implements AfterViewChecked {
   sections: { type: string, content: string, language?: string }[] = [];
   loading: boolean = false;
   error: string = '';
+  conversationId: string = generateGUID();
 
   constructor(private ollamaService: OllamaService) {}
 
@@ -56,7 +57,7 @@ export class CodeGenComponent implements AfterViewChecked {
     // Add the prompt as a section
     this.sections.push({ type: 'prompt', content: this.prompt });
 
-    this.ollamaService.sendPrompt(this.prompt, 'code')
+    this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'code')
       .subscribe({
         next: (chunk: string) => {
           this.response += chunk;
@@ -108,4 +109,12 @@ export class CodeGenComponent implements AfterViewChecked {
       hljs.highlightBlock(block as HTMLElement);
     });
   }
+}
+
+export function generateGUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
