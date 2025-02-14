@@ -99,6 +99,7 @@ namespace IFOllama.Controllers
 
         private string SelectModel(string dest)
         {
+            // DeepSeek-R1:8b deepseek-coder:33b
             return dest == "code" ?
                 _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel is not configured.") :
                 dest == "chat" ?
