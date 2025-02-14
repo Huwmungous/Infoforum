@@ -11,23 +11,27 @@ namespace IFOllama.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
+        private readonly ConversationContextManager _contextManager;
 
-        public OllamaController(IConfiguration configuration, HttpClient httpClient)
+        public OllamaController(IConfiguration configuration, HttpClient httpClient, ConversationContextManager contextManager)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendPrompt([FromBody] string prompt, string dest = "code")
+        public async Task<IActionResult> SendPrompt([FromQuery] string conversationId, [FromBody] string prompt, string dest = "code")
         {
             try
             {
-                //var model = SelectModel(dest);
-                //var apiUrl = SelectAPIUrl();
+                // Retrieve existing conversation context
+                var conversationContext = _contextManager.GetContext(conversationId);
+                // Combine the context with the new prompt
+                var combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
 
-                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = SelectModel(dest), Prompt = prompt }), Encoding.UTF8, "application/json");
-
+                // Send the combined prompt to Ollama
+                var content = new StringContent(JsonConvert.SerializeObject(new OllamaRequest { Model = SelectModel(dest), Prompt = combinedPrompt }), Encoding.UTF8, "application/json");
                 var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
 
                 if (!response.IsSuccessStatusCode)
@@ -36,13 +40,20 @@ namespace IFOllama.Controllers
                 MemoryStream responseStreamWriter = await HandleResponse(response);
                 responseStreamWriter.Seek(0, SeekOrigin.Begin);
 
-                return new FileStreamResult(responseStreamWriter, "text/plain");
+                // Assume the response is a single block of text. You may need to update context manager here.
+                var responseText = await new StreamReader(responseStreamWriter).ReadToEndAsync();
+                _contextManager.AppendMessage(conversationId, "User", prompt);
+                _contextManager.AppendMessage(conversationId, "Assistant", responseText);
+
+                // Return response text
+                return new FileStreamResult(new MemoryStream(Encoding.UTF8.GetBytes(responseText)), "text/plain");
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
+
 
         [HttpGet("query")]
         public async Task<IActionResult> QueryCodebase([FromQuery] string query)
