@@ -1,9 +1,28 @@
-// Main container styling
-.container { 
+  // Main container styling
+  .container { 
     padding: 3px;
     border-radius: 8px;
     background: #fff;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .prompt-panel, .reasoning-panel {
+    background-color: whitesmoke; // Dark grey background
+    color: #000; // Black text color
+  
+    .mat-expansion-panel-header {
+      background-color: #999; // Slightly lighter grey for the header
+      color: #000; // Black text color for the header
+    }
+  
+    .mat-expansion-panel-content {
+      background-color: #999; // Dark grey background for the content
+      color: #000; // Black text color for the content
+    }
+  
+    .mat-panel-title {
+      color: #000; // Black text color for the panel title
+    }
   }
   
   ::ng-deep .mat-tab-label {

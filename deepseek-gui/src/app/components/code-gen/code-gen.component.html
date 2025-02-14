@@ -1,46 +1,62 @@
 <mat-card class="request-card">
-    <mat-card-title class="title mb-5">Coding Assistant</mat-card-title>
-    <mat-card-content>
-      <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Enter your prompt</mat-label>
-          <textarea class="input-area"
-            matInput
-            placeholder="How may I help?... "
-            [(ngModel)]="prompt"
-            name="prompt"
-            rows="5">
-          </textarea>
-        </mat-form-field>
-        <div class="d-flex align-items-center mt-3 send-button-container">
-          <button mat-raised-button class="send-button" color="primary" type="submit" [disabled]="loading">
-            {{ loading ? 'Processing...' : 'Send' }}
-          </button>
-          <mat-progress-spinner class="progress-spinner"
-            *ngIf="loading"
-            mode="indeterminate"
-            diameter="30">
-          </mat-progress-spinner>
-        </div>
-      </form>
-      <div *ngIf="error" class="alert alert-danger mt-3">
-        {{ error }}
+  <mat-card-title class="title mb-5">Coding Assistant</mat-card-title>
+  <mat-card-content>
+    <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Enter your prompt</mat-label>
+        <textarea class="input-area"
+          matInput
+          placeholder="How may I help?... "
+          [(ngModel)]="prompt"
+          name="prompt"
+          rows="5">
+        </textarea>
+      </mat-form-field>
+      <div class="d-flex align-items-center mt-3 send-button-container">
+        <button mat-raised-button class="send-button" color="primary" type="submit" [disabled]="loading">
+          {{ loading ? 'Processing...' : 'Send' }}
+        </button>
+        <mat-progress-spinner class="progress-spinner"
+          *ngIf="loading"
+          mode="indeterminate"
+          diameter="30">
+        </mat-progress-spinner>
       </div>
-    </mat-card-content> 
+    </form>
+    <div *ngIf="error" class="alert alert-danger mt-3">
+      {{ error }}
+    </div>
+  </mat-card-content>
+</mat-card>
 
-    <div *ngIf="sections.length > 0" class="mt-4">
-        <mat-card class="response-card">
-          <mat-card-content>
-            <div *ngFor="let section of sections">
-              <div *ngIf="section.type === 'text'" class="text-block">{{ section.content }}</div>
-              <div *ngIf="section.type === 'code'" class="code-block">
-                <div class="code-header">
-                  <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
-                </div>
-                <pre><code [class]="'language-' + section.language">{{ section.content }}</code></pre>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+<div *ngIf="sections.length > 0" class="mt-4">
+  <mat-card class="response-card">
+    <mat-card-content>
+      <div *ngFor="let section of sections">
+        <mat-expansion-panel class="prompt-panel mb-2" *ngIf="section.type === 'prompt'">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Prompt
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <p>{{ section.content }}</p>
+        </mat-expansion-panel>
+        <div *ngIf="section.type === 'text'" class="text-block">{{ section.content }}</div>
+        <div *ngIf="section.type === 'code'" class="code-block">
+          <div class="code-header">
+            <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
+          </div>
+          <pre><code [class]="'language-' + section.language">{{ section.content }}</code></pre>
+        </div>
+        <mat-expansion-panel class="reasoning-panel mb-5" *ngIf="section.type === 'think'">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Reasoning
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <p>{{ section.content }}</p>
+        </mat-expansion-panel>
       </div>
+    </mat-card-content>
   </mat-card>
+</div>

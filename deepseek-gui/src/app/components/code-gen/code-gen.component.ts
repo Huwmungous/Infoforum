@@ -9,8 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';  
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs'; 
+import { MatExpansionModule } from '@angular/material/expansion'; // Import MatExpansionModule
 import { mapDeepseekToHighlight } from '../../deepseek/deepseek-to-highlight-map';
-
 
 declare const hljs: any;
 
@@ -26,12 +26,13 @@ declare const hljs: any;
       MatProgressBarModule,
       MatInputModule, 
       MatIconModule,
-      MatTabsModule
+      MatTabsModule,
+      MatExpansionModule // Include MatExpansionModule
   ],
   templateUrl: './code-gen.component.html',
-  styleUrl: './code-gen.component.scss'
+  styleUrls: ['./code-gen.component.scss']
 })
-export class CodeGenComponent implements AfterViewChecked{
+export class CodeGenComponent implements AfterViewChecked {
 
   prompt: string = '';
   response: string = '';
@@ -52,6 +53,9 @@ export class CodeGenComponent implements AfterViewChecked{
     this.response = '';
     this.sections = []; // Clear previous sections
 
+    // Add the prompt as a section
+    this.sections.push({ type: 'prompt', content: this.prompt });
+
     this.ollamaService.sendPrompt(this.prompt, 'code')
       .subscribe({
         next: (chunk: string) => {
@@ -70,18 +74,21 @@ export class CodeGenComponent implements AfterViewChecked{
   }
 
   processResponse() {
-    const parts = this.response.split(/(```[\s\S]*?```)/g);
-    this.sections = parts.map(part => {
+    const parts = this.response.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g);
+    this.sections = this.sections.concat(parts.map(part => {
       if (part.startsWith('```') && part.endsWith('```')) {
         const content = part.slice(3, -3).trim();
         const firstLineEnd = content.indexOf('\n');
         const language = content.slice(0, firstLineEnd).trim();
         const code = content.slice(firstLineEnd + 1).trim();
         return { type: 'code', content: code, language: mapDeepseekToHighlight(language) };
+      } else if (part.startsWith('<think>') && part.endsWith('</think>')) {
+        const content = part.slice(7, -8).trim();
+        return { type: 'think', content: content };
       } else {
         return { type: 'text', content: part.trim() };
       }
-    });
+    }));
   }
 
   copyToClipboard(content: string) {
