@@ -31,12 +31,16 @@
 
 <div *ngIf="sections.length > 0" class="mt-4">
   <mat-card class="response-card">
+    <div class="response-card-header">
+      <mat-icon class="panel-icon" (click)="saveResponse()">save</mat-icon>
+      <mat-icon class="panel-icon" (click)="deleteResponse()">delete</mat-icon>
+    </div>
     <mat-card-content>
       <div *ngFor="let section of sections">
         <mat-expansion-panel class="prompt-panel mb-2" *ngIf="section.type === 'prompt'">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              Prompt
+              <mat-icon class="panel-icon">terminal</mat-icon>
             </mat-panel-title>
           </mat-expansion-panel-header>
           <p>{{ section.content }}</p>
@@ -51,7 +55,7 @@
         <mat-expansion-panel class="reasoning-panel mb-5" *ngIf="section.type === 'think'">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              Reasoning
+              <mat-icon class="panel-icon">lightbulb</mat-icon>
             </mat-panel-title>
           </mat-expansion-panel-header>
           <p>{{ section.content }}</p>

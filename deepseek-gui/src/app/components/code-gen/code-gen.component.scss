@@ -1,114 +1,89 @@
- @import '../../../styles.scss';
+@import '../../../styles.scss';
 
-  .container { 
-    padding: 3px;
-    border-radius: 8px;
+mat-form-field {
+  mat-label {
+    color: #000;
+  }
+
+  textarea {
     background: #fff;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    color: #000;
+    ::placeholder {
+      color: #000;
+      opacity: 1;
+    }
+    ::content {
+      color: #000;
+    }
   }
+}
 
-  .prompt-panel, .reasoning-panel {
-    background-color: whitesmoke; // Dark grey background
-    color: #000; // Black text color
-  
-    .mat-expansion-panel-header {
-      background-color: #999; // Slightly lighter grey for the header
-      color: #000; // Black text color for the header
-    }
-  
-    .mat-expansion-panel-content {
-      background-color: #999; // Dark grey background for the content
-      color: #000; // Black text color for the content
-    }
-  
-    .mat-panel-title {
-      color: #000; // Black text color for the panel title
-    }
-  }
-  
-  ::ng-deep .mat-tab-label {
-    color: #000; // Darken the text color for the tab labels
-  }
-  
-  ::ng-deep .mat-tab-label-active {
-    color: #000; // Darken the text color for the active tab label
-  }
-  
-  // Form field adjustments
-  mat-form-field {
-    width: 100%;
-    margin-bottom: 5px;
-    background: whitesmoke; 
-    color: #000; // Black text color
-  
-    mat-label {
-      color: #000; // Black text color for the label
-    }
-  
-    textarea {
-      background: #fff; // White background for the textarea
-      color: #000; // Black text color for the textarea
-      ::placeholder {
-        color: #000; // Black text color for placeholder
-        opacity: 1; // Ensure placeholder is not faint
-      }
-      ::content {
-        color: #000; // Black text color for content
-      }
-    }
-  }
-  
-  .send-button {
-    @include button-style;
-  }
-  
-  .progress-spinner {
-    margin-left: 25px;
-  }
-  
-  .request-card, .response-card {
-    font-size: 16px;          
-    font-weight: 400;         
-    color: #000; // Black text color
-    background: #f0f0f0; // Soft grey background
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);  
-    padding: 5px;
-    margin: 2px;
-    border-radius: 6px;
-    border-style: solid;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    border: 1px solid #ddd; 
-  }
-  
-  .code-block {
-    position: relative;
-  }
-  
-  .code-header {
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .copy-icon {
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  /* deepseek.component.scss or your global styles */
-  
-  .text-block {
-    font-family: Tahoma, sans-serif;
-    white-space: pre-wrap; /* Preserve whitespace and line breaks */ 
-  }
-  
-  .code-block {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: whitesmoke;
-    padding: 10px;
-    border-radius: 2px;
-    overflow-x: auto;
-    margin: 10px 0;
-    white-space: pre-wrap; /* Ensures that newlines and indentation are preserved */
-    line-height: 1.3;
-  }
+.send-button {
+  @include button-style;
+}
+
+.progress-spinner {
+  margin-left: 25px;
+}
+
+.request-card, .response-card {
+  @include card-style
+}
+
+.mat-expansion-panel-header{
+  @include expansion-panel-header-style;
+}
+
+.mat-expansion-panel-body{
+  @include expansion-panel-body-style;
+}
+
+.mat-expansion-panel {
+  @include expansion-panel-style;
+}
+
+.panel-icon {
+  color: darkslategrey;
+}
+
+.response-card-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.save-icon, .delete-icon {
+  cursor: pointer;
+  font-size: 24px;
+  margin-left: 10px;
+}
+
+.code-block {
+  position: relative;
+}
+
+.code-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.copy-icon {
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.text-block {
+  font-family: Tahoma, sans-serif;
+  white-space: pre-wrap;
+}
+
+.code-block {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: whitesmoke;
+  padding: 10px;
+  border-radius: 2px;
+  overflow-x: auto;
+  margin: 10px 0;
+  white-space: pre-wrap;
+  line-height: 1.3;
+}

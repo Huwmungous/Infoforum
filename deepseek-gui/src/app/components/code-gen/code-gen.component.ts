@@ -33,6 +33,12 @@ declare const hljs: any;
   styleUrls: ['./code-gen.component.scss']
 })
 export class CodeGenComponent implements AfterViewChecked {
+deleteResponse() {
+throw new Error('Method not implemented.');
+}
+saveResponse() {
+throw new Error('Method not implemented.');
+}
 
   prompt: string = '';
   response: string = '';
