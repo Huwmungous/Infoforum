@@ -1,4 +1,5 @@
 using IFGlobal;
+using IFOllama;
 using Microsoft.OpenApi.Models;
 
 int port = PortResolver.GetPort("IFOllama");
@@ -14,6 +15,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddHttpClient(); // Register HttpClient
+builder.Services.AddSingleton<ConversationContextManager>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" }); });
 
