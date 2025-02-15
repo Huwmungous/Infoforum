@@ -29,38 +29,6 @@
   </mat-card-content>
 </mat-card>
 
-<div *ngIf="sections.length > 0" class="mt-4">
-  <mat-card class="response-card">
-    <div class="response-card-header">
-      <mat-icon class="panel-icon" (click)="saveResponse()">save</mat-icon>
-      <mat-icon class="panel-icon" (click)="deleteResponse()">delete</mat-icon>
-    </div>
-    <mat-card-content>
-      <div *ngFor="let section of sections">
-        <mat-expansion-panel class="prompt-panel mb-2" *ngIf="section.type === 'prompt'">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <mat-icon class="panel-icon">terminal</mat-icon>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <p>{{ section.content }}</p>
-        </mat-expansion-panel>
-        <div *ngIf="section.type === 'text'" class="text-block">{{ section.content }}</div>
-        <div *ngIf="section.type === 'code'" class="code-block">
-          <div class="code-header">
-            <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
-          </div>
-          <pre><code [class]="'language-' + section.language">{{ section.content }}</code></pre>
-        </div>
-        <mat-expansion-panel class="reasoning-panel mb-5" *ngIf="section.type === 'think'">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <mat-icon class="panel-icon">lightbulb</mat-icon>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <p>{{ section.content }}</p>
-        </mat-expansion-panel>
-      </div>
-    </mat-card-content>
-  </mat-card>
+<div *ngFor="let responseObj of responses" class="mt-4">
+  <app-code-gen-response></app-code-gen-response>
 </div>
