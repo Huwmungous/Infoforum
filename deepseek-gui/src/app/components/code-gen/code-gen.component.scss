@@ -1,5 +1,21 @@
 @import '../../../styles.scss';
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
+}
+
+mat-card.request-card {
+  flex: 0 0 auto; /* Do not grow or shrink */
+}
+
+.responses-container {
+  flex: 1 1 auto; /* Grow and shrink as needed */
+  overflow-y: auto;
+  margin-top: 20px;
+}
+
 mat-form-field {
   mat-label {
     color: #000;
@@ -27,14 +43,14 @@ mat-form-field {
 }
 
 .request-card, .response-card {
-  @include card-style
+  @include card-style;
 }
 
-.mat-expansion-panel-header{
+.mat-expansion-panel-header {
   @include expansion-panel-header-style;
 }
 
-.mat-expansion-panel-body{
+.mat-expansion-panel-body {
   @include expansion-panel-body-style;
 }
 

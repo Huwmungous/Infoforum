@@ -4,16 +4,18 @@
       <mat-icon class="panel-icon" (click)="deleteResponse()">delete</mat-icon>
     </div>
     <mat-card-content>
+
+      <mat-expansion-panel class="prompt-panel mb-2">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-icon class="panel-icon">terminal</mat-icon>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <p>{{ prompt }}</p>
+      </mat-expansion-panel>
+      
       <div *ngFor="let section of sections">
-        <mat-expansion-panel class="prompt-panel mb-2" *ngIf="section.type === 'prompt'">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <mat-icon class="panel-icon">terminal</mat-icon>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <p>{{ section.content }}</p>
-        </mat-expansion-panel>
-        <div *ngIf="section.type === 'text'" class="text-block">{{ section.content }}</div>
+        <div *ngIf="section.type === 'text'" class="text-block" [innerHTML]="section.content"></div>
         <div *ngIf="section.type === 'code'" class="code-block">
           <div class="code-header">
             <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
@@ -26,7 +28,7 @@
               <mat-icon class="panel-icon">lightbulb</mat-icon>
             </mat-panel-title>
           </mat-expansion-panel-header>
-          <p>{{ section.content }}</p>
+          <p [innerHTML]="section.content"></p>
         </mat-expansion-panel>
       </div>
     </mat-card-content>

@@ -22,22 +22,35 @@ export class CodeGenResponseComponent {
   
   sections: { type: string, content: string, language?: string }[] = [];
 
-  processChunk(chunk: string) {
-    const parts = chunk.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g);
-    this.sections = parts.map(part => {
-      if (part.startsWith('```') && part.endsWith('```')) {
-        const content = part.slice(3, -3).trim();
+  prompt: string = '';
+  private partialChunk: string = '';
+
+  processChunk(chunk: string) { 
+    this.partialChunk += chunk; 
+    const parts = this.partialChunk.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g); 
+    this.partialChunk = '';
+
+    // Process each part
+    this.sections = parts.map((part, index) => {
+      const partIsCode = part.startsWith('```');
+      const partIsThink = part.startsWith('<think>');
+      if (partIsCode && part.endsWith('```')) {
+        const content = part.slice(3, -3);
         const firstLineEnd = content.indexOf('\n');
         const language = content.slice(0, firstLineEnd).trim();
         const code = content.slice(firstLineEnd + 1).trim();
         return { type: 'code', content: code, language: mapDeepseekToHighlight(language) };
-      } else if (part.startsWith('<think>') && part.endsWith('</think>')) {
+      } else if (partIsThink && part.endsWith('</think>')) {
         const content = part.slice(7, -8).trim();
         return { type: 'think', content: content };
+      } else if ((partIsCode && !part.endsWith('```')) || (partIsThink && !part.endsWith('</think>'))) {
+        this.partialChunk = part;
+        return null;
       } else {
-        return { type: 'text', content: part.trim() };
+        const formattedContent = part.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        return { type: 'text', content: formattedContent };
       }
-    });
+    }).filter(section => section !== null); // Filter out null sections
   }
 
   copyToClipboard(content: string) {

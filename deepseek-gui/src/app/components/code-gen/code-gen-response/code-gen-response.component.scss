@@ -1,32 +1,6 @@
 @import '../../../../styles.scss';
 
-mat-form-field {
-  mat-label {
-    color: #000;
-  }
-
-  textarea {
-    background: #fff;
-    color: #000;
-    ::placeholder {
-      color: #000;
-      opacity: 1;
-    }
-    ::content {
-      color: #000;
-    }
-  }
-}
-
-.send-button {
-  @include button-style;
-}
-
-.progress-spinner {
-  margin-left: 25px;
-}
-
-.request-card, .response-card {
+.response-card {
   @include card-style
 }
 

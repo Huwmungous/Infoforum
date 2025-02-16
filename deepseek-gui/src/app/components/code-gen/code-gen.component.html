@@ -29,6 +29,8 @@
   </mat-card-content>
 </mat-card>
 
-<div *ngFor="let responseObj of responses" class="mt-4">
-  <app-code-gen-response></app-code-gen-response>
+<div class="responses-container">
+  <div *ngFor="let responseObj of responses" class="mt-4">
+    <app-code-gen-response/>
+  </div>
 </div>

@@ -50,13 +50,15 @@ export class CodeGenComponent implements AfterViewChecked {
     this.error = '';
 
     const newResponse = { response: '' };
-    this.responses.unshift(newResponse); // Insert at the beginning of the array
+    this.responses.unshift(newResponse);
 
     this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'code')
       .subscribe({
         next: (chunk: string) => {
           newResponse.response += chunk;
-          this.codeGenResponses.first.processChunk(chunk); // Process the first response
+          this.codeGenResponses.first.processChunk(chunk);
+          this.codeGenResponses.first.prompt = this.prompt; 
+          this.prompt = '';
         },
         error: (err) => {
           console.error('Error:', err);
