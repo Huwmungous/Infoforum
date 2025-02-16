@@ -34,16 +34,17 @@ export class CodeGenResponseComponent {
     this.sections = parts.map((part, index) => {
       const partIsCode = part.startsWith('```');
       const partIsThink = part.startsWith('<think>');
-      if (partIsCode && part.endsWith('```')) {
+      const isComplete = partIsCode && part.endsWith('```') || partIsThink && part.endsWith('</think>');
+      if (partIsCode && isComplete) {
         const content = part.slice(3, -3);
         const firstLineEnd = content.indexOf('\n');
         const language = content.slice(0, firstLineEnd).trim();
         const code = content.slice(firstLineEnd + 1).trim();
         return { type: 'code', content: code, language: mapDeepseekToHighlight(language) };
-      } else if (partIsThink && part.endsWith('</think>')) {
+      } else if (partIsThink && isComplete) {
         const content = part.slice(7, -8).trim();
         return { type: 'think', content: content };
-      } else if ((partIsCode && !part.endsWith('```')) || (partIsThink && !part.endsWith('</think>'))) {
+      } else if ((partIsCode || partIsThink) && !isComplete) {
         this.partialChunk = part;
         return null;
       } else {
