@@ -9,11 +9,9 @@ export class AuthGuard implements CanActivate {
   constructor(private oauthService: OAuthService, private router: Router) {}
 
   canActivate(): boolean {
-    if (this.oauthService.hasValidAccessToken()) {
-      return true;
-    } else {
-      this.router.navigate(['/login']);
-      return false;
-    }
+    debugger;
+    console.log(this.oauthService);
+    console.log('Access Token :', this.oauthService.hasValidAccessToken());
+    return this.oauthService.hasValidAccessToken();
   }
 }

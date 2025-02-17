@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule // Import RouterModule for router-outlet
+    RouterModule
   ]
 })
 export class AppComponent implements OnInit {
@@ -27,7 +27,6 @@ export class AppComponent implements OnInit {
       } else {
         this.router.navigate(['/intelligence']);
       }
-      
     });
   }
 }

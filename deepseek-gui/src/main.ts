@@ -6,14 +6,14 @@ import { importProvidersFrom } from '@angular/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { provideRouter, Routes } from '@angular/router';
 import { LoginComponent } from './app/components/login/login.component';
-import { AuthGuard } from './app/components/login/auth.guard';
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
+import { AuthGuard } from './app/auth.guard';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
-  { path: 'intelligence', component: IntelligenceComponent, canActivate: [AuthGuard] },
-  { path: '', redirectTo: '/intelligence', pathMatch: 'full' }, // Default route
-  { path: '**', redirectTo: '/intelligence' } // Wildcard route
+  { path: 'home', component: IntelligenceComponent, canActivate: [AuthGuard] },
+  { path: '', redirectTo: '/home', pathMatch: 'full' }, // Default route
+  { path: '**', redirectTo: '/home' } // Wildcard route
 ];
 
 bootstrapApplication(AppComponent, {

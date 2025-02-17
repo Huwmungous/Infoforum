@@ -23,22 +23,11 @@ import { authConfig } from '../auth.config';
 export class IntelligenceComponent implements OnInit {
   conversationId: string = generateGUID(); // Initialize with a new GUID
 
-  constructor(private oauthService: OAuthService) {
-    this.configureWithNewConfigApi();
-  }
-
-  private configureWithNewConfigApi() {
-    this.oauthService.configure(authConfig);
-    this.oauthService.loadDiscoveryDocumentAndTryLogin();
-  }
+  constructor(private oauthService: OAuthService) { } 
 
   ngOnInit() {
     this.oauthService.setupAutomaticSilentRefresh();
-  }
-
-  login() {
-    this.oauthService.initCodeFlow();
-  }
+  } 
 
   logout() {
     this.oauthService.logOut();
