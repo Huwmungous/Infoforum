@@ -20,24 +20,10 @@ import { authConfig } from '../auth.config';
     CodeGenComponent
   ]
 })
-export class IntelligenceComponent implements OnInit {
+export class IntelligenceComponent {
   conversationId: string = generateGUID(); // Initialize with a new GUID
 
-  constructor(private oauthService: OAuthService) { } 
-
-  ngOnInit() {
-    this.oauthService.setupAutomaticSilentRefresh();
-  } 
-
-  logout() {
-    this.oauthService.logOut();
-  }
-
-  get name() {
-    const claims = this.oauthService.getIdentityClaims();
-    if (!claims) return null;
-    return claims['name'];
-  }
+  constructor( ) { }
 
   createNewConversation() {
     this.conversationId = generateGUID(); // Generate a new GUID for the conversationId

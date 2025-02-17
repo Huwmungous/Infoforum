@@ -4,8 +4,8 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { importProvidersFrom } from '@angular/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
-import { provideRouter, Routes } from '@angular/router';
-import { LoginComponent } from './app/components/login/login.component';
+import { provideRouter, Routes } from '@angular/router'; 
+import { AuthGuard } from './app/auth.guard';
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
 import { AuthGuard } from './app/auth.guard';
 
