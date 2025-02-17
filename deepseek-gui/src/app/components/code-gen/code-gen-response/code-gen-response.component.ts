@@ -28,8 +28,6 @@ export class CodeGenResponseComponent {
   processChunk(chunk: string) { 
     this.partialChunk += chunk; 
     const parts = this.partialChunk.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g); 
-    this.partialChunk = '';
-
     // Process each part
     this.sections = parts.map((part, index) => {
       const partIsCode = part.startsWith('```');
@@ -45,7 +43,7 @@ export class CodeGenResponseComponent {
         const content = part.slice(7, -8).trim();
         return { type: 'think', content: content };
       } else if ((partIsCode || partIsThink) && !isComplete) {
-        this.partialChunk = part;
+        this.partialChunk = part; // save for next iteration
         return null;
       } else {
         const formattedContent = part.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');

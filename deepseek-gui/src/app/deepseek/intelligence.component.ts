@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { OAuthService, OAuthModule, AuthConfig } from 'angular-oauth2-oidc';
-import { authConfig } from '../auth-config';
 import { MatIconModule } from '@angular/material/icon';
+import { authConfig } from '../components/login/auth.config';
 
 @Component({
   selector: 'app-intelligence',

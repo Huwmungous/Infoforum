@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { importProvidersFrom } from '@angular/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
+import { LoginComponent } from './app/components/login/login.component';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -12,9 +13,11 @@ bootstrapApplication(AppComponent, {
         resourceServer: {
           sendAccessToken: true,
         },
-      })
+      }),
+      LoginComponent
     ),
-    provideHttpClient(), provideAnimations()
+    provideHttpClient(),
+    provideAnimations()
   ]
 })
 .catch(err => console.error(err));
