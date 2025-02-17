@@ -2,10 +2,11 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { importProvidersFrom } from '@angular/core';
-import { OAuthModule } from 'angular-oauth2-oidc';
 import { provideRouter, Routes } from '@angular/router'; 
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
+import { AuthModule } from 'angular-auth-oidc-client';
+import { authConfig } from './app/auth.config';
+import { importProvidersFrom } from '@angular/core';
 import { AuthGuard } from './app/auth.guard';
 
 const routes: Routes = [
@@ -17,10 +18,8 @@ const routes: Routes = [
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(
-      OAuthModule.forRoot({
-        resourceServer: {
-          sendAccessToken: true,
-        },
+      AuthModule.forRoot({
+        config: authConfig
       })
     ),
     provideHttpClient(),
