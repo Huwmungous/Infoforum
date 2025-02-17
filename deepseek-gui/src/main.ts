@@ -4,7 +4,17 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { importProvidersFrom } from '@angular/core';
 import { OAuthModule } from 'angular-oauth2-oidc';
+import { provideRouter, Routes } from '@angular/router';
 import { LoginComponent } from './app/components/login/login.component';
+import { AuthGuard } from './app/components/login/auth.guard';
+import { IntelligenceComponent } from './app/deepseek/intelligence.component';
+
+const routes: Routes = [
+  { path: 'login', component: LoginComponent },
+  { path: 'intelligence', component: IntelligenceComponent, canActivate: [AuthGuard] },
+  { path: '', redirectTo: '/intelligence', pathMatch: 'full' }, // Default route
+  { path: '**', redirectTo: '/intelligence' } // Wildcard route
+];
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -13,11 +23,11 @@ bootstrapApplication(AppComponent, {
         resourceServer: {
           sendAccessToken: true,
         },
-      }),
-      LoginComponent
+      })
     ),
     provideHttpClient(),
-    provideAnimations()
+    provideAnimations(),
+    provideRouter(routes)
   ]
 })
 .catch(err => console.error(err));

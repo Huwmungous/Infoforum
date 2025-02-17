@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { authConfig } from '../../auth.config';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { authConfig } from './auth.config';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +18,7 @@ export class LoginComponent {
   }
 
   login() {
-    this.oauthService.initImplicitFlow();
+    this.oauthService.initCodeFlow(); // Use Authorization Code Flow
   }
 
   logout() {

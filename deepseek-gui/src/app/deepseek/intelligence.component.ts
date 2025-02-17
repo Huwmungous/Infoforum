@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
-import { OAuthService, OAuthModule, AuthConfig } from 'angular-oauth2-oidc';
+import { OAuthService } from 'angular-oauth2-oidc';
 import { MatIconModule } from '@angular/material/icon';
-import { authConfig } from '../components/login/auth.config';
+import { MatButtonModule } from '@angular/material/button';
+import { authConfig } from '../auth.config';
 
 @Component({
   selector: 'app-intelligence',
@@ -15,8 +16,8 @@ import { authConfig } from '../components/login/auth.config';
     CommonModule,
     MatTabsModule,
     MatIconModule,
-    CodeGenComponent,
-    // OAuthModule.forRoot()
+    MatButtonModule,
+    CodeGenComponent
   ]
 })
 export class IntelligenceComponent implements OnInit {

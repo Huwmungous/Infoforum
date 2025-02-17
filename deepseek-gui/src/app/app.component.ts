@@ -1,14 +1,33 @@
-import { Component } from '@angular/core';
-import { IntelligenceComponent } from './deepseek/intelligence.component';
+import { Component, OnInit } from '@angular/core';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { authConfig } from './auth.config';
+import { Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [IntelligenceComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule // Import RouterModule for router-outlet
+  ]
 })
+export class AppComponent implements OnInit {
+  constructor(
+    private oauthService: OAuthService, 
+    private router: Router) {}
 
-export class AppComponent {
-  title = 'Intelligence GUI';
+  ngOnInit() {
+    this.oauthService.configure(authConfig);
+    this.oauthService.loadDiscoveryDocumentAndTryLogin().then(() => {
+      if (!this.oauthService.hasValidAccessToken()) {
+        this.oauthService.initLoginFlow();
+      } else {
+        this.router.navigate(['/intelligence']);
+      }
+      
+    });
+  }
 }
