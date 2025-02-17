@@ -6,10 +6,10 @@ import { OAuthService } from 'angular-oauth2-oidc';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(private oauthService: OAuthService, private router: Router) {}
 
-  canActivate(): boolean {
-    debugger;
+  constructor(private oauthService: OAuthService) {}
+
+  canActivate(): boolean { 
     console.log(this.oauthService);
     console.log('Access Token :', this.oauthService.hasValidAccessToken());
     return this.oauthService.hasValidAccessToken();
