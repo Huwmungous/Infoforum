@@ -1,12 +1,7 @@
 @import '../../../styles.scss';
 
-.responses-container {
-  flex: 1 1 auto;
-  overflow-y: auto;
+.request-card, .responses-container {
   @include card-style;
-  margin: 3px;
-  border-color: lightslategray;
-  border-width: 0.5px;
 }
 
 mat-form-field {
@@ -33,12 +28,6 @@ mat-form-field {
 
 .progress-spinner {
   margin-left: 25px;
-}
-
-.request-card, .response-card {
-  @include card-style;
-  width: 98%;
-  margin: 5px;
 }
 
 .mat-expansion-panel-header {

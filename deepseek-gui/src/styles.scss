@@ -4,7 +4,13 @@ html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 :root {
-    --mdc-outlined-text-field-input-text-color: #000; /* Override text color to black */
+    --mdc-outlined-text-field-input-text-color:black;
+    --mat-expansion-container-background-color: whitesmoke;
+    --mat-expansion-container-text-color: black;
+    --mat-expansion-container-shape: 6px;
+    --mat-expansion-header-indicator-color: black;
+    --mdc-elevated-card-container-color: lightlightgray;
+    --mat-expansion-header-collapsed-state-height: 25px;
 }
 
 @mixin button-style {
@@ -25,16 +31,19 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     padding: 2px;
     border-radius: 6px;
-    border-style: solid;
+    border-style: solid; 
+    border-color: lightgray;
+    border-width: 0.5px;
     white-space: pre-wrap;
     word-wrap: break-word;
     padding: 3px;
+    margin: 3px;
 }
 
 @mixin expansion-panel-style {
     background-color: white;
     color: #000;
-    font-size: 16px;
+    font-size: 10px;
     font-weight: 400;
     border-radius: 6px;
     border-style: solid;
@@ -48,8 +57,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 @mixin expansion-panel-header-style {
     @include expansion-panel-style;
-    font-size: 10px;
-    border-style: none;
+    font-size: 12px;
+    border-style: solid;
+    border-color: red;
     font-weight: 600;
     min-height: 40px;
 }
@@ -63,4 +73,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 .panel-icon {
     color: darkslategrey;
-  }
+}
+
+

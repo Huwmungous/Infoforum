@@ -1,6 +1,6 @@
 @import '../../../../styles.scss';
 
-.response-reasoning-panel {
+.response-card-header, .response-reasoning-panel {
   @include card-style;
   margin: 5px;
 }
@@ -15,13 +15,16 @@
   margin-left: 10px;
 }
 
-.code-block {
+.code-block, .code-header {
+  background-color: white; 
   position: relative;
-}
-
-.code-header {
   display: flex;
   justify-content: flex-end;
+}
+
+.hljs {
+  background: white !important;
+  color: black !important;
 }
 
 .copy-icon {

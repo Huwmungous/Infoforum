@@ -21,7 +21,11 @@
           <div class="code-header">
             <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
           </div>
-          <pre><code [class]="'language-' + section.language">{{ section.content }}</code></pre>
+          <pre class="code-block">
+            <code [class]="'language-' + section.language">
+              {{ section.content }} 
+            </code>
+          </pre>
         </div>
 
         <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">

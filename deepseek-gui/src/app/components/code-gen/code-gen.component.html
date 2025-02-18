@@ -1,15 +1,15 @@
 <mat-card class="request-card">
-  <mat-card-title class="title mb-5">Coding Assistant</mat-card-title>
+  <mat-card-title class="title mb-2">Coding Assistant</mat-card-title>
   <mat-card-content>
     <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
       <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Enter your prompt</mat-label>
+        <mat-label>Your question</mat-label>
         <textarea class="input-area"
           matInput
           placeholder="How may I help?... "
           [(ngModel)]="prompt"
           name="prompt"
-          rows="5">
+          rows="2">
         </textarea>
       </mat-form-field>
       <div class="d-flex align-items-center mt-3 send-button-container">
