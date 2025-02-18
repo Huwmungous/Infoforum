@@ -4,8 +4,9 @@ import { Router } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Component({
-  selector: 'app-callback',
-  template: '<p>Processing login...</p>',
+  selector: 'app-auth-callback',
+  template: './auth-callback.component.html',
+  styleUrls: ['./auth-callback.component.scss']
 })
 export class AuthCallbackComponent implements OnInit {
   constructor(
@@ -19,7 +20,6 @@ export class AuthCallbackComponent implements OnInit {
       if (isAuthenticated) {
         this.router.navigate(['/home']);
       } else {
-        // Optionally handle the error scenario here
         console.error('Authentication failed');
       }
     });

@@ -8,13 +8,13 @@ import { AuthModule  } from 'angular-auth-oidc-client';
 import { authConfig } from './app/auth.config';
 import { importProvidersFrom } from '@angular/core';
 import { AuthGuard } from './app/auth.guard';
-import { AuthCallbackComponent } from './app/components/auth-callback-component/auth-callback-component.component';
+import { AuthCallbackComponent } from './app/components/auth-callback-component/auth-callback.component';
 
 const routes: Routes = [
   { path: 'callback', component: AuthCallbackComponent },
   { path: 'home', component: IntelligenceComponent, canActivate: [AuthGuard] },
-  { path: '', redirectTo: '/home', pathMatch: 'full' }, // Default route
-  { path: '**', redirectTo: '/home' } // Wildcard route
+  { path: '', redirectTo: '/home', pathMatch: 'full' }, 
+  { path: '**', redirectTo: '/home' } 
 ];
 
 bootstrapApplication(AppComponent, {
