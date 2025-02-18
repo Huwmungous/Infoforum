@@ -8,6 +8,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
   template: './auth-callback.component.html',
   styleUrls: ['./auth-callback.component.scss']
 })
+
 export class AuthCallbackComponent implements OnInit {
   constructor(
     private oidcSecurityService: OidcSecurityService,
