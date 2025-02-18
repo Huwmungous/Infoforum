@@ -18,7 +18,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 @mixin card-style {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 400;
     color: #000;
     background: #f0f0f0;
@@ -28,7 +28,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     border-style: solid;
     white-space: pre-wrap;
     word-wrap: break-word;
-    border: 1px solid #ddd;
+    padding: 3px;
 }
 
 @mixin expansion-panel-style {
@@ -55,8 +55,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 @mixin expansion-panel-body-style {
-    @include expansion-panel-style;
-    border-style: none;
+    @include expansion-panel-style; 
     background-color:whitesmoke;
     font-weight: 600;
 }

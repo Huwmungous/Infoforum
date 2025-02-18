@@ -1,30 +1,17 @@
 @import '../../../../styles.scss';
 
-.response-card {
-  @include card-style
+.response-reasoning-panel {
+  @include card-style;
+  margin: 5px;
 }
 
-.mat-expansion-panel-header{
+.mat-expansion-panel-header {
   @include expansion-panel-header-style;
-}
-
-.mat-expansion-panel-body{
-  @include expansion-panel-body-style;
-}
-
-.mat-expansion-panel {
-  @include expansion-panel-style;
-}
-
-.response-card-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-}
+} 
 
 .save-icon, .delete-icon {
   cursor: pointer;
-  font-size: 24px;
+  font-size: 18px;
   margin-left: 10px;
 }
 
@@ -51,7 +38,7 @@
   font-family: 'Courier New', Courier, monospace;
   background-color: whitesmoke;
   padding: 10px;
-  border-radius: 2px;
+  border-radius: 5px;
   overflow-x: auto;
   margin: 10px 0;
   white-space: pre-wrap;

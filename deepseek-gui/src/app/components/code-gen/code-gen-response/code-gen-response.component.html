@@ -3,10 +3,11 @@
       <mat-icon class="panel-icon" (click)="saveResponse()">save</mat-icon>
       <mat-icon class="panel-icon" (click)="deleteResponse()">delete</mat-icon>
     </div>
+
     <mat-card-content>
 
-      <mat-expansion-panel class="prompt-panel mb-2">
-        <mat-expansion-panel-header>
+      <mat-expansion-panel class="response-prompt-panel">
+        <mat-expansion-panel-header class="expansion-panel-header">
           <mat-panel-title>
             <mat-icon class="panel-icon">terminal</mat-icon>
           </mat-panel-title>
@@ -22,14 +23,16 @@
           </div>
           <pre><code [class]="'language-' + section.language">{{ section.content }}</code></pre>
         </div>
-        <mat-expansion-panel class="reasoning-panel mb-5" *ngIf="section.type === 'think'">
-          <mat-expansion-panel-header>
+
+        <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">
+          <mat-expansion-panel-header  class="expansion-panel-header">
             <mat-panel-title>
               <mat-icon class="panel-icon">lightbulb</mat-icon>
             </mat-panel-title>
           </mat-expansion-panel-header>
           <p [innerHTML]="section.content"></p>
         </mat-expansion-panel>
+        
       </div>
     </mat-card-content>
   </mat-card>

@@ -1,12 +1,12 @@
-<div class="container">
-  <mat-tab-group>
+<div class="main-container">
+  <mat-tab-group class="tab-group">
     <mat-tab>
       <ng-template mat-tab-label>
         <mat-icon class="panel-icon">code</mat-icon>
         <span>Code</span>
       </ng-template>
       <div class="code-tab-content">
-        <button mat-raised-button class="start-new-button" color="primary" (click)="createNewConversation()">Start New</button>
+        <button class="start-new-button" color="primary" (click)="createNewConversation()">Start New</button>
         <app-code-gen></app-code-gen>
       </div>
     </mat-tab>
