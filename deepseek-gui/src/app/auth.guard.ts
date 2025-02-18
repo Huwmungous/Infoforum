@@ -1,8 +1,8 @@
 // auth.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
@@ -19,14 +19,20 @@ export class AuthGuard implements CanActivate {
     state: RouterStateSnapshot
   ): Observable<boolean> {
     return this.oidcSecurityService.checkAuth().pipe(
-      map(({ isAuthenticated }) => {
+      switchMap(({ isAuthenticated, accessToken }: { isAuthenticated: boolean; accessToken: string }) => {
+        console.log('Auth Guard - Authenticated:', isAuthenticated);
+        console.log('Auth Guard - Access Token:', accessToken);
+  
         if (isAuthenticated) {
-          return true;
+          return of(true);
         } else {
+          console.warn('Auth Guard: Not authenticated, waiting...');
           this.oidcSecurityService.authorize();
-          return false;
+          return of(false);
         }
       })
     );
   }
+  
+  
 }

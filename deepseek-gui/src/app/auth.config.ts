@@ -2,7 +2,7 @@ export const authConfig = {
   authority: 'https://longmanrd.net/auth/realms/LongmanRd',
   redirectUrl: window.location.origin + '/callback',
   postLogoutRedirectUri: window.location.origin,
-  clientId: '46279F81-ED75-4CFA-868C-A36AE8BE22B0',
+  clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
   scope: 'openid profile email',
   responseType: 'code',
   silentRenew: false,
