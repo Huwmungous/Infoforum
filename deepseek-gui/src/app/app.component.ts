@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { authConfig } from './auth.config';
 
 @Component({
   selector: 'app-root',
@@ -14,19 +13,8 @@ import { authConfig } from './auth.config';
     RouterModule
   ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   constructor(
     private oidcSecurityService: OidcSecurityService,
     private router: Router) {}
-
-  ngOnInit() {
-    // this.oidcSecurityService.configure(authConfig); // Removed as configure method does not exist
-    this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated }) => {
-      if (isAuthenticated) {
-        this.router.navigate(['/home']);
-      } else {
-        this.oidcSecurityService.authorize();
-      }
-    });
-  }
 }
