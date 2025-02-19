@@ -1,44 +1,37 @@
 <mat-card class="response-card">
-
-    <!-- <div class="response-card-header">
-      <mat-icon class="panel-icon" (click)="saveResponse()">save</mat-icon>
-      <mat-icon class="panel-icon" (click)="deleteResponse()">delete</mat-icon>
-    </div> -->
-
-
   <mat-card-content>
-
-      <mat-expansion-panel class="response-prompt-panel">
-        <mat-expansion-panel-header class="expansion-panel-header">
-          <mat-panel-title>
-            <mat-icon class="panel-icon">terminal</mat-icon>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        <p>{{ prompt }}</p>
-      </mat-expansion-panel>
-      
-      <div *ngFor="let section of sections">
-        <div *ngIf="section.type === 'text'" class="text-block" [innerHTML]="section.content"></div>
-        <div *ngIf="section.type === 'code'" class="code-block-container">
-          <div class="code-header">
-            <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
-          </div>
-          <pre class="code-block">
+    
+    <mat-expansion-panel *ngIf="prompt.length > 0" class="response-prompt-panel">
+      <mat-expansion-panel-header class="expansion-panel-header">
+        <mat-panel-title>
+          <mat-icon class="panel-icon">terminal</mat-icon>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>{{ prompt }}</p>
+    </mat-expansion-panel>
+    
+    <div *ngFor="let section of sections">
+      <div *ngIf="section.type === 'text'" class="text-block" [innerHTML]="section.content"></div>
+      <div *ngIf="section.type === 'code'" class="code-block-container">
+        <div class="code-block">
+          <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
+          <pre>
             <code [class]="'language-' + section.language">
               {{ section.content }} 
             </code>
           </pre>
         </div>
-
-        <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">
-          <mat-expansion-panel-header  class="expansion-panel-header">
-            <mat-panel-title>
-              <mat-icon class="panel-icon">lightbulb</mat-icon>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <p [innerHTML]="section.content"></p>
-        </mat-expansion-panel>
-        
       </div>
-    </mat-card-content>
-  </mat-card>
+
+      <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">
+        <mat-expansion-panel-header class="expansion-panel-header">
+          <mat-panel-title>
+            <mat-icon class="panel-icon">lightbulb</mat-icon>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <p [innerHTML]="section.content"></p>
+      </mat-expansion-panel>
+      
+    </div>
+  </mat-card-content>
+</mat-card>

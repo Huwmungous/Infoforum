@@ -18,7 +18,7 @@
 
 .logout-button {
     @include button-style;
-    background: red;   
+    background: var(--if-hl-medium-colour);   
     color: white;
 }
 

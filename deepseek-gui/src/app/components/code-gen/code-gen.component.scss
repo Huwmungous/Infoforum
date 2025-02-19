@@ -15,12 +15,14 @@
 
 .request-card {
   flex: 0 0 auto;
+  margin: 5px;
 }
 
 .responses-container {
   flex: 1 1 auto;
   width: 100%;
   overflow-y: auto;
+  margin: 5px;
 }
 
 mat-form-field {

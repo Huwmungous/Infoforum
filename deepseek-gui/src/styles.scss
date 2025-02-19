@@ -4,22 +4,36 @@ html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 :root {
+    --if-light-colour: #1d97a6;
+    --if-medium-colour: #214c8c;
+    --if-dark-colour: #0b2144;
+
+    --if-hl-light-colour: #faa236;
+    --if-hl-medium-colour: #fa7733;
+    --if-hl-dark-colour: #db592e;
+
     --mdc-outlined-text-field-input-text-color:black;
     --mat-expansion-container-background-color: whitesmoke;
     --mat-expansion-container-text-color: black;
     --mat-expansion-container-shape: 6px;
-    --mat-expansion-header-indicator-color: black;
+    --mat-expansion-header-indicator-color: var(--if-dark-colour);
     --mdc-elevated-card-container-color: white;
     --mat-expansion-header-collapsed-state-height: 25px;
+
+    --bs-danger-bg-subtle: var(--if-hl-light-colour);
+    --bs-alert-border-color: var(--if-hl-dark-colour);
 }
 
 @mixin button-style {
     min-width: 120px;
     height: 35px;
     border-radius: 5px;
-    border-style: none;
-    background-color: #a9f0f5;  
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); 
+    border-style: solid;
+    border-width: 0.25px;
+    border-color: var(--if-dark-colour);
+    background-color: var(--if-light-colour);
+    color: white;
+    box-shadow: 2px 4px 6px #0b2144;
     margin: 10px;
     cursor: pointer
 }
@@ -29,11 +43,11 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-weight: 400;
     color: #000;
     background: #f0f0f0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 6px #0b2144;
     padding: 2px;
     border-radius: 6px;
     border-style: solid; 
-    border-color: lightgray;
+    border-color: var(--if-medium-colour);
     border-width: 0.5px;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -48,8 +62,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-weight: 400;
     border-radius: 6px;
     border-style: solid;
-    border-width: 0.1px;
-    border-color: lightslategray; 
+    border-color: var(--if-medium-colour);
+    border-width: 0.5px;
     padding: 5px;
     margin: 2px;
     white-space: pre-wrap;
@@ -68,7 +82,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 .panel-icon {
-    color: darkslategrey;
+    color: var(--if-dark-colour);
 }
 
 
