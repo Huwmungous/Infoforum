@@ -21,6 +21,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     background-color: #a9f0f5;  
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5); 
     margin: 10px;
+    cursor: pointer
 }
 
 @mixin card-style {

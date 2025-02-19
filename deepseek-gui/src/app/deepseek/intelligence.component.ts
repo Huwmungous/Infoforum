@@ -4,6 +4,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Component({
   selector: 'app-intelligence',
@@ -19,11 +20,19 @@ import { MatButtonModule } from '@angular/material/button';
   ]
 })
 export class IntelligenceComponent {
+  
   conversationId: string = generateGUID(); // Initialize with a new GUID
 
-  constructor( ) { }
+  constructor( private oidcSecurityService: OidcSecurityService ) { }
 
   createNewConversation() {
     this.conversationId = generateGUID(); // Generate a new GUID for the conversationId
   }
+
+  logout() {
+    this.oidcSecurityService.logoffAndRevokeTokens().subscribe(() => {
+      this.oidcSecurityService.logoff();
+    });
+  }
+  
 }
