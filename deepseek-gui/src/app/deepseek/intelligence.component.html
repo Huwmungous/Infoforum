@@ -1,10 +1,12 @@
-<div class="intelligence-header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #333; color: white;">
-  <div>Longman Road Intelligence Application</div>
-  <button class="logout-button" (click)="logout()" >
+<div class="intelligence-header">
+  <div style="display: flex; align-items: center;">
+    <img src="/IF-Logo.png" alt="IF Logo" class="if-logo" />
+    <span style="margin-left: 10px;">The Information Forum Ltd. Artificial Intelligence</span>
+  </div>
+  <button class="logout-button" (click)="logout()">
     Logout
   </button>
 </div>
-
 
 <div class="main-container">
   <mat-tab-group class="tab-group">
@@ -14,7 +16,7 @@
         <span>Code</span>
       </ng-template>
       <div class="code-tab-content">
-        <app-code-gen></app-code-gen>
+        <app-code-gen class="code-gen"></app-code-gen>
       </div>
     </mat-tab>
     <mat-tab label="Images">
@@ -39,3 +41,7 @@
     </mat-tab>
   </mat-tab-group>
 </div>
+
+<footer class="intelligence-footer">
+  <p>&copy; 2025 The Information Forum Ltd. All rights reserved.</p>
+</footer>

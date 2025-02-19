@@ -58,10 +58,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 @mixin expansion-panel-header-style {
     @include expansion-panel-style;
-    font-size: 12px;
-    border-style: solid;
-    border-color: red;
-    font-weight: 600;
     min-height: 40px;
 }
 
@@ -70,7 +66,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     background-color:whitesmoke;
     font-weight: 600;
 }
-
 
 .panel-icon {
     color: darkslategrey;

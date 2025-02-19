@@ -1,35 +1,42 @@
-<mat-card class="request-card">
-  <mat-card-content>
-    <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-label>Your question</mat-label>
-        <textarea class="input-area"
-          matInput
-          placeholder="How may I help?... "
-          [(ngModel)]="prompt"
-          name="prompt"
-          rows="2">
-        </textarea>
-      </mat-form-field>
-      <div class="d-flex align-items-center mt-3 send-button-container">
-        <button mat-raised-button class="send-button" color="primary" type="submit" [disabled]="loading">
-          {{ loading ? 'Processing...' : 'Send' }}
-        </button>
-        <mat-progress-spinner class="progress-spinner"
-          *ngIf="loading"
-          mode="indeterminate"
-          diameter="30">
-        </mat-progress-spinner>
+<div class="code-gen-component">
+  <mat-card class="request-card">
+    <mat-card-content>
+      <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Your question</mat-label>
+          <textarea
+            class="input-area"
+            matInput
+            placeholder="How may I help?... "
+            [(ngModel)]="prompt"
+            name="prompt"
+            rows="2">
+          </textarea>
+        </mat-form-field> 
+          <button
+            mat-raised-button
+            class="send-button"
+            color="primary"
+            type="submit"
+            [disabled]="loading">
+            {{ loading ? 'Processing...' : 'Send' }}
+          </button>
+          <mat-progress-spinner
+            class="progress-spinner"
+            *ngIf="loading"
+            mode="indeterminate"
+            diameter="30">
+          </mat-progress-spinner> 
+      </form>
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        {{ error }}
       </div>
-    </form>
-    <div *ngIf="error" class="alert alert-danger mt-3">
-      {{ error }}
-    </div>
-  </mat-card-content>
-</mat-card>
+    </mat-card-content>
+  </mat-card>
 
-<div class="responses-container">
-  <div *ngFor="let responseObj of responses" class="mt-4">
-    <app-code-gen-response/>
+  <div class="responses-container">
+    <div *ngFor="let responseObj of responses" class="mt-4">
+      <app-code-gen-response></app-code-gen-response>
+    </div>
   </div>
 </div>
