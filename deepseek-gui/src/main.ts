@@ -11,7 +11,7 @@ import { AuthGuard } from './app/auth.guard';
 import { AuthCallbackComponent } from './app/components/auth-callback-component/auth-callback.component';
 
 const routes: Routes = [
-  { path: 'callback', component: AuthCallbackComponent },
+  { path: 'auth-callback', component: AuthCallbackComponent },
   { path: 'home', component: IntelligenceComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/home', pathMatch: 'full' }, 
   { path: '**', redirectTo: '/home' } 
