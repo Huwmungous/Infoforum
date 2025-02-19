@@ -1,7 +1,26 @@
 @import '../../../styles.scss';
 
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.code-gen-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
 .request-card {
-  @include card-style;
+  flex: 0 0 auto;
+}
+
+.responses-container {
+  flex: 1 1 auto;
+  width: 100%;
+  overflow-y: auto;
 }
 
 mat-form-field {
@@ -30,15 +49,8 @@ mat-form-field {
   margin-left: 25px;
 }
 
-.responses-container { 
-  flex: 1 1 auto;  
-  width: 100%;
-  overflow-y: auto;
-}
-
 .save-icon, .delete-icon {
   cursor: pointer;
   font-size: 24px;
   margin-left: 10px;
 }
-

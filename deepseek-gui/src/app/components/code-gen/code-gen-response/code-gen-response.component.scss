@@ -1,10 +1,6 @@
 @import '../../../../styles.scss';
- 
 
-.response-card {
-  flex: 1 1 auto;
-  height: 62vh;
-}
+
 
 .response-card-header, .response-prompt-panel, .response-reasoning-panel {
   @include card-style;
