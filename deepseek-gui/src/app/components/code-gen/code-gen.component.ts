@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { OllamaService } from '../../ollama.service';
 import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
+import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-code-gen',
@@ -22,7 +23,8 @@ import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.
     MatInputModule,
     MatIconModule,
     MatExpansionModule,
-    CodeGenResponseComponent
+    CodeGenResponseComponent,
+    LoadingSpinnerComponent
   ],
   templateUrl: './code-gen.component.html',
   styleUrls: ['./code-gen.component.scss']
