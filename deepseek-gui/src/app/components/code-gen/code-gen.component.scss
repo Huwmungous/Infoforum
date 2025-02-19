@@ -36,56 +36,9 @@ mat-form-field {
   overflow-y: auto;
 }
 
-.mat-expansion-panel-header {
-  @include expansion-panel-header-style;
-}
-
-.mat-expansion-panel-body {
-  @include expansion-panel-body-style;
-}
-
-.mat-expansion-panel {
-  @include expansion-panel-style;
-}
-
-.response-card-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px;
-}
-
 .save-icon, .delete-icon {
   cursor: pointer;
   font-size: 24px;
   margin-left: 10px;
 }
 
-.code-block {
-  position: relative;
-}
-
-.code-header {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.copy-icon {
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.text-block {
-  font-family: Tahoma, sans-serif;
-  white-space: pre-wrap;
-}
-
-.code-block {
-  font-family: 'Courier New', Courier, monospace;
-  background-color: whitesmoke;
-  padding: 10px;
-  border-radius: 2px;
-  overflow-x: auto;
-  margin: 10px 0;
-  white-space: pre-wrap;
-  line-height: 1.3;
-}
