@@ -1,4 +1,4 @@
-import { Component, AfterViewChecked, ViewChildren, QueryList } from '@angular/core';
+import { Component, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -9,8 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { OllamaService } from '../../ollama.service';
 import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
-
-declare const hljs: any;
 
 @Component({
   selector: 'app-code-gen',
@@ -29,7 +27,8 @@ declare const hljs: any;
   templateUrl: './code-gen.component.html',
   styleUrls: ['./code-gen.component.scss']
 })
-export class CodeGenComponent implements AfterViewChecked {
+export class CodeGenComponent implements AfterViewInit {
+  
   @ViewChildren(CodeGenResponseComponent) codeGenResponses!: QueryList<CodeGenResponseComponent>;
 
   prompt: string = '';
@@ -39,6 +38,11 @@ export class CodeGenComponent implements AfterViewChecked {
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
 
   constructor(private ollamaService: OllamaService) {}
+
+  ngAfterViewInit() {
+    this.codeGenResponses.changes.subscribe(() => {
+    });
+  }
 
   onSubmit() {
     if (!this.prompt.trim()) {
@@ -56,8 +60,11 @@ export class CodeGenComponent implements AfterViewChecked {
       .subscribe({
         next: (chunk: string) => {
           newResponse.response += chunk;
-          this.codeGenResponses.first.processChunk(chunk);
-          this.codeGenResponses.first.prompt = this.prompt; 
+          const firstResponseComponent = this.codeGenResponses.first;
+          if (firstResponseComponent) {
+            firstResponseComponent.processChunk(chunk);
+            firstResponseComponent.prompt = this.prompt; 
+          }
           this.prompt = '';
         },
         error: (err) => {
@@ -66,23 +73,14 @@ export class CodeGenComponent implements AfterViewChecked {
           this.loading = false;
         },
         complete: () => {
-          this.loading = false;
+          this.loading = false; 
+          this.codeGenResponses.forEach(response => response.highlightCode());
         }
       });
   }
 
   removeResponse(index: number) {
     this.responses.splice(index, 1);
-  }
-
-  ngAfterViewChecked() {
-    this.highlightCode();
-  }
-
-  highlightCode() {
-    document.querySelectorAll('pre code').forEach((block) => {
-      hljs.highlightBlock(block as HTMLElement);
-    });
   }
 }
 

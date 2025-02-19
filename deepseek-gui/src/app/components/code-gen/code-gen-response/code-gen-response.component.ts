@@ -5,6 +5,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { mapDeepseekToHighlight } from '../../../deepseek/deepseek-to-highlight-map';
 
+
+declare const hljs: any;
+
 @Component({
   selector: 'app-code-gen-response',
   standalone: true,
@@ -51,7 +54,13 @@ export class CodeGenResponseComponent {
         .replace(/###(.*?)(\n|$)/g, '<em>$1</em>$2'); // Italicize text starting with ###
         return { type: 'text', content: formattedContent };
       }
-    }).filter(section => section !== null); // Filter out null sections
+    }).filter(section => section !== null);
+  }
+
+  highlightCode() {
+    document.querySelectorAll('pre code').forEach((block) => {
+      hljs.highlightBlock(block as HTMLElement);
+    });
   }
 
   copyToClipboard(content: string) {
