@@ -16,10 +16,14 @@
 }
 
 .code-block, .code-header {
-  background-color: white; 
-  position: relative;
-  display: flex;
-  justify-content: flex-end;
+  background-color: white;
+}
+
+.code-header {
+  text-align: right;
+  background-color: white;
+  font-size: 12px;
+  padding: 5px;
 }
 
 .hljs {

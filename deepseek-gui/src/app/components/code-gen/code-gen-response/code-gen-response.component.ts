@@ -46,7 +46,9 @@ export class CodeGenResponseComponent {
         this.partialChunk = part; // save for next iteration
         return null;
       } else {
-        const formattedContent = part.trim().replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        const formattedContent = part.trim()
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
+        .replace(/###(.*?)(\n|$)/g, '<em>$1</em>$2'); // Italicize text starting with ###
         return { type: 'text', content: formattedContent };
       }
     }).filter(section => section !== null); // Filter out null sections
