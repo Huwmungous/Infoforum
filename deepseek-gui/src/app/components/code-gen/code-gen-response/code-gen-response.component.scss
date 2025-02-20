@@ -1,15 +1,14 @@
 @import '../../../../styles.scss';
 
 .response-card {
+  @include card-style;
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  margin: 5px;
 }
 
 .response-card-header, .response-prompt-panel, .response-reasoning-panel {
   @include card-style;
-  margin: 1px;
 }
 
 .mat-expansion-panel-header {
@@ -17,9 +16,7 @@
 } 
 
 .save-icon, .delete-icon {
-  cursor: pointer;
-  font-size: 18px;
-  margin-left: 10px;
+  @include panel-icon-style;
 }
 
 .code-block {
@@ -50,7 +47,7 @@
 
 .copy-icon::after {
   content: 'Copy to clipboard';
-  position: absolute;
+  position: relative;
   top: -25px;
   right: -25px;
   background-color: var(--if-hl-light-colour);
@@ -81,6 +78,7 @@
 } 
 
 .text-block {
+  margin-top:10px;
   font-family: Tahoma, sans-serif;
   white-space: pre-wrap;
 }

@@ -43,7 +43,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-weight: 400;
     color: #000;
     background: #f0f0f0;
-    box-shadow: 0 4px 6px #0b2144;
+    box-shadow: 0 2px 6px #0b2144;
     padding: 2px;
     border-radius: 6px;
     border-style: solid; 
@@ -52,7 +52,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     white-space: pre-wrap;
     word-wrap: break-word;
     padding: 3px;
-    margin: 3px;
+    margin: 5px;
 }
 
 @mixin expansion-panel-style {
@@ -81,8 +81,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-weight: 600;
 }
 
-.panel-icon {
+@mixin panel-icon-style {
     color: var(--if-dark-colour);
+    cursor: pointer;
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+.panel-icon {
+    @include panel-icon-style;
 }
 
 

@@ -10,19 +10,22 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  overflow: hidden;
+  width: 100%;
+  overflow: auto;
+  padding: 5px;
+
 }
 
 .request-card {
+  @include card-style;
   flex: 0 0 auto;
-  margin: 5px;
 }
 
 .responses-container {
   flex: 1 1 auto;
   width: 100%;
   overflow-y: auto;
-  margin: 5px;
+  padding:10px;
 }
 
 mat-form-field {
@@ -45,10 +48,6 @@ mat-form-field {
 
 .send-button {
   @include button-style;
-}
-
-.progress-spinner {
-  margin-left: 25px;
 }
 
 .save-icon, .delete-icon {
