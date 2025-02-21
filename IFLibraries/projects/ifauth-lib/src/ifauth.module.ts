@@ -9,7 +9,8 @@ import { AuthCallbackComponent } from './components/auth-callback-component/auth
 @NgModule({
   imports:[AuthCallbackComponent],
   declarations: [  ],
-  exports: [  AuthCallbackComponent ]
+  exports: [  AuthCallbackComponent ],
+  providers: []
 })
 export class IFAuthModule {
   static forRoot(config: any): ModuleWithProviders<IFAuthModule> {
