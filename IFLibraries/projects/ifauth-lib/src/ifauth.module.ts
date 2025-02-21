@@ -8,7 +8,7 @@ import { AuthCallbackComponent } from './components/auth-callback-component/auth
 
 @NgModule({
   imports:[AuthCallbackComponent],
-  declarations: [ ],
+  declarations: [  ],
   exports: [  AuthCallbackComponent ]
 })
 export class IFAuthModule {

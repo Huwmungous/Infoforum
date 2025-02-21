@@ -5,7 +5,6 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Routes } from '@angular/router'; 
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
 import { authConfig } from './app/auth.config';
-import { importProvidersFrom } from '@angular/core';
 import { provideAuth, AuthGuard, AuthCallbackComponent } from 'ifauth-lib';
 
 const routes: Routes = [
