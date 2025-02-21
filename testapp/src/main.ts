@@ -1,10 +1,8 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
-import { provideAuth } from 'ifauth-lib'; 
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { AuthGuard } from 'ifauth-lib';
-import { AuthCallbackComponent } from 'ifauth-lib';
+import { provideAuth, AuthGuard, AuthCallbackComponent } from 'ifauth-lib';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
