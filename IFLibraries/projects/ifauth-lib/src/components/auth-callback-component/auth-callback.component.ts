@@ -4,11 +4,10 @@ import { Router } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
-  selector: 'app-auth-callback',
-  templateUrl: './auth-callback.component.html',
-  styleUrls: ['./auth-callback.component.scss'],
-  standalone: true,
-  imports: [MatProgressSpinnerModule]
+    selector: 'app-auth-callback',
+    templateUrl: './auth-callback.component.html',
+    styleUrls: ['./auth-callback.component.scss'],
+    imports: [MatProgressSpinnerModule]
 })
 export class AuthCallbackComponent implements OnInit {
   constructor(

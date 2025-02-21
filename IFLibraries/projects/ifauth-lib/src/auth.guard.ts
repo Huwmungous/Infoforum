@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { take, tap, map } from 'rxjs/operators';
 
 @Injectable({

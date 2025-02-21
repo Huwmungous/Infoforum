@@ -1,15 +1,14 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'lib-IFAuthLib',
-  standalone: true,
-  imports: [],
-  template: `
+    selector: 'lib-IFAuthLib',
+    imports: [],
+    template: `
     <p>
       ifauth-lib works!
     </p>
   `,
-  styles: ``
+    styles: ``
 })
 export class IFAuthLibComponent {
 

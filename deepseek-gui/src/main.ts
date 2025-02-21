@@ -7,8 +7,8 @@ import { IntelligenceComponent } from './app/deepseek/intelligence.component';
 import { AuthModule  } from 'angular-auth-oidc-client';
 import { authConfig } from './app/auth.config';
 import { importProvidersFrom } from '@angular/core';
-import { AuthGuard } from './app/auth.guard';
-import { AuthCallbackComponent } from './app/components/auth-callback-component/auth-callback.component';
+
+import { AuthCallbackComponent, AuthGuard } from 'ifauth-lib';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
