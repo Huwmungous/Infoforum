@@ -4,7 +4,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Routes } from '@angular/router'; 
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
-import { authConfig } from './app/auth.config';
 import { provideAuth, AuthGuard, AuthCallbackComponent } from 'ifauth-lib';
 
 const routes: Routes = [
@@ -16,9 +15,9 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAuth(authConfig),
     provideHttpClient(),
     provideAnimations(),
+    provideAuth(),
     provideRouter(routes)
   ]
 })

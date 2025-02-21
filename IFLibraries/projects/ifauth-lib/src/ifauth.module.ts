@@ -17,7 +17,7 @@ export class IFAuthModule {
     return {
       ngModule: IFAuthModule,
       providers: [
-        { provide: 'AUTH_CONFIG', useValue: config },
+        // { provide: 'AUTH_CONFIG', useValue: config },
         OidcSecurityService,
         LogoutService,
         AuthGuard
@@ -25,3 +25,9 @@ export class IFAuthModule {
     };
   }
 }
+
+export { provideAuth } from './provideAuth';
+export { AuthGuard } from './auth.guard'; 
+export { LogoutService } from './logout-service';
+export { AuthCallbackComponent } from './components/auth-callback-component/auth-callback.component';
+
