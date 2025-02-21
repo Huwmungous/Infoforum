@@ -4,11 +4,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Routes } from '@angular/router'; 
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
-import { AuthModule  } from 'angular-auth-oidc-client';
 import { authConfig } from './app/auth.config';
 import { importProvidersFrom } from '@angular/core';
-
-import { AuthCallbackComponent, AuthGuard } from 'ifauth-lib';
+import { provideAuth, AuthGuard, AuthCallbackComponent } from 'ifauth-lib';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
@@ -19,11 +17,7 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(
-      AuthModule.forRoot({
-        config: authConfig
-      })
-    ),
+    provideAuth(authConfig),
     provideHttpClient(),
     provideAnimations(),
     provideRouter(routes)
