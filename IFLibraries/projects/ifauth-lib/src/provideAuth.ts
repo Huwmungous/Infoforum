@@ -3,14 +3,11 @@ import { importProvidersFrom } from '@angular/core';
 import { AuthModule, OpenIdConfiguration, PassedInitialConfig } from 'angular-auth-oidc-client';
 
 export function provideAuth(realm: string = '', client: string = '') {
-
-  const issuer =  'https://longmanrd.net/auth/realms/' + (realm ? realm : 'LongmanRd'); //default realm
-  const clnt = client ? client : '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7'; // default clientId
   const cfg : OpenIdConfiguration = {
-    authority: issuer,
+    authority: 'https://longmanrd.net/auth/realms/' + (realm ? realm : 'LongmanRd'), //default realm,
     redirectUrl: window.location.origin + '/auth-callback',
     postLogoutRedirectUri: window.location.origin,
-    clientId: clnt,
+    clientId: client ? client : '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7', // default clientId,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,

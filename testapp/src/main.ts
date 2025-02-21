@@ -13,7 +13,7 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAuth(),
+    provideAuth('BreakTackle', '46279F81-ED75-4CFA-868C-A36AE8BE22B0'),
     provideHttpClient(),
     provideRouter(routes)
   ]
