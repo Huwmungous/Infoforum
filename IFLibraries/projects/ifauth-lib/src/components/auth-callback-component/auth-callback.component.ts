@@ -23,7 +23,6 @@ export class AuthCallbackComponent implements OnInit {
           this.router.navigate(['/']);
         } else {
           console.error('Auth Callback - Authentication failed');
-          // Optionally, navigate to an error page.
         }
       },
       error: (error) => console.error('Auth Callback - Error during checkAuth():', error)
