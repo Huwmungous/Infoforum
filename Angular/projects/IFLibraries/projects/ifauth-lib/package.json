@@ -1,0 +1,14 @@
+{
+  "name": "ifauth-lib",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^19.1.7",
+    "@angular/core": "^19.1.7",
+    "angular-auth-oidc-client": "^19.0.0"
+  },
+  "devDependencies": {
+    "tslib": "^2.3.0",
+    "angular-auth-oidc-client": "^19.0.0"
+  },
+  "sideEffects": false
+}
