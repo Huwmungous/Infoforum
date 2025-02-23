@@ -10,8 +10,11 @@ export class LogoutService {
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
   logout(): void {
-    this.oidcSecurityService.logoffAndRevokeTokens().subscribe(() => {
-      this.oidcSecurityService.logoff();
+    this.oidcSecurityService.getIdToken().subscribe(idToken => {
+      this.oidcSecurityService.logoffAndRevokeTokens().subscribe(() => {
+        this.oidcSecurityService.logoff( idToken  );
+      });
     });
   }
+
 }
