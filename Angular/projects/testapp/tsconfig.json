@@ -5,9 +5,8 @@
   "compilerOptions": {
     "baseUrl": ".", // Ensure this line is present
     "paths": {
-      "ifauth-lib": [
-        "../IFLibraries/dist/ifauth-lib"
-      ]
+      "angular-auth-oidc-client": ["node_modules/angular-auth-oidc-client"],
+      "ifshared-library": ["../../dist/ifshared-library"]
     },
     "outDir": "./dist/out-tsc",
     "strict": true,

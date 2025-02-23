@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LogoutService } from 'ifauth-lib';
+import { LogoutService } from 'ifshared-library';
 
 @Component({
     selector: 'app-root',
