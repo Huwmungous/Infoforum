@@ -8,13 +8,8 @@ export class LogoutService {
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
   logout(): void {
-    this.oidcSecurityService.getIdToken().subscribe(idToken => {
-      if (idToken) {
-        this.oidcSecurityService.logoff(idToken);
-      } else {
-        console.error('ID token is missing');
-      }
+    this.oidcSecurityService.logoffAndRevokeTokens().subscribe(() => {
+      window.location.href = window.location.origin; 
     });
-    
   }
 }
