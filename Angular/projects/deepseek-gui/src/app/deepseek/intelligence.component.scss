@@ -1,0 +1,56 @@
+@use '../../styles.scss' as *;
+
+.intelligence-header {
+    display: flex; 
+    justify-content: 
+    space-between; 
+    align-items: center; 
+    padding: 10px; 
+    background: #333; 
+    color: white;
+    font-size: larger;
+}
+
+.if-logo {
+    height: 75px;
+    width: 75px;    
+}
+
+.logout-button {
+    @include button-style;
+    background: var(--if-hl-medium-colour);   
+    color: white;
+}
+
+.main-container { 
+    flex: 1 1 auto;  
+    width: 100%;
+    overflow: auto;
+    padding: 5px;
+ }
+
+.code-gen{
+    height:100%;
+    width:100%;
+}
+
+.tab-group {
+    width:100%;
+ }
+
+.start-new-button {
+    @include button-style;
+}
+
+.intelligence-footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 7px 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;  
+    align-items: center; 
+}
