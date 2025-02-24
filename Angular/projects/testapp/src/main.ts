@@ -12,8 +12,12 @@ const routes: Routes = [
 ];
 
 // Retrieve saved client values from local storage
-const savedClientId = localStorage.getItem('selectedClientId') || '';
+const savedClientId = localStorage.getItem('selectedClientClientId') || '';
 const savedClientName = localStorage.getItem('selectedClientName') || '';
+
+console.log('Saved client: ', savedClientName, savedClientId);
+
+debugger;
 
 bootstrapApplication(AppComponent, {
   providers: [

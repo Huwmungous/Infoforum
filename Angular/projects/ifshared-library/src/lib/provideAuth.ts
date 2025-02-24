@@ -19,5 +19,7 @@ export function provideAuth(realm: string = '', client: string = '') {
     // disablePKCE: false
   };
 
+  console.log('provideAuth: ', cfg);
+
   return importProvidersFrom(AuthModule.forRoot({ config: cfg }));
 }

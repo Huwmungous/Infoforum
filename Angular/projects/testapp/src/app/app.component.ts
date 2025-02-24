@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
   title = 'Auth Testing';
@@ -20,15 +20,18 @@ export class AppComponent implements OnInit {
     { id: 3, name: 'LongmanRd', clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' }
   ];
 
-  selectedClientId: number | null = null;
+  dropdownId: number | null = null;
+  selectedClientName: string = '';
 
   constructor(private logoutService: LogoutService, private clientService: ClientService) { }
 
   ngOnInit() {
     const savedClientId = localStorage.getItem('selectedClientId');
-    if (savedClientId) {
-      this.selectedClientId = +savedClientId;
-      const selectedClient = this.clients.find(client => client.id === this.selectedClientId);
+    const savedClientName = localStorage.getItem('selectedClientName');
+    if (savedClientId && savedClientName) {
+      this.dropdownId = +savedClientId;
+      this.selectedClientName = savedClientName;
+      const selectedClient = this.clients.find(client => client.id === this.dropdownId);
       if (selectedClient) {
         this.clientService.setClient(selectedClient.name, selectedClient.clientId); // Pass name and clientId
       }
@@ -39,14 +42,17 @@ export class AppComponent implements OnInit {
     const selectElement = event.target as HTMLSelectElement;
     const selectedClient = this.clients.find(client => client.id === +selectElement.value);
     if (selectedClient) {
-      this.selectedClientId = selectedClient.id;
-      localStorage.setItem('selectedClientId', this.selectedClientId.toString());
+      this.dropdownId = selectedClient.id;
+      this.selectedClientName = selectedClient.name;
+      localStorage.setItem('selectedClientId', this.dropdownId.toString());
       localStorage.setItem('selectedClientName', selectedClient.name);
+      localStorage.setItem('selectedClientClientId', selectedClient.clientId);
       this.clientService.setClient(selectedClient.name, selectedClient.clientId); // Pass name and clientId
     }
   }
 
   logout() {
+    this.clientService.reinitializeAuth();
     this.logoutService.logout();
   }
 }

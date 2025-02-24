@@ -1,8 +1,10 @@
 <div class="container">
   <label for="client-select">Select Client:</label>
-  <select id="client-select" (change)="onClientChange($event)" [(ngModel)]="selectedClientId">
+  <select id="client-select" (change)="onClientChange($event)" [(ngModel)]="dropdownId">
     <option *ngFor="let client of clients" [value]="client.id">{{ client.name }} - {{ client.clientId }}</option>
   </select>
 
   <button (click)="logout()">Logout</button>
+
+  <p>Currently logged in to the "{{ selectedClientName }}" realm</p>
 </div>

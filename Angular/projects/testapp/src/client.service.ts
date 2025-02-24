@@ -11,10 +11,9 @@ export class ClientService {
   setClient(clientName: string, clientId: string) {
     this.clientName = clientName;
     this.clientId = clientId;
-    this.reinitializeAuth();
   }
 
-  private reinitializeAuth() {
+  reinitializeAuth() {
     provideAuth(this.clientName, this.clientId);
   }
 }
