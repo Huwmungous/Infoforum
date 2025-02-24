@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { LogoutService } from 'ifshared-library';
-import { ClientService } from '../client.service';
+import { ClientService, DEFAULT_CLIENT_ID, DEFAULT_CLIENT_NAME } from '../client.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -15,9 +15,9 @@ export class AppComponent implements OnInit {
   title = 'Auth Testing';
 
   clients = [
-    { id: 1, name: 'Default', clientId: '' },
+    { id: 1, name: 'Default', clientId: DEFAULT_CLIENT_NAME },
     { id: 2, name: 'BreakTackle', clientId: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
-    { id: 3, name: 'LongmanRd', clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' }
+    { id: 3, name: 'LongmanRd', clientId: DEFAULT_CLIENT_ID }
   ];
 
   dropdownId: number | null = null;
