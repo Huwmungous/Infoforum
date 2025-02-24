@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { provideAuth } from 'ifshared-library';
 
 export const DEFAULT_CLIENT_NAME = 'LongmanRd';
-export const DEFAULT_CLIENT_ID = '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7';
+export const DEFAULT_CLIENT_ID = '9F32F055-D2FF-4461-A47B-4A2FCA6720DA';
 
 @Injectable({
   providedIn: 'root'
