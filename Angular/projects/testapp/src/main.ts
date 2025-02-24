@@ -11,10 +11,13 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
+// Retrieve saved client values from local storage
+const savedClientId = localStorage.getItem('selectedClientId') || '';
+const savedClientName = localStorage.getItem('selectedClientName') || '';
+
 bootstrapApplication(AppComponent, {
   providers: [
-    //provideAuth('BreakTackle', '46279F81-ED75-4CFA-868C-A36AE8BE22B0'),
-    provideAuth(),
+    provideAuth(savedClientName, savedClientId),
     provideHttpClient(),
     provideRouter(routes)
   ]
