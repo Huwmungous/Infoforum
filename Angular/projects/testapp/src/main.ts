@@ -11,17 +11,16 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-// Retrieve saved client values from local storage
-const savedClientId = localStorage.getItem('selectedClientClientId') || '';
-const savedClientName = localStorage.getItem('selectedClientName') || '';
+const savedRealm = localStorage.getItem('selectedClientName') || '';
+const savedClient = localStorage.getItem('selectedClientClientId') || '';
 
-console.log('Saved client: ', savedClientName, savedClientId);
+console.log('Saved client: ', savedRealm, savedClient);
 
-// debugger;
+debugger;
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAuth(savedClientName, savedClientId),
+    provideAuth(savedRealm, savedClient),
     provideHttpClient(),
     provideRouter(routes)
   ]

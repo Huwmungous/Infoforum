@@ -4,7 +4,10 @@
     <option *ngFor="let client of clients" [value]="client.id">{{ client.name }} - {{ client.clientId }}</option>
   </select>
 
-  <button (click)="logout()">Logout</button>
+  <button (click)="login()" [disabled]="isAuthenticated">Login</button>
+  <button (click)="logout()" [disabled]="!isAuthenticated">Logout</button>
 
-  <p>Currently logged in to the "{{ selectedClientName }}" realm</p>
+  <div *ngIf="isAuthenticated">
+    <p>Currently logged in to the "{{ selectedClientName }}" realm</p>
+  </div>
 </div>

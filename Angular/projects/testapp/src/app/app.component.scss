@@ -26,6 +26,12 @@
     cursor: pointer;
   }
 
-  button:hover {
+  button:disabled {
+    background-color: #141414; /* Change this color to your preference */
+    color: #666666; /* Change this color to your preference */
+    cursor: not-allowed;
+  }
+  
+  button:hover:not(:disabled) {
     background-color: #0056b3;
   }
