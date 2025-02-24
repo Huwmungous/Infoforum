@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ClientService, DEFAULT_CLIENT } from '../../../ifshared-library/src/lib/client.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { realmFromName } from '../../../ifshared-library/src/lib/provideAuth';
 
 @Component({
   selector: 'app-root',
@@ -47,13 +48,10 @@ export class AppComponent implements OnInit {
       this.selectedClientName = selectedClient.name;
       this.selectedClientId = selectedClient.clientId;
       localStorage.setItem('selectedClient', this.dropdownId.toString());
-      localStorage.setItem('selectedRealm', this.realmFromName(selectedClient.name));
+      localStorage.setItem('selectedRealm', realmFromName(selectedClient.name));
       localStorage.setItem('selectedClientClientId', selectedClient.clientId);
       this.clientService.setClient(selectedClient.name, selectedClient.clientId);
     }
-  }
-  realmFromName(name: string): string { 
-    return name === 'BreakTackle' ? name : 'LongmanRd'; 
   }
 
   get isAuthenticated(): boolean {
