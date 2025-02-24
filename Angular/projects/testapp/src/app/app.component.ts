@@ -43,19 +43,19 @@ export class AppComponent implements OnInit {
   onClientChange(event: Event) {
     const selectElement = event.target as HTMLSelectElement;
     const selectedClient = this.clients.find(client => client.id === +selectElement.value);
-    if (selectedClient) {
+    if (selectedClient && this.dropdownId !== selectedClient.id) {
       this.dropdownId = selectedClient.id;
       this.selectedClientName = selectedClient.name;
       this.selectedClientId = selectedClient.clientId;
       localStorage.setItem('selectedClientId', this.dropdownId.toString());
       localStorage.setItem('selectedClientName', selectedClient.name);
       localStorage.setItem('selectedClientClientId', selectedClient.clientId);
-      this.clientService.setClient(selectedClient.name, selectedClient.clientId); // Pass name and clientId
+      this.clientService.setClient(selectedClient.name, selectedClient.clientId);
+      this.clientService.reinitializeAuth();
     }
   }
 
-  logout() {
-    this.clientService.reinitializeAuth();
+  logout() { 
     this.logoutService.logout();
   }
 }

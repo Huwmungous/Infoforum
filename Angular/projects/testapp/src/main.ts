@@ -17,7 +17,7 @@ const savedClientName = localStorage.getItem('selectedClientName') || '';
 
 console.log('Saved client: ', savedClientName, savedClientId);
 
-debugger;
+// debugger;
 
 bootstrapApplication(AppComponent, {
   providers: [
