@@ -4,7 +4,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button'; 
-import { LogoutService } from 'ifauth-lib';
+import { LogoutService } from 'ifshared-library';
 
 @Component({
   selector: 'app-intelligence',

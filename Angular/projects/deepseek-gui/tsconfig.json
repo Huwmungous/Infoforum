@@ -3,6 +3,11 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": ".", // Ensure this line is present
+    "paths": {
+      "angular-auth-oidc-client": ["node_modules/angular-auth-oidc-client"],
+      "ifshared-library": ["../../dist/ifshared-library"]
+    },
     "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,
@@ -22,13 +27,7 @@
     "lib": [
       "ES2022",
       "dom"
-    ],
-    "baseUrl": ".", // Add this line
-    "paths": {
-      "if-auth-lib": [
-        "./dist/if-auth-lib"
-      ]
-    }
+    ]
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
