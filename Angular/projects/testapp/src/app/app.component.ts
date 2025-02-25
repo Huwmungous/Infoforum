@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core'; 
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ClientService, DEFAULT_CLIENT } from '../../../ifshared-library/src/lib/client.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { realmFromName } from '../../../ifshared-library/src/lib/provideAuth';
+import { Subscription } from 'rxjs';
+import { DEFAULT_REALM } from 'ifshared-library';
 
 @Component({
   selector: 'app-root',
@@ -11,46 +13,50 @@ import { realmFromName } from '../../../ifshared-library/src/lib/provideAuth';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+
+  private loginSubscription!: Subscription;
+
   title = 'Auth Testing';
 
   clients = [
-    { id: 1, name: 'Default', clientId: DEFAULT_CLIENT  },
-    { id: 2, name: 'Intelligence', clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
-    { id: 3, name: 'BreakTackle', clientId: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
-    { id: 4, name: 'LongmanRd', clientId: DEFAULT_CLIENT }
+    { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
+    { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
+    { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
+    { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
   ];
 
-  dropdownId: number | null = null;
-  selectedClientName: string = '';
-  selectedClientId: string = '';
+  get selectedId(): number { return parseInt(localStorage.getItem('selectedId') || '0', 10); }
+  set selectedId(value: number) { localStorage.setItem('selectedId', value.toString())} 
+
+  get selectedName(): string { return localStorage.getItem('realmName') || 'Default'; }
+  set selectedName(value: string) { localStorage.setItem('realmName', value) }
+
+  get selectedRealm(): string { return localStorage.getItem('realm') || DEFAULT_REALM; }
+  set selectedRealm(value: string) { localStorage.setItem('realm', value) } 
+
+  get selectedClient(): string { return localStorage.getItem('client') || DEFAULT_CLIENT; }
+  set selectedClient(value: string) { localStorage.setItem('client', value) }
+
+  loggedInRealm: string = '';
+  loggedInClient: string = '';
 
   constructor(private clientService: ClientService) { }
 
   ngOnInit() {
-    const realm = localStorage.getItem('selectedRealm');
-    const client = localStorage.getItem('selectedClientClientId'); 
-    if (realm && client) {
-      this.dropdownId = +client;
-      this.selectedClientName = realm;
-      const selectedClient = this.clients.find(client => client.id === this.dropdownId);
-      if (selectedClient) {
-        this.clientService.setClient(realm, client);
-      }
-    }
+    this.clientService.setClient(this.selectedRealm, this.selectedClient);
   }
 
   onClientChange(event: Event) {
-    const selectElement = event.target as HTMLSelectElement;
-    const selectedClient = this.clients.find(client => client.id === +selectElement.value);
-    if (selectedClient && this.dropdownId !== selectedClient.id) {
-      this.dropdownId = selectedClient.id;
-      this.selectedClientName = selectedClient.name;
-      this.selectedClientId = selectedClient.clientId;
-      localStorage.setItem('selectedClient', this.dropdownId.toString());
-      localStorage.setItem('selectedRealm', realmFromName(selectedClient.name));
-      localStorage.setItem('selectedClientClientId', selectedClient.clientId);
-      this.clientService.setClient(selectedClient.name, selectedClient.clientId);
+    const elem = event.target as HTMLSelectElement;
+    const selection = this.clients.find(client => client.id === +elem.value);
+    if (selection) {
+      this.selectedId = selection.id; 
+      this.selectedName = selection.realmName; 
+      this.selectedRealm = realmFromName(selection.realmName); 
+      this.selectedClient = selection.client;
+      this.clientService.setClient(this.selectedRealm, this.selectedClient);
+      this.login();
     }
   }
 
@@ -58,11 +64,17 @@ export class AppComponent implements OnInit {
     return this.clientService.isAuthenticated();
   }
 
-  login() { 
+  login() {
     this.clientService.login();
   }
 
-  logout() { 
+  logout() {
     this.clientService.logout();
+  }
+
+  ngOnDestroy() {
+    if (this.loginSubscription) {
+      this.loginSubscription.unsubscribe();
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, EventEmitter } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { provideAuth } from './provideAuth';
 
@@ -9,43 +9,35 @@ export const DEFAULT_CLIENT = '9F32F055-D2FF-4461-A47B-4A2FCA6720DA';
   providedIn: 'root'
 })
 export class ClientService {
-  private realm: string = '';
-  private client: string = '';
+  private realm: string = DEFAULT_REALM;
+  private client: string = DEFAULT_CLIENT;
+  afterLoginEvent: EventEmitter<{ realm: string, client: string }> = new EventEmitter<{ realm: string, client: string }>();
 
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
   setClient(realm: string, client: string) {
-    if (this.client !== client) {
-        console.log('ClientService: Setting client to ', realm, client);
+    console.log('ClientService: Setting client to ', realm, client);
+    if(this.realm !== realm || this.client !== client) {
       this.realm = realm;
-      this.client = client;
-      this.reinitializeAuth();
+      this.client = client; 
+      provideAuth(this.realm, this.client);
     }
   }
 
-  reinitializeAuth() {
-    const realm = this.realm == 'Default' ? DEFAULT_REALM : this.realm;
-    const client = this.realm == 'Default' ? DEFAULT_CLIENT : this.client;
-    provideAuth(realm, client);
-  }
-
   isAuthenticated(): boolean {
-    return this.oidcSecurityService.isAuthenticated() ? 
-      true : 
-      false;
+    return this.oidcSecurityService.isAuthenticated() ? true : false;
   }
 
-  login(): void {
-    if(this.oidcSecurityService.isAuthenticated())
-        this.logout();
-    
-    this.oidcSecurityService.authorize();  
+  login(): void { 
+    this.logout(); 
+    this.oidcSecurityService.authorize();
+    this.afterLoginEvent.emit({ realm: this.realm, client: this.client });
   }
 
   logout(): void {
-    if(this.oidcSecurityService.isAuthenticated()) {
+    if (this.oidcSecurityService.isAuthenticated()) {
       this.oidcSecurityService.logoffAndRevokeTokens().subscribe(() => {
-        window.location.href = window.location.origin; 
+        window.location.href = window.location.origin;
       });
     }
   }

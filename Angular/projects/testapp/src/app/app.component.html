@@ -1,13 +1,8 @@
 <div class="container">
   <label for="client-select">Select Client:</label>
-  <select id="client-select" (change)="onClientChange($event)" [(ngModel)]="dropdownId">
-    <option *ngFor="let client of clients" [value]="client.id">{{ client.name }} - {{ client.clientId }}</option>
+  <select id="client-select" (change)="onClientChange($event)" [(ngModel)]="selectedId">
+    <option *ngFor="let item of clients" [value]="item.id">{{ item.realmName }} - {{ item.client }}</option>
   </select>
 
-  <button (click)="login()" [disabled]="isAuthenticated">Login</button>
   <button (click)="logout()" [disabled]="!isAuthenticated">Logout</button>
-
-  <div *ngIf="isAuthenticated">
-    <p>Currently logged in to the "{{ selectedClientName }}" realm</p>
-  </div>
 </div>

@@ -16,8 +16,6 @@ const savedClient = localStorage.getItem('selectedClientClientId') || '';
 
 console.log('Saved client: ', savedRealm, savedClient);
 
-debugger;
-
 bootstrapApplication(AppComponent, {
   providers: [
     provideAuth(savedRealm, savedClient),

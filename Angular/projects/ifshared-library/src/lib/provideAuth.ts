@@ -9,6 +9,8 @@ export function realmFromName(name: string): string {
 }
 
 export function provideAuth(realm: string = '', client: string = '') {
+  console.log('provideAuth: realm is ', realm, 'client is ', client);
+  
   const cfg : OpenIdConfiguration = {
     authority: 'https://longmanrd.net/auth/realms/' + (realm ? realm : realmFromName(realm)),
     redirectUrl: window.location.origin + '/auth-callback',
@@ -24,8 +26,6 @@ export function provideAuth(realm: string = '', client: string = '') {
     postLoginRoute: '/'  
     // disablePKCE: false 
   };
-
-
 
   console.log('provideAuth: ', cfg);
 
