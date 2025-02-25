@@ -6,17 +6,18 @@ import { DEFAULT_CLIENT } from "./client.service";
 export class AuthConfigService {
   private currentConfig: OpenIdConfiguration;
 
-  constructor() { this.currentConfig = buildAuthConfig('', ''); }
+  constructor() { this.currentConfig = buildAuthConfig('0', '', ''); }
 
   get config() { return this.currentConfig; }
 
   updateConfig(realm: string, client: string) {
-    this.currentConfig = buildAuthConfig(realm, client);
+    this.currentConfig = buildAuthConfig('', realm, client);
   }
 }
 
-export function buildAuthConfig(realm: string, client: string): OpenIdConfiguration {
+export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
     return {
+        configId: configId ? configId : '0',
         authority: 'https://longmanrd.net/auth/realms/' + (realm ? realm : realmFromName(realm)),
         redirectUrl: window.location.origin + '/auth-callback',
         postLogoutRedirectUri: window.location.origin,
