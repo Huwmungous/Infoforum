@@ -1,6 +1,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { provideAuth } from './provideAuth';
+import { provideAuth } from './auth-config.service';
 
 export const DEFAULT_AUTHORITY = 'LongmanRd';
 export const DEFAULT_REALM = 'LongmanRd';

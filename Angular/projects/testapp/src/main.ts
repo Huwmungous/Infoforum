@@ -23,13 +23,8 @@ export const configs = configsFromClients(clients);
 
 bootstrapApplication(AppComponent, {
   providers: [
+    AuthConfigService,
     provideMultipleAuths(configs),
-    { 
-      provide: AuthConfigService, useFactory: () => {
-      const service = new AuthConfigService();
-      service.setConfigs(configs);
-      return service;
-    }},
     provideHttpClient(),
     provideRouter(routes)
   ]

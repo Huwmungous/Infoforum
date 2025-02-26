@@ -1,5 +1,5 @@
-import { Injectable } from "@angular/core";
-import { OpenIdConfiguration } from "angular-auth-oidc-client";
+import { importProvidersFrom, inject, Injectable } from "@angular/core";
+import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_AUTHORITY, DEFAULT_REALM, DEFAULT_CLIENT } from "./client.service";
 
 @Injectable({ providedIn: 'root' })
@@ -42,4 +42,14 @@ export function buildAuthConfig(configId: string, realm: string, client: string)
     };
   }
 
-  export function realmFromName(name: string): string { return name === 'Default' ? DEFAULT_REALM : name; }
+export function realmFromName(name: string): string { return name === 'Default' ? DEFAULT_REALM : name; }
+
+export function provideAuth(realm: string = '', client: string = '') {
+  return importProvidersFrom(AuthModule.forRoot({ config: buildAuthConfig('1', realmFromName(realm), client) }));
+}
+
+export function provideMultipleAuths(configs: OpenIdConfiguration[]) {
+  const authConfigService = inject(AuthConfigService);
+  authConfigService.setConfigs(configs);
+  return importProvidersFrom(AuthModule.forRoot({ config: configs }));
+}
