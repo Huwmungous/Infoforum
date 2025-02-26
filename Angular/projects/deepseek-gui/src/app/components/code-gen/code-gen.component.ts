@@ -48,7 +48,7 @@ export class CodeGenComponent implements AfterViewInit {
 
   onSubmit() {
     if (!this.prompt.trim()) {
-      this.error = 'Please enter a prompt.';
+      this.error = 'Please ask a question first.';
       return;
     }
 

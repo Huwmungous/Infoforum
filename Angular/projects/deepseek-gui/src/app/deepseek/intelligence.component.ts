@@ -20,13 +20,15 @@ import { ClientService } from 'ifshared-library';
   ]
 })
 export class IntelligenceComponent {
+
+  qotd: string = `"If you always ask questions, eventually you'll find an answer—or someone who knows one." —Albert Einstein (1934 lecture)`;
   
-  conversationId: string = generateGUID(); // Initialize with a new GUID
+  conversationId: string = generateGUID(); 
 
   constructor( @Inject(ClientService) private clientService : ClientService ) { }
 
   createNewConversation() {
-    this.conversationId = generateGUID(); // Generate a new GUID for the conversationId
+    this.conversationId = generateGUID(); 
   }
 
   logout() {
