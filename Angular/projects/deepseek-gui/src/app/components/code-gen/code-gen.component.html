@@ -3,11 +3,11 @@
     <mat-card-content>
       <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Your question</mat-label>
+          <mat-label>{{quoteOfTheDay}}</mat-label>
           <textarea
             class="input-area"
             matInput
-            placeholder="How may I help?... "
+            placeholder={{quoteOfTheDay}}
             [(ngModel)]="prompt"
             name="prompt"
             rows="2">

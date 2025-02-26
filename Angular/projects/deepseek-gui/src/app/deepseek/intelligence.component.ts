@@ -19,9 +19,7 @@ import { ClientService } from 'ifshared-library';
     CodeGenComponent
   ]
 })
-export class IntelligenceComponent {
-
-  qotd: string = `"If you always ask questions, eventually you'll find an answer—or someone who knows one." —Albert Einstein (1934 lecture)`;
+export class IntelligenceComponent { 
   
   conversationId: string = generateGUID(); 
 
