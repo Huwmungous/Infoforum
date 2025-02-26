@@ -18,7 +18,6 @@ export class AuthCallbackComponent implements OnInit {
   ngOnInit() {
     this.oidcSecurityService.checkAuth().subscribe({
       next: ({ isAuthenticated }) => {
-        console.log('Auth Callback - Authenticated:', isAuthenticated);
         if (isAuthenticated) {
           this.router.navigate(['/']);
         } else {
