@@ -57,9 +57,8 @@ export class AppComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    // At startup, update both services with the saved config.
     this.clientService.setClient(this.selectedRealm, this.selectedClient);
-    this.authConfigService.updateConfig(this.selectedRealm, this.selectedClient);
+    this.authConfigService.selectConfig(this.selectedRealm, this.selectedClient);
   }
 
   onClientChange(event: Event) {
@@ -73,7 +72,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.selectedClient = selection.client;
  
       this.clientService.setClient(this.selectedRealm, this.selectedClient);
-      this.authConfigService.updateConfig(this.selectedRealm, this.selectedClient);
+      this.authConfigService.selectConfig(this.selectedRealm, this.selectedClient);
 
       if(this._prevConfig > 0)  
         this.logout(this._prevConfig);

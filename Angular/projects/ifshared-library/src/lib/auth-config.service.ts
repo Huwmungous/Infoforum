@@ -5,13 +5,23 @@ import { DEFAULT_CLIENT } from "./client.service";
 @Injectable({ providedIn: 'root' })
 export class AuthConfigService {
   private currentConfig: OpenIdConfiguration;
+  private configs: OpenIdConfiguration[] = [];
 
   constructor() { this.currentConfig = buildAuthConfig('1', '', ''); }
 
   get config() { return this.currentConfig; }
 
-  updateConfig(realm: string, client: string) {
-    this.currentConfig = buildAuthConfig('', realm, client);
+  setConfigs(configs: OpenIdConfiguration[]) {
+    this.configs = configs;
+  }
+
+  selectConfig(realm: string, client: string) {
+    const config = this.configs.find(cfg => cfg.authority && cfg.authority.includes(realm) && cfg.clientId === client);
+    if (config) {
+      this.currentConfig = config;
+    } else {
+      console.warn(`Config not found for realm: ${realm}, client: ${client}`);
+    }
   }
 }
 
