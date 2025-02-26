@@ -1,13 +1,16 @@
-import { importProvidersFrom, inject, Injectable } from "@angular/core";
+import { Injectable } from "@angular/core";
+import { importProvidersFrom } from '@angular/core';
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
-import { DEFAULT_AUTHORITY, DEFAULT_REALM, DEFAULT_CLIENT } from "./client.service";
+import { DEFAULT_CLIENT } from "./client.service";
 
 @Injectable({ providedIn: 'root' })
 export class AuthConfigService {
   private currentConfig: OpenIdConfiguration;
   private configs: OpenIdConfiguration[] = [];
 
-  constructor() { this.currentConfig = buildAuthConfig('1', '', ''); }
+  constructor() { 
+    this.currentConfig = buildAuthConfig('1', '', ''); 
+  }
 
   get config() { return this.currentConfig; }
 
@@ -26,30 +29,30 @@ export class AuthConfigService {
 }
 
 export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-    return {
-        configId: configId ? configId : '1',
-        authority: DEFAULT_AUTHORITY + (realm ? realm : realmFromName(realm)),
-        redirectUrl: window.location.origin + '/auth-callback',
-        postLogoutRedirectUri: window.location.origin,
-        clientId: client ? client : DEFAULT_CLIENT,
-        scope: 'openid profile email offline_access',
-        responseType: 'code',
-        silentRenew: true,
-        silentRenewUrl: window.location.origin + '/silent-renew.html',
-        useRefreshToken: true, 
-        logLevel: 3,
-        postLoginRoute: '/'
-    };
-  }
+  return {
+    configId: configId ? configId : '1',
+    authority: 'https://longmanrd.net/auth/realms/' + (realm ? realm : realmFromName(realm)),
+    redirectUrl: window.location.origin + '/auth-callback',
+    postLogoutRedirectUri: window.location.origin,
+    clientId: client ? client : DEFAULT_CLIENT,
+    scope: 'openid profile email offline_access',
+    responseType: 'code',
+    silentRenew: true,
+    silentRenewUrl: window.location.origin + '/silent-renew.html',
+    useRefreshToken: true, 
+    logLevel: 3,
+    postLoginRoute: '/'
+  };
+}
 
-export function realmFromName(name: string): string { return name === 'Default' ? DEFAULT_REALM : name; }
+export function realmFromName(name: string): string { 
+  return name === 'BreakTackle' ? name : 'LongmanRd'; 
+}
 
 export function provideAuth(realm: string = '', client: string = '') {
   return importProvidersFrom(AuthModule.forRoot({ config: buildAuthConfig('1', realmFromName(realm), client) }));
 }
 
 export function provideMultipleAuths(configs: OpenIdConfiguration[]) {
-  const authConfigService = inject(AuthConfigService);
-  authConfigService.setConfigs(configs);
   return importProvidersFrom(AuthModule.forRoot({ config: configs }));
 }

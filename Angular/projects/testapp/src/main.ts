@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
 import { DEFAULT_CLIENT } from 'ifshared-library';
 import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, buildAuthConfig, realmFromName, AuthConfigService } from 'ifshared-library';
+import { OpenIdConfiguration } from 'angular-auth-oidc-client';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
@@ -23,15 +24,19 @@ export const configs = configsFromClients(clients);
 
 bootstrapApplication(AppComponent, {
   providers: [
-    AuthConfigService,
     provideMultipleAuths(configs),
+    AuthConfigService,
     provideHttpClient(),
     provideRouter(routes)
   ]
 })
+.then(appRef => {
+  const injector = appRef.injector;
+  const authConfigService = injector.get(AuthConfigService);
+  authConfigService.setConfigs(configs);
+})
 .catch(err => console.error(err));
 
-function configsFromClients(clients: { id: number; realmName: string; client: string; }[]) {
+function configsFromClients(clients: { id: number; realmName: string; client: string; }[]): OpenIdConfiguration[] {
   return clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
 }
-

@@ -67,7 +67,6 @@ export class AppComponent implements OnInit, OnDestroy {
   onClientChange(event: Event) {
     const elem = event.target as HTMLSelectElement;
     const selection = clients.find(client => client.id === +elem.value);
-    debugger;
     if (selection) {
       const prev = this.selectedId; 
       this.selectedId = selection.id;
