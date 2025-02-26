@@ -2,7 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, DEFAULT_CLIENT, DEFAULT_REALM, buildAuthConfig } from 'ifshared-library';
+import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, DEFAULT_CLIENT, DEFAULT_REALM, buildAuthConfig, realmFromName } from 'ifshared-library';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
@@ -34,7 +34,6 @@ bootstrapApplication(AppComponent, {
 .catch(err => console.error(err));
 
 function configsFromClients(clients: { id: number; realmName: string; client: string; }[]) {
-  // call buildAuthConfig for each client
-  return clients.map(client => buildAuthConfig(client.id.toString(), client.realmName, client.client));
+  return clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
 }
 

@@ -28,15 +28,16 @@ export class ClientService {
     return this.oidcSecurityService.isAuthenticated() ? true : false;
   }
 
-  login(): void { 
+  login(configId: number = 0): void { 
     this.logout(); 
-    this.oidcSecurityService.authorize();
+    this.oidcSecurityService.authorize(configId.toString());
     this.afterLoginEvent.emit({ realm: this.realm, client: this.client });
   }
 
-  logout(): void {
-    if (this.oidcSecurityService.isAuthenticated()) {
-      this.oidcSecurityService.logoffAndRevokeTokens().subscribe(() => {
+  logout(configId: number = 0): void {
+    const cfg = configId.toString();
+    if (this.oidcSecurityService.isAuthenticated(cfg)) {
+      this.oidcSecurityService.logoffAndRevokeTokens(cfg).subscribe(() => {
         window.location.href = window.location.origin;
       });
     }

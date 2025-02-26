@@ -19,12 +19,14 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'Auth Testing';
 
   get clients() { return clients; }
+  
+  private _prevConfig: number = -1;
 
-  // Using consistent keys for local storage.
   get selectedId(): number { 
-    return parseInt(localStorage.getItem('selectedClientId') || '0', 10); 
+    return parseInt(localStorage.getItem('selectedClientId') || '0', 1); 
   }
-  set selectedId(value: number) { 
+  set selectedId(value: number) {
+    this._prevConfig = (localStorage.getItem('selectedClientId') || '-1', 1); 
     localStorage.setItem('selectedClientId', value.toString());
   } 
 
@@ -63,20 +65,18 @@ export class AppComponent implements OnInit, OnDestroy {
   onClientChange(event: Event) {
     const elem = event.target as HTMLSelectElement;
     const selection = clients.find(client => client.id === +elem.value);
-    if (selection) {
-      // Save the new selection using consistent keys.
+    debugger;
+    if (selection) { 
       this.selectedId = selection.id;
-      this.selectedName = selection.realmName;
-      // Optionally, transform the displayed realm name to an actual realm value.
+      this.selectedName = selection.realmName; 
       this.selectedRealm = realmFromName(selection.realmName);
       this.selectedClient = selection.client;
-
-      // Update both the client service and the auth configuration.
+ 
       this.clientService.setClient(this.selectedRealm, this.selectedClient);
       this.authConfigService.updateConfig(this.selectedRealm, this.selectedClient);
 
-      // Trigger a login to reinitialize authentication with the new settings.
-      this.login();
+      if(this._prevConfig > 0)  
+        this.logout(this._prevConfig);
     }
   }
 
@@ -84,12 +84,24 @@ export class AppComponent implements OnInit, OnDestroy {
     return this.clientService.isAuthenticated();
   }
 
-  login() {
-    this.clientService.login();
+  login(configId: number = 0) {
+    const clientConfig = clients.find(client => client.id === configId);
+    if (clientConfig) {
+      console.log('LOGIN ConfigId : ', configId, 'prev: ', this._prevConfig, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
+    } else {
+      console.log('LOGIN ConfigId : ', configId, 'Selected client not found');
+    } 
+    this.clientService.login(configId);
   }
 
-  logout() {
-    this.clientService.logout();
+  logout(configId: number = 0) {
+    const clientConfig = clients.find(client => client.id === configId);
+    if (clientConfig) {
+      console.log('LOGOUT ConfigId : ', configId, 'prev: ', this._prevConfig, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
+    } else {
+      console.log('LOGOUT ConfigId : ', configId, 'Selected client not found');
+    } 
+    this.clientService.logout(configId);
   }
 
   ngOnDestroy() {
