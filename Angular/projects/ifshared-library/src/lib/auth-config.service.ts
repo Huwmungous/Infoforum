@@ -48,7 +48,9 @@ export function realmFromName(name: string): string {
 }
 
 export function provideAuth(realm: string = '', client: string = '') {
-  return importProvidersFrom(AuthModule.forRoot({ config: buildAuthConfig('1', realmFromName(realm), client) }));
+  var configs = [];
+  configs.push(buildAuthConfig('1', realmFromName(realm), client));
+  return importProvidersFrom(AuthModule.forRoot({ config: configs }));
 }
 
 export function provideMultipleAuths() {

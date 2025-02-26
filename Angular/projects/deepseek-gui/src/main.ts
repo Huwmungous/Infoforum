@@ -15,7 +15,7 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAuth(),
+    provideAuth('LongmanRd', '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7'),
     provideHttpClient(),
     provideRouter(routes),
     provideAnimations()
