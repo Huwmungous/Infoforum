@@ -19,14 +19,15 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'Auth Testing';
 
   get clients() { return clients; }
-  
-  private _prevConfig: number = -1;
+
+  get isAuthenticated(): boolean {
+    return this.clientService.isAuthenticated();
+  }
 
   get selectedId(): number { 
-    return parseInt(localStorage.getItem('selectedClientId') || '0', 1); 
+    return parseInt(localStorage.getItem('selectedClientId') || '1'); 
   }
   set selectedId(value: number) {
-    this._prevConfig = (localStorage.getItem('selectedClientId') || '-1', 1); 
     localStorage.setItem('selectedClientId', value.toString());
   } 
 
@@ -65,7 +66,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const elem = event.target as HTMLSelectElement;
     const selection = clients.find(client => client.id === +elem.value);
     debugger;
-    if (selection) { 
+    if (selection) {
+      const prev = this.selectedId; 
       this.selectedId = selection.id;
       this.selectedName = selection.realmName; 
       this.selectedRealm = realmFromName(selection.realmName);
@@ -74,19 +76,14 @@ export class AppComponent implements OnInit, OnDestroy {
       this.clientService.setClient(this.selectedRealm, this.selectedClient);
       this.authConfigService.selectConfig(this.selectedRealm, this.selectedClient);
 
-      if(this._prevConfig > 0)  
-        this.logout(this._prevConfig);
+      this.logout(prev);
     }
-  }
-
-  get isAuthenticated(): boolean {
-    return this.clientService.isAuthenticated();
   }
 
   login(configId: number = 0) {
     const clientConfig = clients.find(client => client.id === configId);
     if (clientConfig) {
-      console.log('LOGIN ConfigId : ', configId, 'prev: ', this._prevConfig, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
+      console.log('LOGIN ConfigId : ', configId, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
     } else {
       console.log('LOGIN ConfigId : ', configId, 'Selected client not found');
     } 
@@ -96,7 +93,7 @@ export class AppComponent implements OnInit, OnDestroy {
   logout(configId: number = 0) {
     const clientConfig = clients.find(client => client.id === configId);
     if (clientConfig) {
-      console.log('LOGOUT ConfigId : ', configId, 'prev: ', this._prevConfig, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
+      console.log('LOGOUT ConfigId : ', configId, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
     } else {
       console.log('LOGOUT ConfigId : ', configId, 'Selected client not found');
     } 
