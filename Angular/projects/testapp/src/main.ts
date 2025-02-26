@@ -20,11 +20,11 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-export const configs = configsFromClients(clients);
+AuthConfigService.configs = clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideMultipleAuths(configs),
+    provideMultipleAuths(),
     AuthConfigService,
     provideHttpClient(),
     provideRouter(routes)
@@ -33,10 +33,5 @@ bootstrapApplication(AppComponent, {
 .then(appRef => {
   const injector = appRef.injector;
   const authConfigService = injector.get(AuthConfigService);
-  authConfigService.setConfigs(configs);
 })
 .catch(err => console.error(err));
-
-function configsFromClients(clients: { id: number; realmName: string; client: string; }[]): OpenIdConfiguration[] {
-  return clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
-}
