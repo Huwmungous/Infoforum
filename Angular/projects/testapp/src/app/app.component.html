@@ -4,5 +4,5 @@
     <option *ngFor="let item of clients" [value]="item.id">{{ item.realmName }} - {{ item.client }}</option>
   </select>
 
-  <button (click)="logout()" [disabled]="!isAuthenticated">Logout</button>
+  <button (click)="logoutCurrent()" [disabled]="!isAuthenticated">Logout</button>
 </div>

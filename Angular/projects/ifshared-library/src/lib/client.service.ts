@@ -1,6 +1,6 @@
 import { Injectable, EventEmitter } from '@angular/core';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { provideAuth } from './auth-config.service';
+import { AuthConfigService } from './auth-config.service';
 
 export const DEFAULT_AUTHORITY = 'LongmanRd';
 export const DEFAULT_REALM = 'LongmanRd';
@@ -16,19 +16,12 @@ export class ClientService {
   afterLoginEvent: EventEmitter<{ realm: string, client: string }> = new EventEmitter<{ realm: string, client: string }>();
   afterLogoutEvent: EventEmitter<{ realm: string, client: string }> = new EventEmitter<{ realm: string, client: string }>();
 
-  constructor(private oidcSecurityService: OidcSecurityService) {}
-
-  setClient(realm: string, client: string) {
-    console.log('ClientService: Setting client to ', realm, client);
-    if(this.realm !== realm || this.client !== client) {
-      this.realm = realm;
-      this.client = client; 
-      provideAuth(this.realm, this.client);
-    }
-  }
+  constructor(
+    private oidcSecurityService: OidcSecurityService,
+    private configService: AuthConfigService) {}
 
   isAuthenticated(): boolean {
-    return this.oidcSecurityService.isAuthenticated() ? true : false;
+    return this.oidcSecurityService.isAuthenticated(this.configService.configId) ? true : false;
   }
 
   login(configId: number = 1): void { 

@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AuthConfigService, ClientService, DEFAULT_CLIENT, DEFAULT_REALM } from 'ifshared-library';
+import { AuthConfigService, ClientService } from 'ifshared-library';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { realmFromName } from 'ifshared-library';
 import { Subscription } from 'rxjs';
 import { clients } from 'src/main';
 
@@ -14,6 +13,12 @@ import { clients } from 'src/main';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit, OnDestroy {
+ 
+  constructor(
+    private clientService: ClientService,
+    private authConfigService: AuthConfigService
+  ) { }
+
 
   private loginSubscription!: Subscription;
   private logoutSubscription!: Subscription;
@@ -30,37 +35,13 @@ export class AppComponent implements OnInit, OnDestroy {
     return parseInt(localStorage.getItem('selectedClientId') || '1'); 
   }
   set selectedId(value: number) {
-    localStorage.setItem('selectedClientId', value.toString());
+    if(value !== parseInt(this.authConfigService.configId)) {
+      localStorage.setItem('selectedClientId', value.toString());
+      this.authConfigService.configId = value.toString();
+    }
   } 
-
-  get selectedName(): string { 
-    return localStorage.getItem('selectedClientName') || 'Default'; 
-  }
-  set selectedName(value: string) { 
-    localStorage.setItem('selectedClientName', value);
-  }
-
-  get selectedRealm(): string { 
-    return localStorage.getItem('realm') || DEFAULT_REALM; 
-  }
-  set selectedRealm(value: string) { 
-    localStorage.setItem('realm', value);
-  } 
-
-  get selectedClient(): string { 
-    return localStorage.getItem('client') || DEFAULT_CLIENT; 
-  }
-  set selectedClient(value: string) { 
-    localStorage.setItem('client', value);
-  }
-
-  constructor(
-    private clientService: ClientService,
-    private authConfigService: AuthConfigService
-  ) { }
 
   ngOnInit() {
-    this.clientService.setClient(this.selectedRealm, this.selectedClient);
     this.authConfigService.selectConfigById(this.selectedId);
   }
 
@@ -70,15 +51,16 @@ export class AppComponent implements OnInit, OnDestroy {
     if (selection) {
       const prev = this.selectedId; 
       this.selectedId = selection.id;
-      this.selectedName = selection.realmName; 
-      this.selectedRealm = realmFromName(selection.realmName);
-      this.selectedClient = selection.client;
- 
-      this.clientService.setClient(this.selectedRealm, this.selectedClient);
       this.authConfigService.selectConfigById(this.selectedId);
 
       this.logout(prev);
     }
+  }
+
+  logoutCurrent( ) {
+    console.log(`Logging out current client (${this.selectedId})`);
+    debugger;
+    this.logout(this.selectedId); 
   }
 
   logout(configId: number = 1) {
