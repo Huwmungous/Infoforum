@@ -81,11 +81,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  login(configId: number = 0) {
-    this.clientService.login(configId);
-  }
-
-  logout(configId: number = 0) {
+  logout(configId: number = 1) {
     this.clientService.logout(configId);
   }
 

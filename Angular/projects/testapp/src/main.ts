@@ -4,7 +4,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
 import { DEFAULT_CLIENT } from 'ifshared-library';
 import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, buildAuthConfig, realmFromName, AuthConfigService } from 'ifshared-library';
-import { OpenIdConfiguration } from 'angular-auth-oidc-client';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },

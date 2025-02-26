@@ -31,13 +31,13 @@ export class ClientService {
     return this.oidcSecurityService.isAuthenticated() ? true : false;
   }
 
-  login(configId: number = 0): void { 
+  login(configId: number = 1): void { 
     this.logout(); 
     this.oidcSecurityService.authorize(configId.toString());
     this.afterLoginEvent.emit({ realm: this.realm, client: this.client });
   }
 
-  logout(configId: number = 0): void {
+  logout(configId: number = 1): void {
     const cfg = configId.toString();
     if (this.oidcSecurityService.isAuthenticated(cfg)) {
       this.oidcSecurityService.logoffAndRevokeTokens(cfg).subscribe(() => {
