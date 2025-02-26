@@ -20,11 +20,6 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
 
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
-  /**
-   * Centralized authentication check.
-   * Calls the OIDC security service to determine if the user is authenticated.
-   * If not authenticated and not already processing an auth request, initiates login.
-   */
   private checkAuthentication(): Observable<boolean> {
     return this.oidcSecurityService.checkAuth().pipe(
       take(1),
@@ -39,10 +34,6 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
     );
   }
 
-  /**
-   * CanActivate implementation.
-   * Called to determine if a route can be activated.
-   */
   canActivate(
     next: ActivatedRouteSnapshot, 
     state: RouterStateSnapshot

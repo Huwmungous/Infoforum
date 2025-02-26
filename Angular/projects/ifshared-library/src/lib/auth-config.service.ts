@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { OpenIdConfiguration } from "angular-auth-oidc-client";
-import { DEFAULT_CLIENT } from "./client.service";
+import { DEFAULT_AUTHORITY, DEFAULT_REALM, DEFAULT_CLIENT } from "./client.service";
 
 @Injectable({ providedIn: 'root' })
 export class AuthConfigService {
@@ -28,7 +28,7 @@ export class AuthConfigService {
 export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
     return {
         configId: configId ? configId : '1',
-        authority: 'https://longmanrd.net/auth/realms/' + (realm ? realm : realmFromName(realm)),
+        authority: DEFAULT_AUTHORITY + (realm ? realm : realmFromName(realm)),
         redirectUrl: window.location.origin + '/auth-callback',
         postLogoutRedirectUri: window.location.origin,
         clientId: client ? client : DEFAULT_CLIENT,
@@ -42,6 +42,4 @@ export function buildAuthConfig(configId: string, realm: string, client: string)
     };
   }
 
-  export function realmFromName(name: string): string { 
-    return name === 'BreakTackle' ? name : 'LongmanRd'; 
-  }
+  export function realmFromName(name: string): string { return name === 'Default' ? DEFAULT_REALM : name; }

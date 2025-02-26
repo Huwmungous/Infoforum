@@ -16,6 +16,8 @@ import { clients } from 'src/main';
 export class AppComponent implements OnInit, OnDestroy {
 
   private loginSubscription!: Subscription;
+  private logoutSubscription!: Subscription;
+
   title = 'Auth Testing';
 
   get clients() { return clients; }
@@ -81,28 +83,15 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   login(configId: number = 0) {
-    const clientConfig = clients.find(client => client.id === configId);
-    if (clientConfig) {
-      console.log('LOGIN ConfigId : ', configId, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
-    } else {
-      console.log('LOGIN ConfigId : ', configId, 'Selected client not found');
-    } 
     this.clientService.login(configId);
   }
 
   logout(configId: number = 0) {
-    const clientConfig = clients.find(client => client.id === configId);
-    if (clientConfig) {
-      console.log('LOGOUT ConfigId : ', configId, 'Selected client:"', clientConfig.realmName, '" realm: "', realmFromName(clientConfig.realmName), '" client: "', clientConfig.client, '"');
-    } else {
-      console.log('LOGOUT ConfigId : ', configId, 'Selected client not found');
-    } 
     this.clientService.logout(configId);
   }
 
   ngOnDestroy() {
-    if (this.loginSubscription) {
-      this.loginSubscription.unsubscribe();
-    }
+    if (this.loginSubscription) { this.loginSubscription.unsubscribe(); }
+    if (this.logoutSubscription) { this.logoutSubscription.unsubscribe(); }
   }
 }

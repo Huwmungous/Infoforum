@@ -2,7 +2,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, DEFAULT_CLIENT, DEFAULT_REALM, buildAuthConfig, realmFromName, AuthConfigService } from 'ifshared-library';
+import { DEFAULT_CLIENT } from 'ifshared-library';
+import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, buildAuthConfig, realmFromName, AuthConfigService } from 'ifshared-library';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
@@ -18,13 +19,7 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-// Use consistent keys ("realm" and "client") that your AppComponent uses.
-const savedRealm = localStorage.getItem('realm') || 'Default';
-const savedClient = localStorage.getItem('client') || DEFAULT_CLIENT;
-
-console.log('Bootstrapping with realm:', savedRealm, 'client:', savedClient);
-
-const configs = configsFromClients(clients);
+export const configs = configsFromClients(clients);
 
 bootstrapApplication(AppComponent, {
   providers: [
