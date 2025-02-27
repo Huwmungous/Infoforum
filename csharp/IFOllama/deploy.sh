@@ -12,6 +12,6 @@ sudo cp /mnt/ai-data/repos/Infoforum/csharp/IFOllama/bin/Release/net8.0/linux-x6
 
 sudo ln -s /mnt/ai-data/Conversations /var/www/IFOllama/Conversations
 
-sudo systemctl start ifollama
+sudo systemctl start if.ollama
 
 sudo systemctl status if.ollama
