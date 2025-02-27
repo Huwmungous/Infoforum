@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo systemctl stop ifollama
+sudo systemctl stop if.ollama
 
 dotnet publish --configuration Release --runtime linux-x64 --self-contained true
 
@@ -10,6 +10,6 @@ sudo rm -rf /var/www/IFOllama/*
 
 sudo cp /mnt/ai-data/repos/Infoforum/csharp/IFOllama/bin/Release/net8.0/linux-x64/publish/* /var/www/IFOllama -r 
 
-sudo systemctl start ifollama
+sudo systemctl start if.ollama
 
-sudo systemctl status ifollama
+sudo systemctl status if.ollama
