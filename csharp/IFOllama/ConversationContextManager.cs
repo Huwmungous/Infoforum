@@ -2,40 +2,8 @@
 
 namespace IFOllama
 {
-    public class ConversationContextManager : IConversationContextManager
+    public partial class ConversationContextManager : IConversationContextManager
     {
-        private class ConversationData
-        {
-            public List<string>? Messages { get; set; }
-            public DateTime LastMessageTimestamp { get; set; }
-        }
-
-        private class ResponseData
-        {
-            [JsonProperty("message")]
-            public string Message { get; set; } = string.Empty;
-
-            [JsonProperty("timestamp")]
-            public DateTime Timestamp { get; set; }
-
-            public ResponseData() { }
-
-            public ResponseData(string message, DateTime timestamp)
-            {
-                Message = message;
-                Timestamp = timestamp;
-            }
-
-            public void Serialize(JsonWriter writer)
-            {
-                writer.WriteStartObject();
-                writer.WritePropertyName("Message");
-                writer.WriteValue(Message);
-                writer.WritePropertyName("Timestamp");
-                writer.WriteValue(Timestamp.ToString());
-                writer.WriteEndObject();
-            }
-        }
 
         private readonly string _conversationFolder = Path.Combine(Directory.GetCurrentDirectory(), "Conversations");
 
@@ -49,8 +17,29 @@ namespace IFOllama
 
         public void AppendMessage(string conversationId, string role, string message)
         {
-            if (!_conversationHistories.ContainsKey(conversationId))
-                _conversationHistories[conversationId] = new List<string>();
+            var existingMessages = GetConversation(conversationId) ?? new List<string>();
+
+            // Write individual response to disk immediately
+            AppendIndividualMessage(conversationId, role, message);
+
+            existingMessages.Add($"{role}: {message}");
+
+            _conversationHistories[conversationId] = existingMessages;
+        }
+
+        private void AppendIndividualMessage(string conversationId, string role, string message)
+        {
+            string folderPath = Path.Combine(_conversationFolder, conversationId);
+            Directory.CreateDirectory(folderPath);
+
+            var responseId = Guid.NewGuid().ToString();
+            var responsePath = Path.Combine(folderPath, $"{responseId}.json");
+
+            using (StreamWriter writer = File.CreateText(responsePath))
+            {
+                var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
+                JsonConvert.SerializeObject(responseData, Formatting.Indented);
+            }
 
             _conversationHistories[conversationId].Add($"{role}: {message}");
         }
@@ -58,19 +47,25 @@ namespace IFOllama
         public string GetContext(string conversationId)
         {
             if (!_conversationHistories.ContainsKey(conversationId))
-                return string.Empty;
+            {
+                // Create a new conversation history for this conversationId
+                _conversationHistories[conversationId] = new List<string>();
+            }
             // Optionally, perform summarization/truncation here
             return string.Join("\n", _conversationHistories[conversationId]);
         }
 
+
         public void SaveResponse(string conversationId, string response)
         {
-            // For now, just append the response to the existing messages
             var existingMessages = GetConversation(conversationId) ?? new List<string>();
             existingMessages.Add($"User: {response}");
 
-            // Save conversation data to disk
+            // Write conversation data to disk
             SaveConversation(conversationId, existingMessages);
+
+            // Save individual response to disk
+            AppendIndividualMessage(conversationId, "User", response);
         }
 
         private void SaveConversation(string conversationId, List<string> messages)
@@ -91,7 +86,6 @@ namespace IFOllama
                 JsonConvert.SerializeObject(conversationData, Formatting.Indented);
             }
 
-            // Save all responses to disk
             foreach (var message in messages)
             {
                 string responseId = Guid.NewGuid().ToString();
