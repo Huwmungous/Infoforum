@@ -13,9 +13,15 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 });
 
 // Add services to the container.
+builder.Services.AddSingleton<IConversationContextManager>(serviceProvider =>
+{
+    var conversationManager = new ConversationContextManager();
+    conversationManager.Initialize();
+    return conversationManager;
+});
+
 builder.Services.AddControllers();
-builder.Services.AddHttpClient(); // Register HttpClient
-builder.Services.AddSingleton<ConversationContextManager>();
+builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" }); });
 
