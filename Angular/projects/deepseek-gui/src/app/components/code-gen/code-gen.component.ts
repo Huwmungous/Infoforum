@@ -46,7 +46,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   }
 
   set quoteOfTheDay(quote: string) {
-    localStorage.setItem('quoteOfTheDay', quote);
+    localStorage.setItem('quoteOfTheDay', quote.replace(/<think>.*?<\/think>/gs, ''));
   }
 
   constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
