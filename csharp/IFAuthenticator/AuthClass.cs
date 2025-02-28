@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
-using System.Timers;
-using System.Collections.Concurrent;
-using System.Net;
 using Novell.Directory.Ldap;
+using System.Collections.Concurrent;
 
 namespace IFAuthenticator.Controllers
 {
@@ -111,14 +109,15 @@ namespace IFAuthenticator.Controllers
         }
 
         private string _searchBase = string.Empty;
-        public string SearchBase {
-            get 
+        public string SearchBase
+        {
+            get
             {
                 if (string.IsNullOrEmpty(_searchBase))
                     _searchBase = _ldapSettings.SearchBase;
 
                 return _searchBase;
-            } 
+            }
         }
 
         private async Task<bool> LdapHasClaim(string token, string claim)
