@@ -1,19 +1,31 @@
 #!/bin/bash
 
-sudo systemctl stop ifauthenticator
+USERNAME="IFServices"
 
-dotnet publish --configuration Release  
+# Check if the user already exists
+if id "$USERNAME" &>/dev/null; then
+    echo "srevice account is OK"
+else
+    echo "Adding user $USERNAME."
+    sudo useradd -r -s /usr/sbin/nologin -m $USERNAME
+    echoUSERBA "User $USERNAME has been added successfully."
+fi
 
-sudo mkdir -p /var/www/IFAuthenticator/
+sudo systemctl stop ifauth
 
-sudo rm -rf /var/www/IFAuthenticator/*
+rm -rf ./bin/*
 
-sudo cp /home/hugh/repos/ifauthenticator/bin/Release/net8.0/linux-x64/publish/* /var/www/IFAuthenticator -r
+dotnet publish --configuration Release -r linux-x64 --self-contained=true
 
-# sudo ln -s /usr/lib64/libldap-2.4.so.2 /usr/lib64/dotnet/shared/Microsoft.NETCore.App/8.0.3
+sudo mkdir -p /var/www/IFAuth
 
-# sudo ln -s /usr/lib64/libldap.so.2.0.200 /var/www/IFAuthenticator/libldap.so.2    
+sudo rm -rf /var/www/IFAuth/*
 
-sudo systemctl start ifauthenticator
+sudo cp /home/hugh/repos/Infoforum/IFAuthenticator/bin/Release/net8.0/linux-x64/publish/* /var/www/IFAuth -r
 
-sudo systemctl status ifauthenticator
+sudo  chown -R $USERNAME:$USERNAME  /var/www/IFAuth
+sudo  chmod -R 700 /var/www/IFAuth
+
+sudo systemctl start ifauth
+
+sudo systemctl status ifauth
