@@ -17,11 +17,9 @@ export class IFTokenInterceptor implements HttpInterceptor {
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    console.log('TokenInterceptor: checking request', request.url); 
-
     if (request.url.includes('http://localhost:5008/IFOllama')) {
       // Use switchMap to wait for the token
-      return this.oidcSecurityService.getIdToken().pipe(
+      return this.oidcSecurityService.getAccessToken().pipe(
         switchMap((token: string) => {
           const clone = request.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
           console.log('TokenInterceptor: handling request', clone.url, clone.headers);
@@ -29,8 +27,6 @@ export class IFTokenInterceptor implements HttpInterceptor {
         })
       );
     }
-
-    console.log('TokenInterceptor: Ignoring request', request.url); 
     return next.handle(request);
   }
 }
