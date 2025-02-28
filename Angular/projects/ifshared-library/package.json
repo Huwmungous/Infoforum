@@ -1,0 +1,9 @@
+{
+    "name": "ifshared-library",
+    "version": "0.0.0",
+    "peerDependencies": {
+      "@angular/core": "^19.1.7",
+      "@angular/common": "^19.1.7"
+    }
+  }
+  
