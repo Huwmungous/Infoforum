@@ -19,7 +19,7 @@ export class QuotationService {
 
   constructor(private ollamaService: OllamaService) {
 
-    interval(30 * 60 * 1000).pipe(
+    interval(60 * 60 * 1000).pipe(
       startWith(5), 
       switchMap(() => this.fetchQuotation())
     ).subscribe();
