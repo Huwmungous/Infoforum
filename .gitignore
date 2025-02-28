@@ -2,7 +2,14 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
+.vs
+node_mdules
+dist
+csharp/.vs
+/csharp/IFOllama/Conversations
+/Angular/node_modules
+/Angular/projects/ifshared-library/node_modules
+/Angular/projects/deepseek-gui/node_modules
 /.obj
 /.bin
 /utils/cat/bin
@@ -14,16 +21,4 @@
 obj
 bin
 .config
-/Angular/projects/ifshared-library/node_modules/.package-lock.json
-/Angular/projects/ifshared-library/node_modules/@angular
-/Angular/projects/ifshared-library/node_modules/angular-auth-oidc-client
-/Angular/projects/ifshared-library/node_modules/rfc4648
-/Angular/projects/ifshared-library/node_modules/rxjs
-/Angular/projects/ifshared-library/node_modules/tslib
-/Angular/projects/ifshared-library/node_modules/zone.js
-/csharp/.vs/Infoforum/CopilotIndices
-/csharp/IFOllama/Conversations
-csharp/.vs/Infoforum/FileContentIndex/42ca9a4c-df5b-4c61-9e69-e33f7001a5bc.vsidx
-csharp/.vs/Infoforum/FileContentIndex/8731f39c-e1db-4b56-800b-a3da926a02bb.vsidx
-csharp/.vs/Infoforum/FileContentIndex/c890e7ba-65d1-445b-a794-44431121ea79.vsidx
-csharp/.vs/Infoforum/FileContentIndex/d5b52d3b-6f21-4e7d-9454-2f71ce2478a8.vsidx
+
