@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
@@ -9,36 +11,13 @@ export class OllamaService {
 
   private apiUrl = environment.apiUrl;
 
-  constructor() {}
+  constructor(private http: HttpClient, private oidcSecurityService: OidcSecurityService) {}
 
-  sendPrompt(conversationId: string, prompt: string, dest: string = 'code'): Observable<string> {
-    return new Observable(observer => {
-      fetch(`${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(prompt) // Send only the prompt in the body
-      })
-      .then(response => {
-        if (!response.body)
-          throw new Error('No response body received.');
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        const processChunk = ({ done, value }: { done: boolean, value?: Uint8Array }) => {
-          if (done) {
-            observer.complete();
-            return;
-          }
-          const chunk = decoder.decode(value, { stream: true });
-          observer.next(chunk);
-          reader.read().then(processChunk);
-        };
-        
-        reader.read().then(processChunk);
-      })
-      .catch(error => observer.error(error));
+  sendPrompt(conversationId: string, prompt: string, dest: string = 'code'): Observable<any> {
+    const url = `${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`;
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
     });
+    return this.http.post(url, JSON.stringify(prompt), { headers, responseType: 'text' });
   }
 }
-
-export default OllamaService;

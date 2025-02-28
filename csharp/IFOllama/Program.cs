@@ -1,6 +1,8 @@
 using IFGlobal;
 using IFOllama;
 using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+
 
 int port = PortResolver.GetPort("IFOllama");
 
@@ -8,18 +10,47 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    // serverOptions.ListenLocalhost(port); 
     serverOptions.ListenAnyIP(port);
 });
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddHttpClient(); // Register HttpClient
-builder.Services.AddSingleton<ConversationContextManager>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" }); });
+builder.Services.AddSingleton<IConversationContextManager>(serviceProvider =>
+{
+    var conversationManager = new ConversationContextManager();
+    conversationManager.Initialize();
+    return conversationManager;
+});
 
-// Add CORS services with a specific policy
+builder.Services.AddControllers();
+builder.Services.AddHttpClient();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" });
+});
+
+// Existing code
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
+    options.Audience = "account";
+    options.RequireHttpsMetadata = true;
+});
+
+// Configure authorization policies.
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireIntelligenceUsersGroup", policy =>
+    {
+        policy.RequireClaim("Mapped Groups", "IntelligenceUsers");
+    });
+});
+
+// Add CORS services with a specific policy.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigins",
@@ -37,21 +68,24 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseStaticFiles(); // Serve static files
+app.UseStaticFiles();
 
-app.UseCors("AllowSpecificOrigins"); // Enable CORS with the specified policy
+app.UseRouting();
 
-app.UseRouting(); // This should be explicitly added if it’s not already there
+// Enable CORS before authentication and authorization.
+app.UseCors("AllowSpecificOrigins");
 
-app.UseSwagger(); // Enable middleware to serve generated Swagger as a JSON endpoint
+// Add authentication and authorization middleware.
+app.UseAuthentication();
+app.UseAuthorization();
+
+// Enable middleware to serve generated Swagger as a JSON endpoint.
+app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "IFOllama API V1");
-    c.RoutePrefix = "swagger"; // Set the Swagger UI at the /swagger endpoint
+    c.RoutePrefix = "swagger"; // Swagger UI available at /swagger
 });
-
-//app.UseAuthentication(); // If using authentication
-//app.UseAuthorization(); // Apply authorization
 
 app.MapControllers();
 

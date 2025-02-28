@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
+import { Component, AfterViewInit, ViewChildren, QueryList, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { OllamaService } from '../../ollama.service';
 import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
 import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
+import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
 
 @Component({
   selector: 'app-code-gen',
@@ -29,7 +30,7 @@ import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.comp
   templateUrl: './code-gen.component.html',
   styleUrls: ['./code-gen.component.scss']
 })
-export class CodeGenComponent implements AfterViewInit {
+export class CodeGenComponent implements AfterViewInit, OnInit {
   
   @ViewChildren(CodeGenResponseComponent) codeGenResponses!: QueryList<CodeGenResponseComponent>;
 
@@ -38,17 +39,37 @@ export class CodeGenComponent implements AfterViewInit {
   loading: boolean = false;
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
+  
 
-  constructor(private ollamaService: OllamaService) {}
+  get quoteOfTheDay(): string {
+    return localStorage.getItem('quoteOfTheDay') || DEFAULT_QUOTATION;
+  }
+
+  set quoteOfTheDay(quote: string) {
+    localStorage.setItem('quoteOfTheDay', quote.replace(/<think>.*?<\/think>/gs, ''));
+  }
+
+  constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
 
   ngAfterViewInit() {
     this.codeGenResponses.changes.subscribe(() => {
     });
   }
 
+  ngOnInit() {
+    this.quotationService.quoteReceived.subscribe({
+      next: (quotation: string) => {
+        this.quoteOfTheDay = quotation;
+      },
+      error: (err: any) => {
+        console.error('Error receiving quote of the day:', err);
+      }
+    });
+  }
+
   onSubmit() {
     if (!this.prompt.trim()) {
-      this.error = 'Please enter a prompt.';
+      this.error = 'Please ask a question first.';
       return;
     }
 

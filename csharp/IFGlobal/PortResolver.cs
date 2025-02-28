@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace IFGlobal
 {
@@ -27,7 +26,7 @@ namespace IFGlobal
                     string msg = $"PortResolver Does Not Recognise '{appname}'";
 
                     Console.WriteLine(msg);
-                    
+
                     throw new ArgumentException(msg);
             }
         }

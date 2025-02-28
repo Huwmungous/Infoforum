@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -7,13 +8,13 @@ namespace IFOllama.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class OllamaController : ControllerBase
+    public class IFOllamaController : ControllerBase
     {
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
-        private readonly ConversationContextManager _contextManager;
+        private readonly IConversationContextManager _contextManager;
 
-        public OllamaController(IConfiguration configuration, HttpClient httpClient, ConversationContextManager contextManager)
+        public IFOllamaController(IConfiguration configuration, HttpClient httpClient, IConversationContextManager contextManager)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -21,6 +22,7 @@ namespace IFOllama.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "RequireIntelligenceUsersGroup")]
         public async Task<IActionResult> SendPrompt([FromQuery] string conversationId, [FromBody] string prompt, string dest = "code")
         {
             try
@@ -56,6 +58,7 @@ namespace IFOllama.Controllers
 
 
         [HttpGet("query")]
+        [Authorize(Policy = "RequireIntelligenceUsersGroup")]
         public async Task<IActionResult> QueryCodebase([FromQuery] string query)
         {
             if (string.IsNullOrWhiteSpace(query))

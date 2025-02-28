@@ -2,7 +2,15 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { provideAuth, AuthGuard, AuthCallbackComponent } from 'ifshared-library';
+import { DEFAULT_CLIENT } from 'ifshared-library';
+import { provideMultipleAuths, AuthGuard, AuthCallbackComponent, buildAuthConfig, realmFromName, AuthConfigService } from 'ifshared-library';
+
+export const clients = [
+  { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
+  { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
+  { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
+  { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
+];
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
@@ -11,19 +19,18 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-// Retrieve saved client values from local storage
-const savedClientId = localStorage.getItem('selectedClientClientId') || '';
-const savedClientName = localStorage.getItem('selectedClientName') || '';
-
-console.log('Saved client: ', savedClientName, savedClientId);
-
-debugger;
+AuthConfigService.configs = clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideAuth(savedClientName, savedClientId),
+    provideMultipleAuths(),
+    AuthConfigService,
     provideHttpClient(),
     provideRouter(routes)
   ]
+})
+.then(appRef => {
+  const injector = appRef.injector;
+  const authConfigService = injector.get(AuthConfigService);
 })
 .catch(err => console.error(err));

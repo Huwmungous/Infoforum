@@ -2,7 +2,14 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
+.vs
+node_mdules
+dist
+csharp/.vs
+/csharp/IFOllama/Conversations
+/Angular/node_modules
+/Angular/projects/ifshared-library/node_modules
+/Angular/projects/deepseek-gui/node_modules
 /.obj
 /.bin
 /utils/cat/bin
@@ -14,10 +21,4 @@
 obj
 bin
 .config
-/Angular/projects/ifshared-library/node_modules/.package-lock.json
-/Angular/projects/ifshared-library/node_modules/@angular
-/Angular/projects/ifshared-library/node_modules/angular-auth-oidc-client
-/Angular/projects/ifshared-library/node_modules/rfc4648
-/Angular/projects/ifshared-library/node_modules/rxjs
-/Angular/projects/ifshared-library/node_modules/tslib
-/Angular/projects/ifshared-library/node_modules/zone.js
+

@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { LogoutService } from 'ifshared-library';
-import { ClientService, DEFAULT_CLIENT_ID, DEFAULT_CLIENT_NAME } from '../client.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { AuthConfigService, ClientService } from 'ifshared-library';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { clients } from 'src/main';
 
 @Component({
   selector: 'app-root',
@@ -11,51 +12,63 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
+ 
+  constructor(
+    private clientService: ClientService,
+    private authConfigService: AuthConfigService
+  ) { }
+
+
+  private loginSubscription!: Subscription;
+  private logoutSubscription!: Subscription;
+
   title = 'Auth Testing';
 
-  clients = [
-    { id: 1, name: 'Default', clientId: DEFAULT_CLIENT_NAME },
-    { id: 2, name: 'Intelligence', clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
-    { id: 3, name: 'BreakTackle', clientId: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
-    { id: 4, name: 'LongmanRd', clientId: DEFAULT_CLIENT_ID }
-  ];
+  get clients() { return clients; }
 
-  dropdownId: number | null = null;
-  selectedClientName: string = '';
-  selectedClientId: string = '';
+  get isAuthenticated(): boolean {
+    return this.clientService.isAuthenticated();
+  }
 
-  constructor(private logoutService: LogoutService, private clientService: ClientService) { }
+  get selectedId(): number { 
+    return parseInt(localStorage.getItem('selectedClientId') || '1'); 
+  }
+  set selectedId(value: number) {
+    if(value !== parseInt(this.authConfigService.configId)) {
+      localStorage.setItem('selectedClientId', value.toString());
+      this.authConfigService.configId = value.toString();
+    }
+  } 
 
   ngOnInit() {
-    const savedClientId = localStorage.getItem('selectedClientId');
-    const savedClientName = localStorage.getItem('selectedClientName');
-    if (savedClientId && savedClientName) {
-      this.dropdownId = +savedClientId;
-      this.selectedClientName = savedClientName;
-      const selectedClient = this.clients.find(client => client.id === this.dropdownId);
-      if (selectedClient) {
-        this.clientService.setClient(selectedClient.name, selectedClient.clientId);
-      }
-    }
+    this.authConfigService.selectConfigById(this.selectedId);
   }
 
   onClientChange(event: Event) {
-    const selectElement = event.target as HTMLSelectElement;
-    const selectedClient = this.clients.find(client => client.id === +selectElement.value);
-    if (selectedClient) {
-      this.dropdownId = selectedClient.id;
-      this.selectedClientName = selectedClient.name;
-      this.selectedClientId = selectedClient.clientId;
-      localStorage.setItem('selectedClientId', this.dropdownId.toString());
-      localStorage.setItem('selectedClientName', selectedClient.name);
-      localStorage.setItem('selectedClientClientId', selectedClient.clientId);
-      this.clientService.setClient(selectedClient.name, selectedClient.clientId); // Pass name and clientId
+    const elem = event.target as HTMLSelectElement;
+    const selection = clients.find(client => client.id === +elem.value);
+    if (selection) {
+      const prev = this.selectedId; 
+      this.selectedId = selection.id;
+      this.authConfigService.selectConfigById(this.selectedId);
+
+      this.logout(prev);
     }
   }
 
-  logout() {
-    this.clientService.reinitializeAuth();
-    this.logoutService.logout();
+  logoutCurrent( ) {
+    console.log(`Logging out current client (${this.selectedId})`);
+    debugger;
+    this.logout(this.selectedId); 
+  }
+
+  logout(configId: number = 1) {
+    this.clientService.logout(configId);
+  }
+
+  ngOnDestroy() {
+    if (this.loginSubscription) { this.loginSubscription.unsubscribe(); }
+    if (this.logoutSubscription) { this.logoutSubscription.unsubscribe(); }
   }
 }

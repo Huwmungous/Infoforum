@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button'; 
-import { LogoutService } from 'ifshared-library';
+import { MatButtonModule } from '@angular/material/button';
+import { ClientService } from 'ifshared-library';
 
 @Component({
   selector: 'app-intelligence',
@@ -19,18 +19,18 @@ import { LogoutService } from 'ifshared-library';
     CodeGenComponent
   ]
 })
-export class IntelligenceComponent {
+export class IntelligenceComponent { 
   
-  conversationId: string = generateGUID(); // Initialize with a new GUID
+  conversationId: string = generateGUID(); 
 
-  constructor( @Inject(LogoutService) private logoutService : LogoutService ) { }
+  constructor( @Inject(ClientService) private clientService : ClientService ) { }
 
   createNewConversation() {
-    this.conversationId = generateGUID(); // Generate a new GUID for the conversationId
+    this.conversationId = generateGUID(); 
   }
 
   logout() {
-    this.logoutService.logout();  
+    this.clientService.logout();  
   }
   
 }
