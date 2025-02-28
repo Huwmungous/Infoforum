@@ -19,10 +19,10 @@ export class QuotationService {
 
   constructor(private ollamaService: OllamaService) {
 
-    interval(60 * 60 * 1000).pipe(
-      startWith(5), 
-      switchMap(() => this.fetchQuotation())
-    ).subscribe();
+    // interval(60 * 60 * 1000).pipe(
+    //   startWith(5), 
+    //   switchMap(() => this.fetchQuotation())
+    // ).subscribe();
   }
 
   private fetchQuotation() {

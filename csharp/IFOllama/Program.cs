@@ -38,8 +38,8 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.Authority = "https://your-keycloak-domain/auth/realms/your-realm";
-    options.Audience = "your-client-id";
+    options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
+    options.Audience = "53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7";
     options.RequireHttpsMetadata = false; // Set to true in production.
 });
 

@@ -3,6 +3,8 @@ import { importProvidersFrom } from '@angular/core';
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 
+export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
+
 @Injectable({ providedIn: 'root' })
 export class AuthConfigService {
   
@@ -29,7 +31,7 @@ export class AuthConfigService {
 export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   return {
     configId: configId ? configId : '1',
-    authority: 'https://longmanrd.net/auth/realms/' + (realm ? realm : realmFromName(realm)),
+    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
     redirectUrl: window.location.origin + '/auth-callback',
     postLogoutRedirectUri: window.location.origin,
     clientId: client ? client : DEFAULT_CLIENT,
