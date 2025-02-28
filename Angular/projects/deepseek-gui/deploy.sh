@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo ng build IFSharedLibrary --configuration production
+
 sudo ng build --configuration production --base-href /intelligence/
 
 sudo mkdir -p /var/www/Intelligence/
