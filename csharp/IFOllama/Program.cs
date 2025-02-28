@@ -40,7 +40,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
     options.Audience = "53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7";
-    options.RequireHttpsMetadata = false; // Set to true in production.
+    options.RequireHttpsMetadata = true; // Set to true in production.
 });
 
 // Configure authorization policies.
@@ -48,7 +48,7 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireIntelligenceUsersGroup", policy =>
     {
-        policy.RequireClaim("groups", "IntelligenceUsers");
+        policy.RequireClaim("Mapped Groups", "IntelligenceUsers");
     });
 });
 
