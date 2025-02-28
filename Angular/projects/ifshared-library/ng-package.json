@@ -3,5 +3,9 @@
   "dest": "../../dist/ifshared-library",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+    "allowedNonPeerDependencies": [
+    "@esbuild/linux-x64",
+    "esbuild"
+  ]
 }
