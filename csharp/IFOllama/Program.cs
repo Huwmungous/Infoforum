@@ -10,11 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    // Listen on any IP on the specified port.
     serverOptions.ListenAnyIP(port);
 });
 
-// Add services to the container.
 builder.Services.AddSingleton<IConversationContextManager>(serviceProvider =>
 {
     var conversationManager = new ConversationContextManager();
@@ -39,8 +37,8 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
-    options.Audience = "53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7";
-    options.RequireHttpsMetadata = true; // Set to true in production.
+    options.Audience = "account";
+    options.RequireHttpsMetadata = true;
 });
 
 // Configure authorization policies.

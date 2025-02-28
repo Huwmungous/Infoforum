@@ -7,12 +7,12 @@
       "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\conversationcontextmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\conversationcontextmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\controllers\\ifollamacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\controllers\\ifollamacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\conversationcontextmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\conversationcontextmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\ikeyclaokclient.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -42,24 +42,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 5,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 3,
@@ -133,27 +117,27 @@
               "RelativeDocumentMoniker": "IFOllama\\Program.cs",
               "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
               "RelativeToolTip": "IFOllama\\Program.cs",
-              "ViewState": "AgIAACAAAAAAAAAAAAAAwDEAAAAFAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAADwvygAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-28T08:14:28.301Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
               "Title": "IFOllamaController.cs",
               "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Controllers\\IFOllamaController.cs",
               "RelativeDocumentMoniker": "IFOllama\\Controllers\\IFOllamaController.cs",
               "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Controllers\\IFOllamaController.cs",
               "RelativeToolTip": "IFOllama\\Controllers\\IFOllamaController.cs",
-              "ViewState": "AgIAACQAAAAAAAAAAAAowD0AAABQAAAAAAAAAA==",
+              "ViewState": "AgIAAGYAAAAAAAAAAAAmwHEAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-27T11:41:56.553Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ConversationContextManager.cs",
               "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\ConversationContextManager.cs",
               "RelativeDocumentMoniker": "IFOllama\\ConversationContextManager.cs",
