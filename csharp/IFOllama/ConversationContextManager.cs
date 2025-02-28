@@ -90,11 +90,9 @@ namespace IFOllama
             {
                 string responseId = Guid.NewGuid().ToString();
                 var responsePath = Path.Combine(folderPath, $"{responseId}.json");
-                using (StreamWriter writer = File.CreateText(responsePath))
-                {
-                    var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
-                    JsonConvert.SerializeObject(responseData, Formatting.Indented);
-                }
+                using StreamWriter writer = File.CreateText(responsePath);
+                var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
+                JsonConvert.SerializeObject(responseData, Formatting.Indented);
             }
 
             _conversationHistories[conversationId] = messages;
@@ -102,8 +100,8 @@ namespace IFOllama
 
         public List<string>? GetConversation(string conversationId)
         {
-            if (_conversationHistories.ContainsKey(conversationId))
-                return _conversationHistories[conversationId];
+            if (_conversationHistories.TryGetValue(conversationId, out List<string>? value))
+                return value;
             else
                 return null;
         }
@@ -113,14 +111,12 @@ namespace IFOllama
             string jsonPath = Path.Combine(_conversationFolder, $"{conversationId}.json");
             if (File.Exists(jsonPath))
             {
-                using (StreamReader reader = File.OpenText(jsonPath))
-                {
-                    var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
-                    return conversationData?.Messages ?? new List<string>();
-                }
+                using StreamReader reader = File.OpenText(jsonPath);
+                var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
+                return conversationData?.Messages ?? [];
             }
             else
-                return new List<string>();
+                return [];
         }
 
         public List<List<string>> LoadAllConversations()
@@ -134,13 +130,11 @@ namespace IFOllama
 
                 if (File.Exists(jsonPath))
                 {
-                    using (StreamReader reader = File.OpenText(jsonPath))
+                    using StreamReader reader = File.OpenText(jsonPath);
+                    var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
+                    if (conversationData?.Messages != null)
                     {
-                        var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
-                        if (conversationData?.Messages != null)
-                        {
-                            allConversations.Add(conversationData.Messages);
-                        }
+                        allConversations.Add(conversationData.Messages);
                     }
                 }
             }
