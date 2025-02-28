@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'http://longmanrd.net/intelligence/api'
+    apiUrl: 'https://longmanrd.net/intelligence/api'
   };
