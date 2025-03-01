@@ -42,8 +42,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 9,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 3,
@@ -54,8 +70,7 @@
               "RelativeToolTip": "IFOllama\\IKeyclaokCLient.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-28T10:12:46.763Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-28T10:12:46.763Z"
             },
             {
               "$type": "Document",
@@ -67,8 +82,7 @@
               "RelativeToolTip": "IFGlobal\\PortResolver.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-28T09:41:22.539Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-28T09:41:22.539Z"
             },
             {
               "$type": "Document",
@@ -80,8 +94,7 @@
               "RelativeToolTip": "IFOllama\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-02-28T09:29:30.923Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-28T09:29:30.923Z"
             },
             {
               "$type": "Document",
@@ -93,8 +106,7 @@
               "RelativeToolTip": "IFGlobal\\IFGlobal.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAswA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-02-28T09:07:04.937Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-28T09:07:04.937Z"
             },
             {
               "$type": "Document",
@@ -106,8 +118,7 @@
               "RelativeToolTip": "IFOllama\\IFOllama.csproj",
               "ViewState": "AgIAAAAAAAAAAAAAAAAgwBwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
-              "WhenOpened": "2025-02-28T08:21:21.668Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-28T08:21:21.668Z"
             },
             {
               "$type": "Document",
@@ -132,8 +143,7 @@
               "RelativeToolTip": "IFOllama\\Controllers\\IFOllamaController.cs",
               "ViewState": "AgIAAGYAAAAAAAAAAAAmwHEAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-27T11:41:56.553Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-27T11:41:56.553Z"
             },
             {
               "$type": "Document",
@@ -145,8 +155,7 @@
               "RelativeToolTip": "IFOllama\\ConversationContextManager.cs",
               "ViewState": "AgIAAFIAAAAAAAAAAAAawFcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-27T11:16:02.417Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-27T11:16:02.417Z"
             }
           ]
         }

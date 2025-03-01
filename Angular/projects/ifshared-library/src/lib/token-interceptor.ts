@@ -8,6 +8,7 @@ import {
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { KEYCLOAK_BASE_URL } from './auth-config.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,7 +18,7 @@ export class IFTokenInterceptor implements HttpInterceptor {
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (request.url.includes('http://localhost:5008/IFOllama')) {
+    if (!request.url.includes(KEYCLOAK_BASE_URL)) {
       // Use switchMap to wait for the token
       return this.oidcSecurityService.getAccessToken().pipe(
         switchMap((token: string) => {
