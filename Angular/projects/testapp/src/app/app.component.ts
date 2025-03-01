@@ -3,12 +3,13 @@ import { AuthConfigService, ClientService } from 'ifshared-library';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { clients } from 'src/main';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatSnackBarModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -16,12 +17,12 @@ export class AppComponent implements OnInit, OnDestroy {
  
   constructor(
     private clientService: ClientService,
-    private authConfigService: AuthConfigService
+    private authConfigService: AuthConfigService,
+    private snackBar: MatSnackBar
   ) { }
 
-
-  private loginSubscription!: Subscription;
-  private logoutSubscription!: Subscription;
+  private afterLoginSubscription!: Subscription;
+  private afterLogoutSubscription!: Subscription;
 
   title = 'Auth Testing';
 
@@ -43,6 +44,30 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.authConfigService.selectConfigById(this.selectedId);
+    
+    this.afterLogoutSubscription = this.clientService.afterLogoutEvent.subscribe({
+      next: ({ realm, client }: { realm: string, client: string }): void => {
+        console.log('User has logged out');
+        this.snackBar.open(`User has logged out from realm: ${realm}.${client}`, 'Close', {
+          duration: 3000,
+        });
+      },
+      error: (err: any): void => {
+        console.error('Error in afterLogoutEvent:', err);
+      }
+    });
+
+    this.afterLoginSubscription = this.clientService.afterLoginEvent.subscribe({
+      next: ({ realm, client }: { realm: string, client: string }): void => {
+        console.log('User has logged in');
+        this.snackBar.open(`User has logged in to realm: ${realm}.${client}`, 'Close', {
+          duration: 3000,
+        });
+      },
+      error: (err: any): void => {
+        console.error('Error in afterLogoutEvent:', err);
+      }
+    });
   }
 
   onClientChange(event: Event) {
@@ -57,7 +82,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
-  logoutCurrent( ) {
+  logoutCurrent() {
     console.log(`Logging out current client (${this.selectedId})`);
     debugger;
     this.logout(this.selectedId); 
@@ -68,7 +93,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.loginSubscription) { this.loginSubscription.unsubscribe(); }
-    if (this.logoutSubscription) { this.logoutSubscription.unsubscribe(); }
+    if (this.afterLoginSubscription) { this.afterLoginSubscription.unsubscribe(); }
+    if (this.afterLogoutSubscription) { this.afterLogoutSubscription.unsubscribe(); }
   }
 }

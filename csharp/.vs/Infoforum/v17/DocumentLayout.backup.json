@@ -42,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 9,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -62,15 +62,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "IKeyclaokCLient.cs",
-              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\IKeyclaokCLient.cs",
-              "RelativeDocumentMoniker": "IFOllama\\IKeyclaokCLient.cs",
-              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\IKeyclaokCLient.cs",
-              "RelativeToolTip": "IFOllama\\IKeyclaokCLient.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAABAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
+              "RelativeDocumentMoniker": "IFOllama\\Program.cs",
+              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
+              "RelativeToolTip": "IFOllama\\Program.cs",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAACwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-28T10:12:46.763Z"
+              "WhenOpened": "2025-02-28T08:14:28.301Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -83,6 +84,18 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-02-28T09:41:22.539Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IKeyclaokCLient.cs",
+              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\IKeyclaokCLient.cs",
+              "RelativeDocumentMoniker": "IFOllama\\IKeyclaokCLient.cs",
+              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\IKeyclaokCLient.cs",
+              "RelativeToolTip": "IFOllama\\IKeyclaokCLient.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-28T10:12:46.763Z"
             },
             {
               "$type": "Document",
@@ -120,19 +133,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAgwBwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
               "WhenOpened": "2025-02-28T08:21:21.668Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
-              "RelativeDocumentMoniker": "IFOllama\\Program.cs",
-              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
-              "RelativeToolTip": "IFOllama\\Program.cs",
-              "ViewState": "AgIAACsAAAAAAAAAAAAqwD4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-28T08:14:28.301Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Document",
