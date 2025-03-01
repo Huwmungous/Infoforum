@@ -4,9 +4,6 @@
   "compileOnSave": false,
   "compilerOptions": {
     "paths": {
-      "IFSharedLibrary": [
-        "./dist/ifshared-library"
-      ]
     },
     "outDir": "./dist/out-tsc",
     "strict": true,

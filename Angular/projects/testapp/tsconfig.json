@@ -5,8 +5,7 @@
   "compilerOptions": {
     "baseUrl": ".", // Ensure this line is present
     "paths": {
-      "angular-auth-oidc-client": ["node_modules/angular-auth-oidc-client"],
-      "ifshared-library": ["../../dist/ifshared-library"]
+      "angular-auth-oidc-client": ["node_modules/angular-auth-oidc-client"]
     },
     "outDir": "./dist/out-tsc",
     "strict": true,
