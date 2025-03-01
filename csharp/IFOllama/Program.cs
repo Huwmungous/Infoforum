@@ -39,7 +39,28 @@ builder.Services.AddAuthentication(options =>
     options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
     options.Audience = "account";
     options.RequireHttpsMetadata = true;
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            Console.WriteLine("Received token: " + context.Token);
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            var claims = context.Principal.Claims.Select(c => $"{c.Type}: {c.Value}");
+            Console.WriteLine("Token validated with claims: " + string.Join(", ", claims));
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("Authentication failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        }
+    };
 });
+
 
 // Configure authorization policies.
 builder.Services.AddAuthorization(options =>
