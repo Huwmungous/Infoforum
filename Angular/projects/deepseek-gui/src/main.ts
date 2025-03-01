@@ -3,7 +3,10 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { IFTokenInterceptor, provideAuth, AuthGuard, AuthCallbackComponent } from 'ifshared-library';
+import { IFTokenInterceptor } from '../../shared/token-interceptor';
+import { provideAuth } from '../../shared/auth-config.service'
+import { AuthGuard } from '../../shared/auth.guard';
+import { AuthCallbackComponent } from '../../shared/auth-callback.component';
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
 
 const routes: Routes = [
