@@ -4,13 +4,12 @@ import { ClientService } from '../../../shared/client.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { clients } from 'src/main';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
@@ -18,8 +17,7 @@ export class AppComponent implements OnInit, OnDestroy {
  
   constructor(
     private clientService: ClientService,
-    private authConfigService: AuthConfigService,
-    private snackBar: MatSnackBar
+    private authConfigService: AuthConfigService
   ) { }
 
   private afterLoginSubscription!: Subscription;
@@ -48,10 +46,7 @@ export class AppComponent implements OnInit, OnDestroy {
     
     this.afterLogoutSubscription = this.clientService.afterLogoutEvent.subscribe({
       next: ({ realm, client }: { realm: string, client: string }): void => {
-        console.log('User has logged out');
-        this.snackBar.open(`User has logged out from realm: ${realm}.${client}`, 'Close', {
-          duration: 3000,
-        });
+        console.log(`User has logged out from realm: ${realm}.${client}`);
       },
       error: (err: any): void => {
         console.error('Error in afterLogoutEvent:', err);
@@ -60,10 +55,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.afterLoginSubscription = this.clientService.afterLoginEvent.subscribe({
       next: ({ realm, client }: { realm: string, client: string }): void => {
-        console.log('User has logged in');
-        this.snackBar.open(`User has logged in to realm: ${realm}.${client}`, 'Close', {
-          duration: 3000,
-        });
+        console.log(`User has logged in to realm: ${realm}.${client}`);
       },
       error: (err: any): void => {
         console.error('Error in afterLogoutEvent:', err);
