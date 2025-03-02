@@ -2,10 +2,10 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { DEFAULT_CLIENT } from '../../shared/client.service';
-import { AuthCallbackComponent } from '../../shared/auth-callback.component';
-import { AuthGuard } from '../../shared/auth.guard';
-import { AuthConfigService, buildAuthConfig, realmFromName, provideMultipleAuths } from '../../shared/auth-config.service';
+import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
+import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
+import { AuthGuard } from '../../shared/ifauth/auth.guard';
+import { AuthConfigService, buildAuthConfig, realmFromName, provideMultipleAuths } from '../../shared/ifauth/auth-config.service';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AuthConfigService } from '../../../shared/auth-config.service';
-import { ClientService } from '../../../shared/client.service';
+import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
+import { ClientService } from '../../../shared/ifauth/client.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';

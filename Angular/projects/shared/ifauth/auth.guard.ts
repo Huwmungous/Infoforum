@@ -1,22 +1,19 @@
 import { Injectable } from '@angular/core';
 import { 
   CanActivate, 
-  CanActivateChild, 
-  CanLoad, 
+  CanActivateChild,
   ActivatedRouteSnapshot, 
-  RouterStateSnapshot, 
-  Route, 
-  UrlSegment 
+  RouterStateSnapshot
 } from '@angular/router';
-import { Observable } from 'rxjs';
-import { take, tap, map } from 'rxjs/operators';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { AuthConfigService } from './auth-config.service';
+import { Observable } from 'rxjs';
+import { take, tap, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
+export class AuthGuard implements CanActivate, CanActivateChild {
   private isAuthProcessInProgress = false;
 
   constructor(
@@ -26,14 +23,14 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
   private checkAuthentication(): Observable<boolean> {
     return this.oidcSecurityService.checkAuth().pipe(
       take(1),
-      tap(({ isAuthenticated }) => {
-        if (!isAuthenticated && !this.isAuthProcessInProgress) {
+      tap((response: { isAuthenticated: boolean }) => {
+        if (!response.isAuthenticated && !this.isAuthProcessInProgress) {
           console.warn('Auth Guard: Not authenticated, initiating login...');
           this.isAuthProcessInProgress = true;
           this.oidcSecurityService.authorize(this.configService.configId);
         }
       }),
-      map(({ isAuthenticated }) => isAuthenticated)
+      map((response: { isAuthenticated: boolean }) => response.isAuthenticated)
     );
   }
 
@@ -50,11 +47,5 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
   ): Observable<boolean> {
     return this.checkAuthentication();
   }
-  
-  canLoad(
-    route: Route, 
-    segments: UrlSegment[]
-  ): Observable<boolean> {
-    return this.checkAuthentication();
-  }
+
 }
