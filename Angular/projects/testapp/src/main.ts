@@ -5,7 +5,9 @@ import { provideRouter, Routes } from '@angular/router';
 import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthConfigService, buildAuthConfig, realmFromName, provideMultipleAuths } from '../../shared/ifauth/auth-config.service';
+import { AuthConfigService, buildAuthConfig, realmFromName } from '../../shared/ifauth/auth-config.service';
+import { importProvidersFrom } from '@angular/core';
+import { IFAuthModule } from '../../shared/ifauth.module';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
@@ -25,8 +27,7 @@ AuthConfigService.configs = clients.map(client => buildAuthConfig(client.id.toSt
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideMultipleAuths(),
-    AuthConfigService,
+    importProvidersFrom(IFAuthModule),
     provideHttpClient(),
     provideRouter(routes)
   ]

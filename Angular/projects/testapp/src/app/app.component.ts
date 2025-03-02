@@ -1,17 +1,19 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
-import { ClientService } from '../../../shared/ifauth/client.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { clients } from 'src/main';
+import { IFAuthModule } from '../../../shared/ifauth.module';
+import { ClientService } from '../../../shared/ifauth/client.service';
+import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IFAuthModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  providers: []
 })
 export class AppComponent implements OnInit, OnDestroy {
  

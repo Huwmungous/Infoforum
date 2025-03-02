@@ -19,4 +19,4 @@ import { AuthCallbackComponent } from './ifauth/auth-callback.component';
     AuthCallbackComponent
   ]
 })
-export class IfauthModule { }
+export class IFAuthModule { }
