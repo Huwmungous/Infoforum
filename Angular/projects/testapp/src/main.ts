@@ -6,9 +6,8 @@ import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
 import { AuthConfigService } from '../../shared/ifauth/auth-config.service';
-import { ClientService } from '../../shared/ifauth/client.service';
 import { importProvidersFrom } from '@angular/core';
-import { IFAuthModule } from 'shared/ifauth.module';
+import { IFAuthModule } from '../../shared/ifauth.module';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
@@ -26,14 +25,16 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(IFAuthModule), // ✅ Correct standalone import
-    provideHttpClient(), // ✅ Moved here to avoid DI errors
-    provideRouter(routes)
+    importProvidersFrom(IFAuthModule), // ✅ Import Standalone Module
+    provideHttpClient(),
+    provideRouter(routes),
+    AuthConfigService // ✅ Explicitly adding here
   ]
 })
 .then(appRef => {
   const injector = appRef.injector;
   try {
+    console.log("Available providers:", injector);
     const authConfigService = injector.get(AuthConfigService);
     authConfigService.setClients(clients);
     console.log("AuthConfigService resolved successfully:", authConfigService);

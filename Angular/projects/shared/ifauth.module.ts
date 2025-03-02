@@ -20,8 +20,8 @@ import { ClientService } from './ifauth/client.service';
       provide: HTTP_INTERCEPTORS,
       useClass: IFTokenInterceptor,
       multi: true
-    },
-    AuthCallbackComponent
+    }
+    
   ]
 })
 export class IFAuthModule { }
