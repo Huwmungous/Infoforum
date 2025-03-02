@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { clients } from 'src/main';
 import { IFAuthModule } from '../../../shared/ifauth.module';
@@ -10,7 +10,7 @@ import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, IFAuthModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, IFAuthModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   providers: []

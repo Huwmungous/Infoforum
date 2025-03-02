@@ -3,9 +3,112 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-
+    "testapp": {
+      "projectType": "application",
+      "root": "projects/testapp",
+      "sourceRoot": "projects/testapp/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/testapp",
+            "index": "projects/testapp/src/index.html",
+            "main": "projects/testapp/src/main.ts",
+            "tsConfig": "projects/testapp/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/testapp/src/assets",
+                "output": "/assets"
+              },
+              "projects/testapp/src/favicon.ico"
+            ],
+            "styles": [
+              "projects/testapp/src/styles.scss",
+              "node_modules/@angular/material/prebuilt-themes/azure-blue.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "projects/testapp/src/environments/environment.ts",
+                  "with": "projects/testapp/src/environments/environment.prod.ts"
+                }
+              ],
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "extractCss": true,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
+              "vendorChunk": false,
+              "buildOptimizer": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2mb",
+                  "maximumError": "5mb"
+                }
+              ]
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "testapp:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "testapp:build:production"
+            }
+          }
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "testapp:build"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/testapp/src/test.ts",
+            "polyfills": "projects/testapp/src/polyfills.ts",
+            "tsConfig": "projects/testapp/tsconfig.spec.json",
+            "karmaConfig": "projects/testapp/karma.conf.js",
+            "assets": [
+              "projects/testapp/src/favicon.ico",
+              "projects/testapp/src/assets"
+            ],
+            "styles": [
+              "projects/testapp/src/styles.css",
+              "node_modules/@angular/material/prebuilt-themes/azure-blue.css"
+            ],
+            "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/testapp/tsconfig.app.json",
+              "projects/testapp/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    }
   },
   "cli": {
     "analytics": false
-  }
+  },
+  "defaultProject": "testapp"
 }
