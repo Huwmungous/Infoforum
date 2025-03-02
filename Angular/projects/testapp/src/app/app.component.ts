@@ -10,7 +10,7 @@ import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, IFAuthModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   providers: []
@@ -20,7 +20,11 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private clientService: ClientService,
     private authConfigService: AuthConfigService
-  ) { }
+  ) 
+  { 
+    console.log("ClientService instance:", clientService);
+    console.log("AuthConfigService instance:", authConfigService);
+  }
 
   private afterLoginSubscription!: Subscription;
   private afterLogoutSubscription!: Subscription;

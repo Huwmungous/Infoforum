@@ -5,9 +5,10 @@ import { provideRouter, Routes } from '@angular/router';
 import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthConfigService, buildAuthConfig, realmFromName } from '../../shared/ifauth/auth-config.service';
+import { AuthConfigService } from '../../shared/ifauth/auth-config.service';
+import { ClientService } from '../../shared/ifauth/client.service';
 import { importProvidersFrom } from '@angular/core';
-import { IFAuthModule } from '../../shared/ifauth.module';
+import { IFAuthModule } from 'shared/ifauth.module';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
@@ -23,17 +24,21 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-AuthConfigService.configs = clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
-
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(IFAuthModule),
-    provideHttpClient(),
+    importProvidersFrom(IFAuthModule), // ✅ Correct standalone import
+    provideHttpClient(), // ✅ Moved here to avoid DI errors
     provideRouter(routes)
   ]
 })
 .then(appRef => {
   const injector = appRef.injector;
-  const authConfigService = injector.get(AuthConfigService);
+  try {
+    const authConfigService = injector.get(AuthConfigService);
+    authConfigService.setClients(clients);
+    console.log("AuthConfigService resolved successfully:", authConfigService);
+  } catch (error) {
+    console.error("Service resolution error:", error);
+  }
 })
 .catch(err => console.error(err));
