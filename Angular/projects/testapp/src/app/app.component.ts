@@ -2,10 +2,16 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { clients } from 'src/main';
-import { IFAuthModule } from '../../../shared/ifauth.module';
-import { ClientService } from '../../../shared/ifauth/client.service';
+import { ClientService, DEFAULT_CLIENT } from '../../../shared/ifauth/client.service';
 import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
+
+
+const clients = [
+  { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
+  { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
+  { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
+  { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
+];
 
 @Component({
   selector: 'app-root',

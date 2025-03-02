@@ -5,8 +5,7 @@
     "paths": {
       "angular-auth-oidc-client": ["node_modules/angular-auth-oidc-client"],
       "rxjs": ["node_modules/rxjs"],
-      "rxjs/operators": ["node_modules/rxjs/operators"],
-      "shared/*": ["projects/shared/*"]
+      "rxjs/operators": ["node_modules/rxjs/operators"]
     },
     "typeRoots": [
       "node_modules/@types"

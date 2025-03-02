@@ -6,9 +6,7 @@ export const DEFAULT_AUTHORITY = 'LongmanRd';
 export const DEFAULT_REALM = 'LongmanRd';
 export const DEFAULT_CLIENT = '9F32F055-D2FF-4461-A47B-4A2FCA6720DA';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class ClientService {
   private realm: string = DEFAULT_REALM;
   private client: string = DEFAULT_CLIENT;

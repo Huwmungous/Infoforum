@@ -1,20 +1,12 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
-import { provideHttpClient } from '@angular/common/http';
-import { provideRouter, Routes } from '@angular/router';
-import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideRouter, Routes } from '@angular/router'; 
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthConfigService } from '../../shared/ifauth/auth-config.service';
-import { importProvidersFrom } from '@angular/core';
-import { IFAuthModule } from '../../shared/ifauth.module';
-
-export const clients = [
-  { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
-  { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
-  { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
-  { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
-];
+import { AuthConfigService } from '../../shared/ifauth/auth-config.service'; 
+import { IFTokenInterceptor } from '../../shared/ifauth/token-interceptor';
+import { ClientService } from '../../shared/ifauth/client.service';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
@@ -25,10 +17,16 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(IFAuthModule), // ✅ Import Standalone Module
-    provideHttpClient(),
+    provideHttpClient(withInterceptorsFromDi()), // ✅ Moved provideHttpClient() here
+    {
+      provide: HTTP_INTERCEPTORS, // ✅ Register interceptor at the application level
+      useClass: IFTokenInterceptor,
+      multi: true
+    }, 
     provideRouter(routes),
-    AuthConfigService // ✅ Explicitly adding here
+    AuthConfigService, // ✅ Explicitly provided
+    AuthGuard, // ✅ Explicitly provided
+    ClientService // ✅ Explicitly provided
   ]
 })
 .then(appRef => {
@@ -36,7 +34,6 @@ bootstrapApplication(AppComponent, {
   try {
     console.log("Available providers:", injector);
     const authConfigService = injector.get(AuthConfigService);
-    authConfigService.setClients(clients);
     console.log("AuthConfigService resolved successfully:", authConfigService);
   } catch (error) {
     console.error("Service resolution error:", error);

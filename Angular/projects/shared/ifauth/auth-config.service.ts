@@ -1,6 +1,5 @@
-import { Injectable } from "@angular/core";
-import { importProvidersFrom } from '@angular/core';
-import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
+import { Injectable } from "@angular/core"; 
+import { OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
@@ -11,9 +10,11 @@ export class AuthConfigService {
   get configId(): string { return this._configId; }
   set configId(value: string) { this._configId = value; }
 
-  private configs: OpenIdConfiguration[] = [];  // ✅ Move inside instance
+  private configs: OpenIdConfiguration[] = []; 
 
-  constructor() { }
+  constructor() {
+    console.log("✅ AuthConfigService initialized"); // Debugging output
+  }
 
   setClients(clients: { id: number, realmName: string, client: string }[]) {
     this.configs = clients.map(c => this.buildAuthConfig(c.id.toString(), c.realmName, c.client));
