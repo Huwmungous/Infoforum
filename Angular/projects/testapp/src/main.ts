@@ -1,12 +1,23 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideRouter, Routes } from '@angular/router'; 
+import { provideRouter, Routes } from '@angular/router';
+import { importProvidersFrom, inject } from '@angular/core';
+import { provideAuth, OpenIdConfiguration } from 'angular-auth-oidc-client';
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthConfigService } from '../../shared/ifauth/auth-config.service'; 
+import { AuthConfigService } from '../../shared/ifauth/auth-config.service';
+import { IFAuthModule } from '../../shared/ifauth.module';
 import { IFTokenInterceptor } from '../../shared/ifauth/token-interceptor';
-import { ClientService } from '../../shared/ifauth/client.service';
+
+const authConfigService = new AuthConfigService();
+const initialConfig = authConfigService.getInitialAuthConfig();
+
+// ✅ Get auth config dynamically using a factory function
+const authConfigFactory = (): OpenIdConfiguration => {
+  const authConfigService = inject(AuthConfigService); // Inject service manually
+  return authConfigService.buildAuthConfig('1', 'LongmanRd', '9F32F055-D2FF-4461-A47B-4A2FCA6720DA'); 
+};
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
@@ -17,26 +28,17 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(withInterceptorsFromDi()), // ✅ Moved provideHttpClient() here
+    provideHttpClient(withInterceptorsFromDi()), // ✅ Enables HttpClient with DI-based interceptors
+    provideAuth({ config: initialConfig }), // ✅ Dynamically provide auth config
     {
       provide: HTTP_INTERCEPTORS, // ✅ Register interceptor at the application level
       useClass: IFTokenInterceptor,
       multi: true
-    }, 
+    },
+    importProvidersFrom(IFAuthModule), // ✅ Import IFAuthModule
     provideRouter(routes),
-    AuthConfigService, // ✅ Explicitly provided
-    AuthGuard, // ✅ Explicitly provided
-    ClientService // ✅ Explicitly provided
+    AuthConfigService // ✅ Ensure the service is available
   ]
 })
-.then(appRef => {
-  const injector = appRef.injector;
-  try {
-    console.log("Available providers:", injector);
-    const authConfigService = injector.get(AuthConfigService);
-    console.log("AuthConfigService resolved successfully:", authConfigService);
-  } catch (error) {
-    console.error("Service resolution error:", error);
-  }
-})
-.catch(err => console.error(err));
+  .then(appRef => console.log("✅ Angular bootstrapped successfully"))
+  .catch(err => console.error("❌ Bootstrap error:", err));

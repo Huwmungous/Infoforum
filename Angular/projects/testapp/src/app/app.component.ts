@@ -5,14 +5,6 @@ import { Subscription } from 'rxjs';
 import { ClientService, DEFAULT_CLIENT } from '../../../shared/ifauth/client.service';
 import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
 
-
-const clients = [
-  { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
-  { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
-  { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
-  { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
-];
-
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -37,7 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   title = 'Auth Testing';
 
-  get clients() { return clients; }
+  get clients() { return this.authConfigService.clients; }
 
   get isAuthenticated(): boolean {
     return this.clientService.isAuthenticated();
@@ -77,7 +69,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   onClientChange(event: Event) {
     const elem = event.target as HTMLSelectElement;
-    const selection = clients.find(client => client.id === +elem.value);
+    const selection = this.clients.find(client => client.id === +elem.value);
     if (selection) {
       const prev = this.selectedId; 
       this.selectedId = selection.id;

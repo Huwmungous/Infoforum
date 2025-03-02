@@ -2,9 +2,17 @@ import { Injectable } from "@angular/core";
 import { OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 
+const clients = [
+  { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
+  { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
+  { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
+  { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
+];
+
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 @Injectable({ providedIn: 'root' })
 export class AuthConfigService {
+
   
   private _configId: string = '1';
   get configId(): string { return this._configId; }
@@ -13,11 +21,22 @@ export class AuthConfigService {
   private configs: OpenIdConfiguration[] = []; 
 
   constructor() {
-    console.log("✅ AuthConfigService initialized"); // Debugging output
+    this.setClients(clients);
+    this.loadStoredConfig();
+    console.log("✅ AuthConfigService initialized");
   }
 
   setClients(clients: { id: number, realmName: string, client: string }[]) {
     this.configs = clients.map(c => this.buildAuthConfig(c.id.toString(), c.realmName, c.client));
+  }
+
+  get clients() {
+    return clients;
+  }
+
+  private loadStoredConfig() {
+    const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
+    this.selectConfigById(Number(storedConfigId));
   }
 
   buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
@@ -45,6 +64,10 @@ export class AuthConfigService {
     } else {
       console.warn(`Config not found for id: ${configId}`);
     }
+  }
+
+  getInitialAuthConfig(): OpenIdConfiguration {
+    return this.configs.find(c => c.configId === this._configId) ?? this.configs[0];
   }
 }
 
