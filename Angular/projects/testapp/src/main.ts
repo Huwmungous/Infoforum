@@ -1,14 +1,18 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { importProvidersFrom, inject } from '@angular/core';
-import { provideAuth, OpenIdConfiguration } from 'angular-auth-oidc-client';
+import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthConfigService } from '../../shared/ifauth/auth-config.service';
-import { IFAuthModule } from '../../shared/ifauth.module';
-import { IFTokenInterceptor } from '../../shared/ifauth/token-interceptor';
+import { AuthConfigService, buildAuthConfig, realmFromName, provideMultipleAuths } from '../../shared/ifauth/auth-config.service';
+
+export const clients = [
+  { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },
+  { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
+  { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
+  { id: 4, realmName: 'LongmanRd', client: DEFAULT_CLIENT }
+];
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
@@ -17,21 +21,18 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-AuthConfigService.initialise();
+AuthConfigService.configs = clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
 
 bootstrapApplication(AppComponent, {
   providers: [
+    provideMultipleAuths(),
     AuthConfigService,
-    provideRouter(routes),
-    provideHttpClient(withInterceptorsFromDi()),
-    provideAuth({ config: AuthConfigService.initialConfig() }), 
-    {
-      provide: HTTP_INTERCEPTORS, 
-      useClass: IFTokenInterceptor,
-      multi: true
-    },
-    importProvidersFrom(IFAuthModule)
+    provideHttpClient(),
+    provideRouter(routes)
   ]
 })
-  .then(appRef => console.log("✅ Angular bootstrapped successfully"))
-  .catch(err => console.error("❌ Bootstrap error:", err));
+.then(appRef => {
+  const injector = appRef.injector;
+  const authConfigService = injector.get(AuthConfigService);
+})
+.catch(err => console.error(err));
