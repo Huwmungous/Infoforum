@@ -1,10 +1,10 @@
 #!/bin/bash
 
-cd ../..
+# cd ../..
 
-sudo ng build IFSharedLibrary --configuration production
+# sudo ng build IFAuthModule --configuration production
 
-cd ./projects/deepseek-gui
+# cd ./projects/deepseek-gui
 
 ng build deepseek-gui --base-href /intelligence/ --configuration production
 
