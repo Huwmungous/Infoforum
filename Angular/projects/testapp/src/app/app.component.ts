@@ -2,8 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { ClientService, DEFAULT_CLIENT } from '../../../shared/ifauth/client.service';
-import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
+import { AuthConfigService, ClientService } from 'ifauth-lib';
 
 @Component({
   selector: 'app-root',

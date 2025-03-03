@@ -14,10 +14,12 @@ export class AuthConfigService {
     { id: 4, realmName: 'LongmanRd', client: '9F32F055-D2FF-4461-A47B-4A2FCA6720DA' }
   ];
 
+  static multipleConfigs: boolean = false;
+
   static configs: OpenIdConfiguration[] = []; 
   
-  static initialise() {
-    AuthConfigService.configs = AuthConfigService.clients.map(c => buildAuthConfig(c.id.toString(), c.realmName, c.client)); 
+  static initialiseMultipleConfigs() {
+    AuthConfigService.configs = AuthConfigService.clients.map(c => buildConfig(c.id.toString(), c.realmName, c.client)); 
   }
 
   static initialConfig(): OpenIdConfiguration {
@@ -28,8 +30,9 @@ export class AuthConfigService {
   get configId(): string { return this._configId; }
   set configId(value: string) { this._configId = value; }
 
-  constructor() {
-    this.loadStoredConfig();
+  constructor() { 
+    if(AuthConfigService.multipleConfigs)
+      this.loadLastConfig();
   }
 
   get clients() {
@@ -40,7 +43,7 @@ export class AuthConfigService {
     return AuthConfigService.configs;
   }
 
-  private loadStoredConfig() {
+  private loadLastConfig() {
     const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
     this.selectConfigById(Number(storedConfigId));
   }
@@ -53,10 +56,9 @@ export class AuthConfigService {
       console.warn(`Config not found for id: ${configId}`);
     }
   }
-
 }
 
-export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   const cfg = {
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
@@ -72,7 +74,6 @@ export function buildAuthConfig(configId: string, realm: string, client: string)
     postLoginRoute: '/'
   };
   console.log('buildAuthConfig', cfg);
-  debugger;
   return cfg;
 }
 
@@ -81,11 +82,13 @@ export function realmFromName(name: string): string {
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
-  var configs = [];
-  configs.push(buildAuthConfig('1', realmFromName(realm), client));
-  return importProvidersFrom(AuthModule.forRoot({ config: configs }));
+  AuthConfigService.configs = [];
+  AuthConfigService.configs.push(buildConfig('1', realmFromName(realm), client));
+  AuthConfigService.multipleConfigs = false;
+  return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
 
 export function provideMultipleConfigs() {
+  AuthConfigService.multipleConfigs = true;
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
