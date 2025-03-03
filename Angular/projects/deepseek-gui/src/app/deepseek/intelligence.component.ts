@@ -4,7 +4,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { ClientService } from '../../../../shared/ifauth/client.service';
+import { ClientService } from 'ifauth-lib';
 
 @Component({
   selector: 'app-intelligence',
