@@ -10,15 +10,6 @@ import { AuthConfigService } from '../../shared/ifauth/auth-config.service';
 import { IFAuthModule } from '../../shared/ifauth.module';
 import { IFTokenInterceptor } from '../../shared/ifauth/token-interceptor';
 
-const authConfigService = new AuthConfigService();
-const initialConfig = authConfigService.getInitialAuthConfig();
-
-// ✅ Get auth config dynamically using a factory function
-const authConfigFactory = (): OpenIdConfiguration => {
-  const authConfigService = inject(AuthConfigService); // Inject service manually
-  return authConfigService.buildAuthConfig('1', 'LongmanRd', '9F32F055-D2FF-4461-A47B-4A2FCA6720DA'); 
-};
-
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
   { path: 'home', component: AppComponent, canActivate: [AuthGuard] },
@@ -26,18 +17,20 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
+AuthConfigService.initialise();
+
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(withInterceptorsFromDi()), // ✅ Enables HttpClient with DI-based interceptors
-    provideAuth({ config: initialConfig }), // ✅ Dynamically provide auth config
+    AuthConfigService,
+    provideRouter(routes),
+    provideHttpClient(withInterceptorsFromDi()),
+    provideAuth({ config: AuthConfigService.initialConfig() }), 
     {
-      provide: HTTP_INTERCEPTORS, // ✅ Register interceptor at the application level
+      provide: HTTP_INTERCEPTORS, 
       useClass: IFTokenInterceptor,
       multi: true
     },
-    importProvidersFrom(IFAuthModule), // ✅ Import IFAuthModule
-    provideRouter(routes),
-    AuthConfigService // ✅ Ensure the service is available
+    importProvidersFrom(IFAuthModule)
   ]
 })
   .then(appRef => console.log("✅ Angular bootstrapped successfully"))
