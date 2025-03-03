@@ -15,14 +15,7 @@ import { AuthConfigService } from '../../../shared/ifauth/auth-config.service';
 })
 export class AppComponent implements OnInit, OnDestroy {
  
-  constructor(
-    private clientService: ClientService,
-    private authConfigService: AuthConfigService
-  ) 
-  { 
-    console.log("ClientService instance:", clientService);
-    console.log("AuthConfigService instance:", authConfigService);
-  }
+  constructor(  private clientService: ClientService, private authConfigService: AuthConfigService  )  {}
 
   private afterLoginSubscription!: Subscription;
   private afterLogoutSubscription!: Subscription;

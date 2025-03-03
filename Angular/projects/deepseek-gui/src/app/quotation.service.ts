@@ -18,15 +18,13 @@ export class QuotationService {
   createNewConversation() { this.conversationGuid = generateGUID(); }
 
   constructor(private ollamaService: OllamaService) {
-
-    // interval(60 * 60 * 1000).pipe(
-    //   startWith(5), 
-    //   switchMap(() => this.fetchQuotation())
-    // ).subscribe();
+    interval(1220 * 60 * 1000).pipe( // every 12 hours or so
+      startWith(5), 
+      switchMap(() => this.fetchQuotation())
+    ).subscribe();
   }
 
-  private fetchQuotation() {
-    console.log('Fetching quotation...');
+  private fetchQuotation() { 
     const result = { response: '' };
 
     return this.ollamaService.sendPrompt(this.conversationGuid, DEFAULT_PROMPT, 'chat').pipe(

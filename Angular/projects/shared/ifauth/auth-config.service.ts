@@ -17,8 +17,7 @@ export class AuthConfigService {
   static configs: OpenIdConfiguration[] = []; 
   
   static initialise() {
-    AuthConfigService.configs = AuthConfigService.clients.map(c => buildAuthConfig(c.id.toString(), c.realmName, c.client));
-    console.log("✅ AuthConfigService initialized"); 
+    AuthConfigService.configs = AuthConfigService.clients.map(c => buildAuthConfig(c.id.toString(), c.realmName, c.client)); 
   }
 
   static initialConfig(): OpenIdConfiguration {
