@@ -7,7 +7,7 @@ import { IntelligenceComponent } from './app/deepseek/intelligence.component';
 import { AuthCallbackComponent, AuthGuard, IFTokenInterceptor, provideConfig } from 'ifauth-lib';
 
 const routes: Routes = [
-  { path: '/auth-callback', component: AuthCallbackComponent },
+  { path: 'auth-callback', component: AuthCallbackComponent },
   { path: 'home', component: IntelligenceComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' }

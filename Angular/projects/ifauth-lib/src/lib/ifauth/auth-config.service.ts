@@ -60,7 +60,7 @@ export function buildAuthConfig(configId: string, realm: string, client: string)
   const cfg = {
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: window.location.origin + '/intelligence/auth-callback',
+    redirectUrl: window.location.origin + '/auth-callback',
     postLogoutRedirectUri: window.location.origin,
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
