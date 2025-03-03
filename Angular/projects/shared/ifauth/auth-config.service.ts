@@ -1,5 +1,5 @@
-import { Injectable } from "@angular/core"; 
-import { OpenIdConfiguration } from "angular-auth-oidc-client";
+import { importProvidersFrom, Injectable } from "@angular/core"; 
+import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
@@ -14,7 +14,7 @@ export class AuthConfigService {
     { id: 4, realmName: 'LongmanRd', client: '9F32F055-D2FF-4461-A47B-4A2FCA6720DA' }
   ];
 
-  private static configs: OpenIdConfiguration[] = []; 
+  static configs: OpenIdConfiguration[] = []; 
   
   static initialise() {
     AuthConfigService.configs = AuthConfigService.clients.map(c => buildAuthConfig(c.id.toString(), c.realmName, c.client));
@@ -76,4 +76,14 @@ export function buildAuthConfig(configId: string, realm: string, client: string)
 
 export function realmFromName(name: string): string { 
   return name === 'BreakTackle' ? name : 'LongmanRd'; 
+}
+
+export function provideAuth(realm: string = '', client: string = '') {
+  var configs = [];
+  configs.push(buildAuthConfig('1', realmFromName(realm), client));
+  return importProvidersFrom(AuthModule.forRoot({ config: configs }));
+}
+
+export function provideMultipleAuths() {
+  return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
