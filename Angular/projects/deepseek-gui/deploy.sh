@@ -1,5 +1,4 @@
 #!/bin/bash
-
 ng build deepseek-gui --base-href /intelligence/ --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
