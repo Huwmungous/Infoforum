@@ -1,11 +1,15 @@
 #!/bin/bash
 
-# cd ../..
+# Navigate to the workspace root where IFAuthModule is located
+cd ../..
 
-# sudo ng build IFAuthModule --configuration production
+# Build the IFAuthModule
+sudo ng build IFAuthModule --configuration production
 
-# cd ./projects/deepseek-gui
+# Change directory back to deepseek-gui
+cd ./projects/deepseek-gui
 
+# Build the deepseek-gui application, making sure it includes IFAuthModule
 ng build deepseek-gui --base-href /intelligence/ --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
