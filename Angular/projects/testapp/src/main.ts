@@ -21,8 +21,6 @@ const routes: Routes = [
   { path: '**', redirectTo: '/home' }
 ];
 
-// AuthConfigService.configs = clients.map(client => buildAuthConfig(client.id.toString(), realmFromName(client.realmName), client.client));
-
 bootstrapApplication(AppComponent, {
   providers: [
     provideMultipleConfigs(),
