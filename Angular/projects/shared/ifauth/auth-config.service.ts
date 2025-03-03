@@ -78,12 +78,12 @@ export function realmFromName(name: string): string {
   return name === 'BreakTackle' ? name : 'LongmanRd'; 
 }
 
-export function provideAuth(realm: string = '', client: string = '') {
+export function provideConfig(realm: string = '', client: string = '') {
   var configs = [];
   configs.push(buildAuthConfig('1', realmFromName(realm), client));
   return importProvidersFrom(AuthModule.forRoot({ config: configs }));
 }
 
-export function provideMultipleAuths() {
+export function provideMultipleConfigs() {
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
