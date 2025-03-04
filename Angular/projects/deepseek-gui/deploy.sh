@@ -6,7 +6,7 @@ ng build ifauth-lib --configuration production
 
 # Now build the application
 cd ./projects/deepseek-gui
-ng build deepseek-gui --configuration production
+ng build deepseek-gui --configuration production --base-href /Intelligence/
 
 sudo mkdir -p /var/www/Intelligence/
 sudo rm -rf /var/www/Intelligence/*
