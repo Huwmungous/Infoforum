@@ -85,9 +85,10 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     silentRenewUrl: renew,
     useRefreshToken: true, 
     logLevel: 3,
-    postLoginRoute: '/intelligence/auth-callback'
+    postLoginRoute: '/'
   };
-  console.log('result:', result); 
+  console.log('result:', result);
+  debugger; 
   return result;
 }
 
