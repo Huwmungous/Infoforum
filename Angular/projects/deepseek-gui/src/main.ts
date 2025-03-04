@@ -16,7 +16,7 @@ const routes: Routes = [
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: IFTokenInterceptor, multi: true },
-    provideConfig('LongmanRd', '9F32F055-D2FF-4461-A47B-4A2FCA6720DA'),
+    provideConfig('LongmanRd', '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7'),
     provideHttpClient(),
     provideRouter(routes),
     provideAnimations()
