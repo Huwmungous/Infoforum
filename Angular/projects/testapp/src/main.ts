@@ -5,7 +5,7 @@ import { provideRouter, Routes } from '@angular/router';
 import { DEFAULT_CLIENT } from '../../shared/ifauth/client.service';
 import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthConfigService, buildAuthConfig, realmFromName, provideMultipleConfigs } from '../../shared/ifauth/auth-config.service';
+import { AuthConfigService, provideMultipleConfigs } from '../../shared/ifauth/auth-config.service';
 
 export const clients = [
   { id: 1, realmName: 'Default', client: DEFAULT_CLIENT },

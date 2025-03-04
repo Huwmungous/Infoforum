@@ -57,20 +57,36 @@ export class AuthConfigService {
 }
 
 export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-  return {
-    configId: configId ? configId : '1',
-    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: window.location.origin + '/auth-callback',
+  
+  const auth = `${KEYCLOAK_BASE_URL}${(realm ? realm : realmFromName(realm))}`;
+  const redirect = `${window.location.origin}/auth-callback'`;
+  const clnt = client ? client : DEFAULT_CLIENT;
+  const renew = `${window.location.origin}/silent-renew.html`;
+  const cfgId = configId ? configId : '1';
+
+  console.log('buildAuthConfig()');
+  console.log('id:', cfgId);
+  console.log('auth:', auth);
+  console.log('redirect:', redirect);
+  console.log('client:', clnt);
+  console.log('renew:', renew);
+  
+  const result = {
+    configId: cfgId,
+    authority: auth,
+    redirectUrl: redirect,
     postLogoutRedirectUri: window.location.origin,
-    clientId: client ? client : DEFAULT_CLIENT,
+    clientId: clnt,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: window.location.origin + '/silent-renew.html',
+    silentRenewUrl: renew,
     useRefreshToken: true, 
     logLevel: 3,
-    postLoginRoute: '/'
+    postLoginRoute: 'auth-callback'
   };
+  console.log('result:', result); 
+  return result;
 }
 
 export function realmFromName(name: string): string { 
@@ -78,9 +94,9 @@ export function realmFromName(name: string): string {
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
-  var configs = [];
-  configs.push(buildAuthConfig('1', realmFromName(realm), client));
-  return importProvidersFrom(AuthModule.forRoot({ config: configs }));
+  if(AuthConfigService.configs.length === 0)
+    AuthConfigService.configs.push(buildAuthConfig('1', realmFromName(realm), client));
+  return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
 
 export function provideMultipleConfigs() {
