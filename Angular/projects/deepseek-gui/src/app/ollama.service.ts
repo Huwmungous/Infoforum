@@ -8,7 +8,6 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
   providedIn: 'root'
 })
 export class OllamaService {
-
   private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private oidcSecurityService: OidcSecurityService) {}
