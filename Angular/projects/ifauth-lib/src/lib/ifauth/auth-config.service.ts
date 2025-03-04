@@ -1,6 +1,7 @@
 import { importProvidersFrom, Injectable } from "@angular/core"; 
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
+import { ConsoleLoggerService } from "../console-logger.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -66,12 +67,14 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   const renew = `${location.href}/silent-renew.html`;
   const cfgId = configId ? configId : '1';
 
-  console.log('buildAuthConfig()');
-  console.log('id:', cfgId);
-  console.log('auth:', auth);
-  console.log('redirect:', redirect);
-  console.log('client:', clnt);
-  console.log('renew:', renew);
+  const l = new ConsoleLoggerService();
+  l.log('buildAuthConfig()');
+  l.log(`buildAuthConfig(): ${cfgId}, auth=${auth}`);
+  l.log(`id: ${cfgId}`);
+  l.log(`auth: ${auth}`);
+  l.log(`redirect: ${redirect}`);
+  l.log(`client: ${clnt}`);
+  l.log(`renew: ${renew}`); 
   
   const result = {
     configId: cfgId,
