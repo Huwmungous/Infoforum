@@ -1,6 +1,5 @@
 export const environment = {
     production: false,
-    apiUrl: 'http://10.9.8.3:5008/IFOllama',
-    BASE_HREF: '/',
+    apiUrl: 'http://10.9.8.3:5008/IFOllama', 
     consoleLog: true
   };
