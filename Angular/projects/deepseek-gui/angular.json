@@ -19,6 +19,7 @@
           "options": {
             "outputPath": "dist/deepseek-gui",
             "index": "src/index.html",
+            "baseHref": "${BASE_HREF}",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
