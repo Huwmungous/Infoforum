@@ -58,8 +58,7 @@ export class AuthConfigService {
   }
 }
 
-<<<<<<< HEAD:Angular/projects/shared/ifauth/auth-config.service.ts
-export function buildAuthConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   
   const auth = `${KEYCLOAK_BASE_URL}${(realm ? realm : realmFromName(realm))}`;
   const redirect = `${window.location.origin}/auth-callback'`;
@@ -78,13 +77,6 @@ export function buildAuthConfig(configId: string, realm: string, client: string)
     configId: cfgId,
     authority: auth,
     redirectUrl: redirect,
-=======
-export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-  const cfg = {
-    configId: configId ? configId : '1',
-    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: window.location.origin + '/auth-callback',
->>>>>>> e39da4c3e0a6397d713c4aa08fe8023204a8fd68:Angular/projects/ifauth-lib/src/lib/ifauth/auth-config.service.ts
     postLogoutRedirectUri: window.location.origin,
     clientId: clnt,
     scope: 'openid profile email offline_access',
@@ -95,13 +87,8 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     logLevel: 3,
     postLoginRoute: 'auth-callback'
   };
-<<<<<<< HEAD:Angular/projects/shared/ifauth/auth-config.service.ts
   console.log('result:', result); 
   return result;
-=======
-  console.log('buildAuthConfig', cfg);
-  return cfg;
->>>>>>> e39da4c3e0a6397d713c4aa08fe8023204a8fd68:Angular/projects/ifauth-lib/src/lib/ifauth/auth-config.service.ts
 }
 
 export function realmFromName(name: string): string { 
@@ -109,14 +96,8 @@ export function realmFromName(name: string): string {
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
-<<<<<<< HEAD:Angular/projects/shared/ifauth/auth-config.service.ts
   if(AuthConfigService.configs.length === 0)
-    AuthConfigService.configs.push(buildAuthConfig('1', realmFromName(realm), client));
-=======
-  AuthConfigService.configs = [];
-  AuthConfigService.configs.push(buildConfig('1', realmFromName(realm), client));
-  AuthConfigService.multipleConfigs = false;
->>>>>>> e39da4c3e0a6397d713c4aa08fe8023204a8fd68:Angular/projects/ifauth-lib/src/lib/ifauth/auth-config.service.ts
+    AuthConfigService.configs.push(buildConfig('1', realmFromName(realm), client));
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
 
