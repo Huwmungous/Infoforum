@@ -5,7 +5,6 @@ cd ../..
 ng build ifauth-lib --configuration production
 
 # Now build the application
-cd ./projects/deepseek-gui
 ng build deepseek-gui --configuration production --base-href /Intelligence/
 
 sudo mkdir -p /var/www/Intelligence/
@@ -15,4 +14,6 @@ sudo cp -r /home/hugh/repos/Infoforum/Angular/projects/deepseek-gui/dist/deepsee
 
 sudo chown -R nginx:nginx /var/www/Intelligence
 sudo chmod -R 755 /var/www/Intelligence
+
+cd ./projects/deepseek-gui
 
