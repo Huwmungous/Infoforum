@@ -61,7 +61,7 @@ export class AuthConfigService {
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   
   const auth = `${KEYCLOAK_BASE_URL}${(realm ? realm : realmFromName(realm))}`;
-  const redirect = `${window.location.origin}/auth-callback'`;
+  const redirect = `${window.location.origin}/intelligence/auth-callback'`;
   const clnt = client ? client : DEFAULT_CLIENT;
   const renew = `${window.location.origin}/silent-renew.html`;
   const cfgId = configId ? configId : '1';
