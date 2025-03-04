@@ -1,5 +1,5 @@
 #!/bin/bash
-ng build ifauth-lib --configuration production
+ng build ../ifauth-lib/ifauth-lib --configuration production
 ng build deepseek-gui --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
