@@ -3,11 +3,8 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { AppComponent } from './app/app.component';
 import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
-import { IFTokenInterceptor } from '../../shared/ifauth/token-interceptor';
-import { provideConfig } from '../../shared/ifauth/auth-config.service'
-import { AuthGuard } from '../../shared/ifauth/auth.guard';
-import { AuthCallbackComponent } from '../../shared/ifauth/auth-callback.component';
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
+import { AuthCallbackComponent, AuthGuard, IFTokenInterceptor, provideConfig } from 'ifauth-lib';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },

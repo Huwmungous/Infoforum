@@ -1,11 +1,4 @@
 #!/bin/bash
-
-cd ../..
-
-sudo ng build IFSharedLibrary --configuration production
-
-cd ./projects/deepseek-gui
-
 ng build deepseek-gui --base-href /intelligence/ --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
