@@ -2,6 +2,7 @@
 
 # Build the library first
 cd ../..
+
 ng build ifauth-lib --configuration production
 
 # Now build the application
