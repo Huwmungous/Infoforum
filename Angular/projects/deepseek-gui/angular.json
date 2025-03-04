@@ -41,7 +41,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/intelligence",
+              "baseHref": "/intelligence/",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
