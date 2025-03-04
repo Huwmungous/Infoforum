@@ -72,8 +72,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   logoutCurrent() {
-    console.log(`Logging out current client (${this.selectedId})`);
-    debugger;
+    console.log(`Logging out current client (${this.selectedId})`); 
     this.logout(this.selectedId); 
   }
 

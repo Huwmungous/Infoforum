@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +9,7 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class OllamaService {
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient, private oidcSecurityService: OidcSecurityService) {}
+  constructor(private http: HttpClient) {}
 
   sendPrompt(conversationId: string, prompt: string, dest: string = 'code'): Observable<any> {
     const url = `${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`;

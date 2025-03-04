@@ -1,5 +1,5 @@
 #!/bin/bash
-ng build deepseek-gui --base-href /intelligence/ --configuration production
+ng build deepseek-gui --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
 sudo rm -rf /var/www/Intelligence/*

@@ -11,10 +11,11 @@ import { CommonModule } from '@angular/common';
     imports: [ CommonModule ]
 })
 
-constructor(
-  private oidcSecurityService: OidcSecurityService,
-  private router: Router
-) {}
+export class AuthCallbackComponent implements OnInit {
+  constructor(
+    private oidcSecurityService: OidcSecurityService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.oidcSecurityService.checkAuth().subscribe({

@@ -1,7 +1,6 @@
 import { importProvidersFrom, Injectable } from "@angular/core"; 
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
-import { ConsoleLoggerService } from "../console-logger.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -60,38 +59,22 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-  
-  const auth = 'https://longmanrd.net' + (realm ? realm : realmFromName(realm));
-  const redirect = `${location.href}/auth-callback`;
-  const clnt = client ? client : DEFAULT_CLIENT;
-  const renew = `${location.href}/silent-renew.html`;
-  const cfgId = configId ? configId : '1';
-
-  const l = new ConsoleLoggerService();
-  l.log('buildAuthConfig()');
-  l.log(`buildAuthConfig(): ${cfgId}, auth=${auth}`);
-  l.log(`id: ${cfgId}`);
-  l.log(`auth: ${auth}`);
-  l.log(`redirect: ${redirect}`);
-  l.log(`client: ${clnt}`);
-  l.log(`renew: ${renew}`); 
-  
-  const result = {
-    configId: cfgId,
-    authority: auth,
-    redirectUrl: redirect,
-    postLogoutRedirectUri: window.location.origin,
-    clientId: clnt,
+  const cfg = { 
+    configId: configId ? configId : '1',
+    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
+    redirectUrl: location.origin + '/auth-callback',
+    postLogoutRedirectUri: location.href,
+    clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: renew,
+    silentRenewUrl: window.location.origin + 'silent-renew.html',
     useRefreshToken: true, 
     logLevel: 3,
     postLoginRoute: '/'
   };
-  console.log('result:', result);
-  return result;
+  console.log('buildAuthConfig', cfg);
+  return cfg;
 }
 
 export function realmFromName(name: string): string { 
