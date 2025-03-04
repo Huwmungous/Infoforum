@@ -62,7 +62,7 @@ export class AuthConfigService {
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   
   const auth = 'https://longmanrd.net' + (realm ? realm : realmFromName(realm));
-  const redirect = `${location.href}${EXTRA_HREF}/auth-callback`;
+  const redirect = `${location.href}/auth-callback`;
   const clnt = client ? client : DEFAULT_CLIENT;
   const renew = `${location.href}/silent-renew.html`;
   const cfgId = configId ? configId : '1';
