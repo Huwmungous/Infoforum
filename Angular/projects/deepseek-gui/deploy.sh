@@ -1,17 +1,54 @@
 #!/bin/bash
 
-set -e
+# Deployment Script for Deepseek GUI
 
-# Build and deploy the library first
-echo "Building and deploying deepseek-gui..."
-npm run build-and-deploy || { echo "Error building and deploying library!"; exit 1; }
+# Configuration Variables
+APP_NAME="deepseek-gui"
+LIB_NAME="ifauth-lib"
+DEPLOY_PATH="/var/www/deepseek-gui"
 
-sudo mkdir -p /var/www/Intelligence/
-sudo rm -rf /var/www/Intelligence/*
+# Color codes for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-sudo cp -r ../../dist/* /var/www/Intelligence/ 
+# Error handling function
+handle_error() {
+    echo -e "${RED}Error: $1${NC}"
+    exit 1
+}
 
-sudo chown -R nginx:nginx /var/www/Intelligence
-sudo chmod -R 755 /var/www/Intelligence
+# Build library and application
+build_application() {
+    echo -e "${YELLOW}Building library...${NC}"
+    ng build $LIB_NAME --configuration=production || handle_error "Library build failed"
 
-pwd
+    echo -e "${YELLOW}Building application...${NC}"
+    ng build $APP_NAME --configuration=production || handle_error "Application build failed"
+}
+
+# Deploy application
+deploy_application() {
+    echo -e "${YELLOW}Deploying application...${NC}"
+
+    # Create deployment directory if it doesn't exist
+    sudo mkdir -p $DEPLOY_PATH
+
+    # Copy build artifacts
+    sudo cp -R dist/$APP_NAME/* $DEPLOY_PATH/
+
+    # Set correct permissions
+    sudo chown -R nginx:nginx $DEPLOY_PATH
+    sudo chmod -R 755 $DEPLOY_PATH
+}
+
+# Main deployment workflow
+main() {
+    build_application
+    deploy_application
+    echo -e "${GREEN}Deployment completed successfully!${NC}"
+}
+
+# Run the deployment
+main
