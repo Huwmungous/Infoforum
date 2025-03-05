@@ -74,7 +74,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     logLevel: 3,
     postLoginRoute: '/'
   };
-  console.log('buildAuthConfig', cfg);
+  console.log('buildConfig', cfg);
   return cfg;
 }
 
