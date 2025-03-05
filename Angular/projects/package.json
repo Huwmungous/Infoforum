@@ -9,5 +9,9 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "@infoforum/ifauth-lib": "../ifauth-lib",
+    "note": "This is a local library, not installable from npm."
+  }
 }
