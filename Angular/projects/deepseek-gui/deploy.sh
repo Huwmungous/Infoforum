@@ -6,12 +6,12 @@ cd ../..
 
 sudo rm -rf ./dist/*
 
-ng build ifauth-lib  # --configuration production
+ng build ifauth-lib --configuration production
 
 cd projects/deepseek-gui
 npm install angular-auth-oidc-client
 npm install ../ifauth-lib
-ng build deepseek-gui   # --configuration production
+ng build deepseek-gui --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
 sudo rm -rf /var/www/Intelligence/*
