@@ -64,7 +64,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
 
   console.log(redirectUrl);
   console.log(renewUrl);
-  
+
   const cfg = { 
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
@@ -80,6 +80,9 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     postLoginRoute: '/'
   };
   console.log('buildConfig', cfg);
+
+  debugger;
+  
   return cfg;
 }
 
