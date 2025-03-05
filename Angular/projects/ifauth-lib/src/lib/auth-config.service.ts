@@ -69,7 +69,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: window.location.origin + 'silent-renew.html',
+    silentRenewUrl: location.href + 'silent-renew.html',
     useRefreshToken: true, 
     logLevel: 3,
     postLoginRoute: '/'
