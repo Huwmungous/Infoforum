@@ -22,7 +22,7 @@ handle_error() {
 # Build library and application
 build_application() {
     echo -e "${YELLOW}Building library...${NC}"
-    ng build $LIB_NAME --configuration=production || handle_error "Library build failed"
+    ng build $LIB_NAME --configuration=production --force || handle_error "Library build failed"
 
     echo -e "${YELLOW}Building application...${NC}"
     ng build $APP_NAME --configuration=production || handle_error "Application build failed"
