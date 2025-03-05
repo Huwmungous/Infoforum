@@ -4,7 +4,7 @@
     "ifauth-lib": "file:../ifauth-lib"
   },
   "scripts": {
-    "build-and-deploy": "npm install && npm run build:prod && ng build deepseek-gui --configuration production",
+    "build-and-deploy": "npm install && npm run build && ng build deepseek-gui --configuration production",
     "start": "ng serve"
   } 
 }
