@@ -5,9 +5,10 @@
 cd ../..
 pwd
 
-npm install
+rm -rf ./dist/*
+rm -rf ./node_modules/*
 
-sudo rm -rf ../dist/*
+npm install
 
 cd ./projects/ifauth-lib
 pwd
@@ -28,5 +29,4 @@ sudo cp -r /home/hugh/repos/Infoforum/Angular/projects/deepseek-gui/dist/deepsee
 sudo chown -R nginx:nginx /var/www/Intelligence
 sudo chmod -R 755 /var/www/Intelligence
 
-cd ./projects/deepseek-gui
 pwd
