@@ -8,7 +8,8 @@ sudo rm -rf ./dist/*
 
 ng build ifauth-lib --configuration production
 
-# Now build the application
+cd projects/deepseek-gui
+npm install ../ifauth-lib
 ng build deepseek-gui --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
