@@ -12,9 +12,12 @@ rm -rf ./node_modules/*
 
 npm install
 
-cd ./projects/deepseek-gui
+cd ./projects/ifauth-lib
 pwd
 npm install angular-auth-oidc-client
+
+cd ./projects/deepseek-gui
+pwd 
 ng build deepseek-gui --configuration production
 
 sudo mkdir -p /var/www/Intelligence/
