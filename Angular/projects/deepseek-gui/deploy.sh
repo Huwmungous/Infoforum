@@ -3,6 +3,7 @@
 
 # Build the library first
 cd ../..
+pwd
 
 npm install
 
@@ -13,6 +14,7 @@ npm install angular-auth-oidc-client
 ng build ifauth-lib --configuration production --verbose
 
 cd ../deepseek-gui
+pwd
 npm install ifauth-lib
 ng build deepseek-gui --configuration production --verbose
 
@@ -26,3 +28,4 @@ sudo chown -R nginx:nginx /var/www/Intelligence
 sudo chmod -R 755 /var/www/Intelligence
 
 cd ./projects/deepseek-gui
+pwd
