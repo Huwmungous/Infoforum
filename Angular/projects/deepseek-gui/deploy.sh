@@ -6,7 +6,7 @@ cd ../..
 
 npm install
 
-sudo rm -rf ./dist/*
+sudo rm -rf ../dist/*
 
 cd ifauth-lib
 npm install angular-auth-oidc-client
