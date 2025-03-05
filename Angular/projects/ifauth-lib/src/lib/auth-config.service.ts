@@ -59,17 +59,22 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+  const redirectUrl = location.href + 'auth-callback';
+  const renewUrl = location.href + 'silent-renew.html';
+
+  console.log(redirectUrl);
+  console.log(renewUrl);
+  
   const cfg = { 
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    //redirectUrl: 'https://longmanrd.net/intelligence/auth-callback',
-    redirectUrl: location.href + 'auth-callback',
+    redirectUrl: redirectUrl,
     postLogoutRedirectUri: location.href,
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: location.href + 'silent-renew.html',
+    silentRenewUrl: renewUrl,
     useRefreshToken: true, 
     logLevel: 3,
     postLoginRoute: '/'
