@@ -1,9 +1,11 @@
+/* filepath: /d:/repos/Infoforum/Angular/projects/deepseek-gui/src/app/components/code-gen/code-gen.component.scss */
+
 @use '../../../styles.scss' as *;
 
 :host {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
 
 .code-gen-component {
@@ -11,31 +13,65 @@
   flex-direction: column;
   flex: 1 1 auto;
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   padding: 5px;
+}
 
+.split-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.left-pane {
+  flex: 0 0 75%;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.splitter {
+  width: 5px;
+  background-color: #ccc;
+  cursor: col-resize;
+}
+
+.right-pane {
+  flex: 1;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.responses-container {
+  height: 100%;
+  overflow-y: auto;
 }
 
 .request-card {
   @include card-style;
-  flex: 0 0 auto;
-}
-
-.responses-container {
-  flex: 1 1 auto;
-  width: 100%;
-  overflow-y: auto;
-  padding:10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 mat-form-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
   mat-label {
     color: #000;
   }
 
   textarea {
+    flex: 1;
     background: #fff;
     color: #000;
+    resize: none; /* Prevent resizing */
     ::placeholder {
       color: #000;
       opacity: 1;
@@ -50,8 +86,14 @@ mat-form-field {
   @include button-style;
 }
 
-.save-icon, .delete-icon {
-  cursor: pointer;
-  font-size: 24px;
-  margin-left: 10px;
+.input-area {
+  width: 100%;
+}
+
+.send-button {
+  margin-top: 10px;
+}
+
+.alert {
+  margin-top: 10px;
 }
