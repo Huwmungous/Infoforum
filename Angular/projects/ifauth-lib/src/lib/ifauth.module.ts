@@ -16,10 +16,11 @@ export interface IFAuthConfigOptions {
 
 @NgModule({
   imports: [CommonModule],
-  exports: []
+  exports: [] // Export any shared components, directives, or pipes if needed
 })
 export class IFAuthModule {
   static forRoot(options: IFAuthConfigOptions): ModuleWithProviders<IFAuthModule> {
+    // Choose the appropriate provider function based on options.multiple:
     const configProviders: EnvironmentProviders = options.multiple
       ? provideMultipleConfigs()
       : provideConfig(options.realm, options.client);
