@@ -43,6 +43,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   private isDragging = false;
   private startX = 0;
   private startWidth = 0;
+  private containerWidth = 0;
 
   constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
 
@@ -114,6 +115,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
     this.isDragging = true;
     this.startX = event.clientX;
     this.startWidth = document.querySelector('.left-pane')!.clientWidth;
+    this.containerWidth = document.querySelector('.split-container')!.clientWidth;
     document.addEventListener('mousemove', this.onMouseMove);
     document.addEventListener('mouseup', this.onMouseUp);
   }
@@ -122,7 +124,12 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
     if (!this.isDragging) return;
     const dx = event.clientX - this.startX;
     const newWidth = this.startWidth + dx;
-    (document.querySelector('.left-pane') as HTMLElement)!.style.flex = `0 0 ${newWidth}px`;
+    const maxWidth = this.containerWidth * 0.75; 
+    if (newWidth > maxWidth) {
+      (document.querySelector('.left-pane') as HTMLElement)!.style.flex = `0 0 ${maxWidth}px`;
+    } else {
+      (document.querySelector('.left-pane') as HTMLElement)!.style.flex = `0 0 ${newWidth}px`;
+    }
   };
 
   onMouseUp = () => {

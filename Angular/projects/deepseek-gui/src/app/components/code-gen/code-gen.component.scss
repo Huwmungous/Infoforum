@@ -24,9 +24,8 @@
 }
 
 .left-pane {
-  flex: 0 0 75%;
+  flex: 0 0 33%;
   padding: 10px;
-  box-sizing: border-box;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -41,7 +40,6 @@
 .right-pane {
   flex: 1;
   padding: 10px;
-  box-sizing: border-box;
   overflow-y: auto;
 }
 
@@ -71,7 +69,8 @@ mat-form-field {
     flex: 1;
     background: #fff;
     color: #000;
-    resize: none; /* Prevent resizing */
+    min-height: 100px;
+    resize: vertical;
     ::placeholder {
       color: #000;
       opacity: 1;
