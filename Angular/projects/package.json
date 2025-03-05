@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-and-deploy": "npm install && npm run build:prod && ng build deepseek-gui --configuration production"
   },
   "keywords": [],
   "author": "",

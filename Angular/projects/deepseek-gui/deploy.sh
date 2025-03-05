@@ -1,21 +1,12 @@
-
 #!/bin/bash
 
 set -e
 
-# Build the library first
-cd ../..
-pwd
+# Build and deploy the library first
+echo "Building and deploying library..."
+npm run build-and-deploy || { echo "Error building and deploying library!"; exit 1; }
 
-rm -rf ./dist/*
-rm -rf ./node_modules/*
-
-npm install
-
-cd ./projects/ifauth-lib
-pwd
-npm install angular-auth-oidc-client
-
+# Then build the GUI app and deploy
 cd ./projects/deepseek-gui
 pwd 
 ng build deepseek-gui --configuration production
