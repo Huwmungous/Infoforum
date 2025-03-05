@@ -1,7 +1,10 @@
 {
   "dependencies": {
     "angular-auth-oidc-client": "^19.0.0",
-    "ifauth-lib": "file:../ifauth-lib",
-    "node": "^22.0.0"
-  }
+    "ifauth-lib": "file:../ifauth-lib"
+  },
+  "scripts": {
+    "build-and-deploy": "npm install && npm run build:prod && ng build deepseek-gui --configuration production",
+    "start": "ng serve"
+  } 
 }
