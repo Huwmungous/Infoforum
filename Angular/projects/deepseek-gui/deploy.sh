@@ -9,7 +9,8 @@ npm install
 
 sudo rm -rf ../dist/*
 
-cd ifauth-lib
+cd ./projects/ifauth-lib
+pwd
 npm install angular-auth-oidc-client
 ng build ifauth-lib --configuration production --verbose
 
