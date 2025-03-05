@@ -45,7 +45,7 @@ deploy_application() {
 
 # Main deployment workflow
 main() {
-    rm -r $DEPLOY_PATH/*
+    sudo rm -r $DEPLOY_PATH/*
     build_application
     deploy_application
     echo -e "${GREEN}Deployment completed successfully!${NC}"
