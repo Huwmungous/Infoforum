@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "D:\\repos\\Infoforum\\csharp\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\controllers\\ifollamacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -42,7 +42,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 7,
+          "SelectedChildIndex": 4,
           "Children": [
             {
               "$type": "Bookmark",
@@ -62,15 +62,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
               "RelativeDocumentMoniker": "IFOllama\\Program.cs",
               "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
               "RelativeToolTip": "IFOllama\\Program.cs",
-              "ViewState": "AgIAACoAAAAAAAAAAAAAACwAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADwAAAAAAAAAAAAAACwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-28T08:14:28.301Z"
+              "WhenOpened": "2025-02-28T08:14:28.301Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -98,7 +99,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\appsettings.json",
               "RelativeDocumentMoniker": "IFOllama\\appsettings.json",

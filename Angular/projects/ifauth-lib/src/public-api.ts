@@ -1,9 +1,9 @@
-/*
- * Public API Surface of ifauth-lib
- */
+// public-api.ts
+
 export * from './lib/ifauth.module';
-export * from './lib/ifauth/token-interceptor';
-export * from './lib/ifauth/auth-config.service'
-export * from './lib/ifauth/auth.guard';
-export * from './lib/ifauth/auth-callback.component';
-export * from './lib/ifauth/client.service';
+export * from './lib/token-interceptor';
+export * from './lib/auth-config.service';
+export * from './lib/auth.guard';
+export * from './lib/auth-callback.component';
+export * from './lib/client.service';
+export * from './lib/auth-config.service';

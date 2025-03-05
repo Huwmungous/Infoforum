@@ -1,10 +1,10 @@
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { MatTabsModule } from '@angular/material/tabs';
-import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { ClientService } from 'ifauth-lib';
+import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component';
+import { ClientService, IFAuthModule } from '../../../../../dist/ifauth-lib'; 
 
 @Component({
   selector: 'app-intelligence',
@@ -16,10 +16,11 @@ import { ClientService } from 'ifauth-lib';
     MatTabsModule,
     MatIconModule,
     MatButtonModule,
+    IFAuthModule,
     CodeGenComponent
   ]
 })
-export class IntelligenceComponent { 
+export class IntelligenceComponent {
   
   conversationId: string = generateGUID(); 
 
@@ -32,5 +33,4 @@ export class IntelligenceComponent {
   logout() {
     this.clientService.logout();  
   }
-  
 }

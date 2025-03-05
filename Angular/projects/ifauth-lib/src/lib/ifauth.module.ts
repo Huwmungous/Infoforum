@@ -1,11 +1,12 @@
+//IFAuthModule.module.ts
+
 import { NgModule, ModuleWithProviders, importProvidersFrom, EnvironmentProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { IFTokenInterceptor } from './ifauth/token-interceptor';
-import { AuthConfigService, provideConfig, provideMultipleConfigs } from './ifauth/auth-config.service';
-import { AuthGuard } from './ifauth/auth.guard';
-import { ClientService } from './ifauth/client.service';
-import { AuthModule } from 'angular-auth-oidc-client';
+import { AuthConfigService, provideConfig, provideMultipleConfigs } from './auth-config.service';
+import { IFTokenInterceptor } from './token-interceptor';
+import { AuthGuard } from './auth.guard';
+import { ClientService } from './client.service';
 
 export interface IFAuthConfigOptions {
   realm: string;

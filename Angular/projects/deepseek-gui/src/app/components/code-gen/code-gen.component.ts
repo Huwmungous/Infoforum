@@ -39,7 +39,6 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   loading: boolean = false;
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
-  
 
   get quoteOfTheDay(): string {
     return localStorage.getItem('quoteOfTheDay') || DEFAULT_QUOTATION;

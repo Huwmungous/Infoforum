@@ -22,3 +22,5 @@ obj
 bin
 .config
 
+/Angular/.editorconfig
+/Angular/package-lock.json

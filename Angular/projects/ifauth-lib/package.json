@@ -1,12 +1,38 @@
 {
   "name": "ifauth-lib",
-  "version": "0.0.1",
+  "version": "1.0.0",
+  "description": "IF Angular Auth Module - A simple library for authenticating with OIDC providers.",
+  "main": "./public-api.ts",
+  "scripts": {
+    "build": "ng build ifauth-lib"
+  },
+  "keywords": [
+    "angular",
+    "auth",
+    "oidc",
+    "openid connect",
+    "oauth"
+  ],
+  "author": "Hugh Jones Hugh@37ChapelLane.co.uk",
+  "license": "MIT",
   "peerDependencies": {
     "@angular/common": "^19.2.0",
-    "@angular/core": "^19.2.0"
+    "@angular/core": "^19.2.0",
+    "rxjs": "^7.8.0"
   },
   "dependencies": {
-    "tslib": "^2.3.0"
+    "angular-auth-oidc-client": "^19.0.0"
   },
-  "sideEffects": false
+  "allowedNonPeerDependencies": [
+    "@angular/core"
+  ],
+  "sideEffects": false,
+  "ng-packagr": {
+    "lib": {
+      "allowedNonPeerDependencies": [
+        "angular-auth-oidc-client",
+        "@angular/core"
+      ]
+    }
+  }
 }
