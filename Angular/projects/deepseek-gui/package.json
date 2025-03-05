@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "angular-auth-oidc-client": "^19.0.0",
+    "ifauth-lib": "file:../ifauth-lib",
+    "node": "^22.0.0"
+  }
+}
