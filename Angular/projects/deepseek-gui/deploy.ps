@@ -1,0 +1,158 @@
+# Deployment Script for Deepseek GUI
+
+# Configuration Variables
+$AppName = "deepseek-gui"
+$LibName = "ifauth-lib"
+$DeployPath = "/var/www/deepseek-gui"
+$LibPackageJson = "projects/ifauth-lib/package.json"
+$LibPath = "projects/ifauth-lib"
+
+# Error handling function
+function Handle-Error {
+    param (
+        [string]$ErrorMessage
+    )
+    
+    Write-Host "Error: $ErrorMessage" -ForegroundColor Red
+    exit 1
+}
+
+# Git pull from origin main
+function Git-Pull {
+    Write-Host "Pulling latest changes from origin main..." -ForegroundColor Yellow
+    
+    # Fetch and pull
+    git fetch origin main
+    git pull origin main
+    if ($LASTEXITCODE -ne 0) {
+        Handle-Error "Git pull failed"
+    }
+}
+
+# Check for library changes
+function Check-LibraryChanges {
+    Write-Host "Checking for library changes..." -ForegroundColor Yellow
+    
+    # Get the latest commit hash that touched the library
+    $lastCommit = git log -n 1 --pretty=format:%H -- "$LibPath"
+    
+    # Get the last commit hash from a marker file (create if doesn't exist)
+    $markerFile = ".last_lib_commit"
+    if (-not (Test-Path $markerFile)) {
+        "" | Out-File -FilePath $markerFile
+    }
+    $previousCommit = Get-Content $markerFile -Raw
+    
+    # Compare commits
+    if ($lastCommit -ne $previousCommit) {
+        Write-Host "Library changes detected. Version update needed." -ForegroundColor Green
+        # Update the marker file with the latest commit hash
+        $lastCommit | Out-File -FilePath $markerFile
+        return $true  # Changes detected
+    } else {
+        Write-Host "No library changes detected. Version update not needed." -ForegroundColor Yellow
+        return $false  # No changes detected
+    }
+}
+
+# Increment library version
+function Increment-LibraryVersion {
+    Write-Host "Incrementing library version..." -ForegroundColor Yellow
+    
+    # Read package.json as JSON
+    $packageJson = Get-Content -Path $LibPackageJson -Raw | ConvertFrom-Json
+    
+    # Get current version
+    $currentVersion = $packageJson.version
+    $versionParts = $currentVersion.Split('.')
+    
+    # Increment patch version
+    $versionParts[2] = [int]$versionParts[2] + 1
+    $newVersion = $versionParts -join '.'
+    
+    # Update the version property
+    $packageJson.version = $newVersion
+    
+    # Write back to file
+    $packageJson | ConvertTo-Json -Depth 10 | Out-File -FilePath $LibPackageJson
+    
+    Write-Host "Updated library version from $currentVersion to $newVersion" -ForegroundColor Green
+}
+
+# Git commit and push
+function Git-CommitAndPush {
+    Write-Host "Committing and pushing changes..." -ForegroundColor Yellow
+    
+    # Stage changes
+    git add "$LibPackageJson" ".last_lib_commit"
+    
+    # Commit with version increment message
+    git commit -m "Increment library version for deployment"
+    if ($LASTEXITCODE -ne 0) {
+        Handle-Error "Git commit failed"
+    }
+    
+    # Push changes
+    git push origin main
+    if ($LASTEXITCODE -ne 0) {
+        Handle-Error "Git push failed"
+    }
+}
+
+# Rebuild library to ensure latest changes
+function Rebuild-Library {
+    Write-Host "Rebuilding library to ensure latest changes..." -ForegroundColor Yellow
+    
+    # Clean library dist and rebuild
+    ng build $LibName --configuration=production
+    if ($LASTEXITCODE -ne 0) {
+        Handle-Error "Library rebuild failed"
+    }
+}
+
+# Build application
+function Build-Application {
+    Write-Host "Building application..." -ForegroundColor Yellow
+    
+    ng build $AppName --configuration=production
+    if ($LASTEXITCODE -ne 0) {
+        Handle-Error "Application build failed"
+    }
+}
+
+# Deploy application
+function Deploy-Application {
+    Write-Host "Deploying application..." -ForegroundColor Yellow
+
+    # Create deployment directory if it doesn't exist
+    if (-not (Test-Path $DeployPath)) {
+        sudo mkdir -p $DeployPath
+    }
+
+    # Copy build artifacts
+    sudo cp -R "dist/$AppName/*" $DeployPath
+
+    # Set correct permissions
+    $currentUser = $(whoami)
+    sudo chown -R "$currentUser":"$currentUser" $DeployPath
+    sudo chmod -R 755 $DeployPath
+}
+
+# Main deployment workflow
+function Main {
+    Git-Pull
+    
+    # Only increment version if library has changed
+    if (Check-LibraryChanges) {
+        Increment-LibraryVersion
+        Git-CommitAndPush
+    }
+    
+    Rebuild-Library
+    Build-Application
+    Deploy-Application
+    Write-Host "Deployment completed successfully!" -ForegroundColor Green
+}
+
+# Run the deployment
+Main

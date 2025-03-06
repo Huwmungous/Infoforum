@@ -7,6 +7,7 @@ APP_NAME="deepseek-gui"
 LIB_NAME="ifauth-lib"
 DEPLOY_PATH="/var/www/deepseek-gui"
 LIB_PACKAGE_JSON="projects/ifauth-lib/package.json"
+LIB_PATH="projects/ifauth-lib"
 
 # Color codes for output
 GREEN='\033[0;32m'
@@ -27,6 +28,30 @@ git_pull() {
     # Fetch and pull
     git fetch origin main
     git pull origin main || handle_error "Git pull failed"
+}
+
+# Check for library changes
+check_library_changes() {
+    echo -e "${YELLOW}Checking for library changes...${NC}"
+    
+    # Get the latest commit hash that touched the library
+    local last_commit=$(git log -n 1 --pretty=format:%H -- "$LIB_PATH")
+    
+    # Get the last commit hash from a marker file (create if doesn't exist)
+    local marker_file=".last_lib_commit"
+    [ -f "$marker_file" ] || echo "" > "$marker_file"
+    local previous_commit=$(cat "$marker_file")
+    
+    # Compare commits
+    if [ "$last_commit" != "$previous_commit" ]; then
+        echo -e "${GREEN}Library changes detected. Version update needed.${NC}"
+        # Update the marker file with the latest commit hash
+        echo "$last_commit" > "$marker_file"
+        return 0  # Changes detected
+    else
+        echo -e "${YELLOW}No library changes detected. Version update not needed.${NC}"
+        return 1  # No changes detected
+    fi
 }
 
 # Increment library version
@@ -50,7 +75,7 @@ git_commit_and_push() {
     echo -e "${YELLOW}Committing and pushing changes...${NC}"
     
     # Stage changes
-    git add "$LIB_PACKAGE_JSON"
+    git add "$LIB_PACKAGE_JSON" ".last_lib_commit"
     
     # Commit with version increment message
     git commit -m "Increment library version for deployment" || handle_error "Git commit failed"
@@ -91,8 +116,13 @@ deploy_application() {
 # Main deployment workflow
 main() {
     git_pull
-    increment_library_version
-    git_commit_and_push
+    
+    # Only increment version if library has changed
+    if check_library_changes; then
+        increment_library_version
+        git_commit_and_push
+    fi
+    
     rebuild_library
     build_application
     deploy_application
