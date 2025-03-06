@@ -60,8 +60,8 @@ export class AuthConfigService {
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   const authority =  KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm));
-  const redirect = location.href + '/auth-callback';
-  const renew = location.href + '/silent-renew.html';
+  const redirect = location.href + 'auth-callback';
+  const renew = location.href + 'silent-renew.html';
 
   console.log('authority:', authority);
   console.log('redirect:', redirect);
