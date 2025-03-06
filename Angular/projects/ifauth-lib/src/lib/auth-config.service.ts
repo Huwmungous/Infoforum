@@ -59,8 +59,8 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-  const redirect = location.origin + '/auth-callback';
-  const renew = location.origin + '/silent-renew.html';
+  const redirect = location.href + '/auth-callback';
+  const renew = location.href + '/silent-renew.html';
 
   console.log('redirect:', redirect);
   console.log('renew:', renew); 
