@@ -87,8 +87,6 @@ git_commit_and_push() {
 # Rebuild library to ensure latest changes
 rebuild_library() {
     echo -e "${YELLOW}Rebuilding library to ensure latest changes...${NC}"
-
-    npm install angular-auth-oidc-client
     
     # Clean library dist and rebuild
     ng build $LIB_NAME --configuration=production || handle_error "Library rebuild failed"
@@ -121,6 +119,8 @@ deploy_application() {
 # Main deployment workflow
 main() {
     git_pull
+    
+    npm install || handle_error "NPM install failed"
     
     # Only increment version if library has changed
     if check_library_changes; then
