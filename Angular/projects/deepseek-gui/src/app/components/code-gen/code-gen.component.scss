@@ -39,7 +39,8 @@
 
 .right-pane {
   flex: 1;
-  padding: 10px;
+  padding-left:10px;
+  padding-right:30px;
   overflow-y: auto;
 }
 
@@ -63,6 +64,7 @@
   border-style:solid;
   border-color: var(--if-medium-colour);
   border-width: 1px;
+  border-radius: 5px;
   padding: 10px;
 
 
