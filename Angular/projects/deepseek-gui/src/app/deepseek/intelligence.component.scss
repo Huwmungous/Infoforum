@@ -22,6 +22,12 @@
     color: white;
 }
 
+.panel-icon {
+    font-size: 25px; 
+    margin: 10px;
+    color: var(--if-light-colour);
+}
+
 .main-container {
     display: flex;
     flex-direction: column;
