@@ -112,7 +112,7 @@ deploy_application() {
     sudo cp -R ../../dist/$APP_NAME/* $DEPLOY_PATH/
 
     # Set correct permissions
-    sudo chown -R $(whoami):$(whoami) $DEPLOY_PATH
+    sudo chown -R nginx:nginx $DEPLOY_PATH
     sudo chmod -R 755 $DEPLOY_PATH
 }
 
