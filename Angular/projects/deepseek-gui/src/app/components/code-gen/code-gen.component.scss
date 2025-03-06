@@ -56,21 +56,35 @@
   overflow: hidden;
 }
 
-mat-form-field {
+.input-form {
   flex: 1;
   display: flex;
   flex-direction: column;
+  border-style:solid;
+  border-color: var(--if-medium-colour);
+  border-width: 1px;
+  padding: 10px;
+
+
+  .mat-mdc-form-field-subscript-wrapper, mat-mdc-form-field-subscript-wrapper, mat-mdc-form-field-bottom-align{
+    height:10px; 
+    background-color: red;
+    color: red;
+  }
 
   mat-label {
     color: #000;
   }
 
-  textarea {
+  .input-area {
     flex: 1;
-    background: #fff;
+    background: var(--if-paper-colour);
     color: #000;
-    min-height: 100px;
+    min-height: 200px;
     resize: vertical;
+    white-space: normal; 
+    border-style: none;
+    border-radius: 3px;
     ::placeholder {
       color: #000;
       opacity: 1;
@@ -81,11 +95,27 @@ mat-form-field {
   }
 }
 
+.quote-label {
+  width: 100%;
+  color: #000;
+  padding: 3px;
+  display: flex;
+  align-items: center; /* Vertically center the text */
+  line-height: 1.2; /* Adjust line height to reduce height */
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
 .send-button {
   @include button-style;
 }
 
 .input-area {
+  height:100%;
   width: 100%;
 }
 
