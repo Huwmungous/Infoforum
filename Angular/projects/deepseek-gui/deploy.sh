@@ -105,6 +105,9 @@ deploy_application() {
     # Create deployment directory if it doesn't exist
     sudo mkdir -p $DEPLOY_PATH
 
+    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}.${NC}"
+    sudo rm -rf $DEPLOY_PATH/*
+
     # Copy build artifacts
     sudo cp -R dist/$APP_NAME/* $DEPLOY_PATH/
 
