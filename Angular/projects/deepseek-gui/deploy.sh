@@ -109,7 +109,7 @@ deploy_application() {
     sudo rm -rf $DEPLOY_PATH/*
 
     # Copy build artifacts
-    sudo cp -R dist/$APP_NAME/* $DEPLOY_PATH/
+    sudo cp -R ../../dist/$APP_NAME/* $DEPLOY_PATH/
 
     # Set correct permissions
     sudo chown -R $(whoami):$(whoami) $DEPLOY_PATH
