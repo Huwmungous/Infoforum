@@ -12,7 +12,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     --if-hl-medium-colour: #fa7733;
     --if-hl-dark-colour: #db592e;
 
-    --if-window-colour: rgb(240, 238, 238);
+    --if-window-colour: rgb(230, 230, 230);
     --if-paper-colour: whitesmoke;
 
     --mdc-outlined-text-field-input-text-color:black;
@@ -44,7 +44,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 @mixin card-style {
     font-size: 14px;
     font-weight: 400;
-    color: #000;
+    color: var(--if-dark-colour);
     background: var(--if-window-colour);
     box-shadow: 0 2px 6px var(--if-dark-colour);
     padding: 2px;
@@ -60,7 +60,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 @mixin expansion-panel-style {
     background-color: white;
-    color: #000;
+    color: var(--if-dark-colour);
     font-size: 10px;
     font-weight: 400;
     border-radius: 6px;
@@ -80,7 +80,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
 @mixin expansion-panel-body-style {
     @include expansion-panel-style; 
-    background-color:whitesmoke;
+    background-color:var(--if-paper-colour);
     font-weight: 600;
 }
 
