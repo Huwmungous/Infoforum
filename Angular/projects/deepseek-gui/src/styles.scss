@@ -12,15 +12,12 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     --if-hl-medium-colour: #fa7733;
     --if-hl-dark-colour: #db592e;
 
-    --if-window-colour: rgb(236, 231, 231);
-    --if-paper-colour: whitesmoke;
-
     --mdc-outlined-text-field-input-text-color:black;
-    --mat-expansion-container-background-color: var(--if-window-colour);
+    --mat-expansion-container-background-color: whitesmoke;
     --mat-expansion-container-text-color: black;
     --mat-expansion-container-shape: 6px;
     --mat-expansion-header-indicator-color: var(--if-dark-colour);
-    --mdc-elevated-card-container-color: var(--if-window-colour);
+    --mdc-elevated-card-container-color: white;
     --mat-expansion-header-collapsed-state-height: 25px;
 
     --bs-danger-bg-subtle: var(--if-hl-light-colour);
@@ -36,7 +33,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     border-color: var(--if-dark-colour);
     background-color: var(--if-light-colour);
     color: white;
-    box-shadow: 2px 4px 6px var(--if-dark-colour);
+    box-shadow: 2px 4px 6px #0b2144;
     margin: 10px;
     cursor: pointer
 }
@@ -45,8 +42,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-size: 14px;
     font-weight: 400;
     color: #000;
-    background: var(--if-window-colour);
-    box-shadow: 2px 4px 7px 3px var(--if-dark-colour);
+    background: #f0f0f0;
+    box-shadow: 0 2px 6px #0b2144;
     padding: 2px;
     border-radius: 6px;
     border-style: solid; 
@@ -59,7 +56,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 @mixin expansion-panel-style {
-    background-color:var(--if-window-colour);
+    background-color: white;
     color: #000;
     font-size: 10px;
     font-weight: 400;

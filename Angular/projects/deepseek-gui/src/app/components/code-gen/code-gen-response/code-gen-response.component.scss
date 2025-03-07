@@ -2,7 +2,6 @@
 
 .response-card {
   @include card-style;
-  margin-top: 0px;
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;

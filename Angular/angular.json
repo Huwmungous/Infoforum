@@ -22,7 +22,7 @@
               "tsConfig": "projects/ifauth-lib/tsconfig.lib.json"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -92,7 +92,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -132,8 +132,5 @@
         }
       }
     }
-  },
-  "cli": {
-    "analytics": false
   }
 }

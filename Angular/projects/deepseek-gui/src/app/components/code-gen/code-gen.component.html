@@ -1,46 +1,39 @@
 <div class="code-gen-component">
-  <div class="split-container">
-    <div class="left-pane">
-      <mat-card class="request-card">
-        <mat-card-content>
-          <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
-            <mat-form-field class="input-form">
-              <mat-label>Your Question</mat-label>
-              <textarea
-                class="input-area"
-                matInput
-                placeholder='Ask Away!'
-                [(ngModel)]="prompt"
-                name="prompt"
-                rows="2">
-              </textarea>
-              <p class="quote-label">{{quoteOfTheDay}}</p>
-            </mat-form-field>
-            <div class="button-container">
-              <button
-                mat-raised-button
-                class="send-button"
-                color="primary"
-                type="submit"
-                [disabled]="loading">
-                {{ loading ? 'Processing...' : 'Send' }}
-              </button>
-            </div>
-          </form>
-          <div *ngIf="error" class="alert alert-danger mt-3">
-            {{ error }}
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-    <div class="splitter" (mousedown)="onMouseDown($event)"></div>
-    <div class="right-pane">
-      <div class="responses-container">
-        <div *ngFor="let responseObj of responses" class="mt-4">
-          <app-code-gen-response></app-code-gen-response>
-        </div>
+  <mat-card class="request-card">
+    <mat-card-content>
+      <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>{{quoteOfTheDay}}</mat-label>
+          <textarea
+            class="input-area"
+            matInput
+            placeholder={{quoteOfTheDay}}
+            [(ngModel)]="prompt"
+            name="prompt"
+            rows="2">
+          </textarea>
+        </mat-form-field> 
+          <button
+            mat-raised-button
+            class="send-button"
+            color="primary"
+            type="submit"
+            [disabled]="loading">
+            {{ loading ? 'Processing...' : 'Send' }}
+          </button>
+      </form>
+      <div *ngIf="error" class="alert alert-danger mt-3">
+        {{ error }}
       </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="responses-container">
+    <div *ngFor="let responseObj of responses" class="mt-4">
+      <app-code-gen-response></app-code-gen-response>
     </div>
   </div>
+
   <app-loading-spinner [loading]="loading"></app-loading-spinner>
+
 </div>

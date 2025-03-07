@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChildren, QueryList, OnInit, HostListener } from '@angular/core';
+import { Component, AfterViewInit, ViewChildren, QueryList, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -40,21 +40,15 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
 
-  private isDragging = false;
-  private startX = 0;
-  private startWidth = 0;
-  private containerWidth = 0;
-
-  constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
-
   get quoteOfTheDay(): string {
     return localStorage.getItem('quoteOfTheDay') || DEFAULT_QUOTATION;
   }
 
   set quoteOfTheDay(quote: string) {
-    const cleanedQuote = quote.replace(/<think>.*?<\/think>/gs, '');
-    localStorage.setItem('quoteOfTheDay', cleanedQuote);
+    localStorage.setItem('quoteOfTheDay', quote.replace(/<think>.*?<\/think>/gs, ''));
   }
+
+  constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
 
   ngAfterViewInit() {
     this.codeGenResponses.changes.subscribe(() => {
@@ -109,40 +103,6 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
   removeResponse(index: number) {
     this.responses.splice(index, 1);
-  }
-
-  onMouseDown(event: MouseEvent) {
-    this.isDragging = true;
-    this.startX = event.clientX;
-    this.startWidth = document.querySelector('.left-pane')!.clientWidth;
-    this.containerWidth = document.querySelector('.split-container')!.clientWidth;
-    document.addEventListener('mousemove', this.onMouseMove);
-    document.addEventListener('mouseup', this.onMouseUp);
-  }
-
-  onMouseMove = (event: MouseEvent) => {
-    if (!this.isDragging) return;
-    const dx = event.clientX - this.startX;
-    const newWidth = this.startWidth + dx;
-    const maxWidth = this.containerWidth * 0.75; 
-    if (newWidth > maxWidth) {
-      (document.querySelector('.left-pane') as HTMLElement)!.style.flex = `0 0 ${maxWidth}px`;
-    } else {
-      (document.querySelector('.left-pane') as HTMLElement)!.style.flex = `0 0 ${newWidth}px`;
-    }
-  };
-
-  onMouseUp = () => {
-    this.isDragging = false;
-    document.removeEventListener('mousemove', this.onMouseMove);
-    document.removeEventListener('mouseup', this.onMouseUp);
-  };
-
-  @HostListener('window:mouseup', ['$event'])
-  onWindowMouseUp(event: MouseEvent) {
-    if (this.isDragging) {
-      this.onMouseUp();
-    }
   }
 }
 
