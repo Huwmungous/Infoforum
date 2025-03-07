@@ -82,6 +82,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     postLoginRoute: '/'
   };
   console.log('buildConfig', cfg);
+  debugger;
   return cfg;
 }
 

@@ -16,21 +16,20 @@ export interface IFAuthConfigOptions {
 }
 
 @NgModule({
+  providers: [AuthModule],
   imports: [CommonModule, AuthModule],
   exports: [] 
 })
 export class IFAuthModule {
   static forRoot(options: IFAuthConfigOptions): ModuleWithProviders<IFAuthModule> {
-    // Choose the appropriate provider function based on options.multiple:
-    const configProviders: EnvironmentProviders = options.multiple
+    const cfgProvider: EnvironmentProviders = options.multiple
       ? provideMultipleConfigs()
       : provideConfig(options.realm, options.client);
       
-    // Since EnvironmentProviders might not be iterable, we include it as is.
     return {
       ngModule: IFAuthModule,
       providers: [
-        configProviders,
+        cfgProvider,
         { provide: HTTP_INTERCEPTORS, useClass: IFTokenInterceptor, multi: true },
         AuthConfigService,
         AuthGuard,
