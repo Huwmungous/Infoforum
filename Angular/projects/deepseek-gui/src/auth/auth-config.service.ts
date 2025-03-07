@@ -59,33 +59,21 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-
-  debugger;
-
-  const authority =  KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm));
-  const base = location.href;
-  const redirect = `${base}/auth-callback`;
-  const renew = `${base}/silent-renew`;
-
-  console.log('authority:', authority);
-  console.log('redirect:', redirect);
-  console.log('renew:', renew);
-  
   const cfg = { 
     configId: configId ? configId : '1',
-    authority: authority,
-    redirectUrl: redirect,
+    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
+    redirectUrl: location.origin + '/auth-callback',
     postLogoutRedirectUri: location.href,
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: renew,
+    silentRenewUrl: window.location.origin + 'silent-renew.html',
     useRefreshToken: true, 
     logLevel: 3,
     postLoginRoute: '/'
   };
-  console.log('buildConfig', cfg);
+  console.log('buildAuthConfig', cfg);
   return cfg;
 }
 
