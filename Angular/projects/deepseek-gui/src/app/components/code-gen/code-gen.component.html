@@ -5,24 +5,27 @@
         <mat-card-content>
           <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
             <mat-form-field appearance="outline" class="w-100">
-              <mat-label>{{quoteOfTheDay}}</mat-label>
+              <mat-label>Ask away</mat-label>
               <textarea
                 class="input-area"
                 matInput
                 placeholder="{{quoteOfTheDay}}"
                 [(ngModel)]="prompt"
                 name="prompt"
-                rows="2">
+                rows="10">
               </textarea>
             </mat-form-field> 
-            <button
-              mat-raised-button
-              class="send-button"
-              color="primary"
-              type="submit"
-              [disabled]="loading">
-              {{ loading ? 'Processing...' : 'Send' }}
-            </button>
+            <p class="mt-3">{{quoteOfTheDay}}</p>
+            <div class="button-container">
+              <button
+                mat-raised-button
+                class="send-button"
+                color="primary"
+                type="submit"
+                [disabled]="loading">
+                {{ loading ? 'Processing...' : 'Send' }}
+              </button>
+            </div>
           </form>
           <div *ngIf="error" class="alert alert-danger mt-3">
             {{ error }}

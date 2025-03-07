@@ -22,7 +22,7 @@
 .code-block {
   position: relative;  
   font-family: 'Courier New', Courier, monospace;
-  background-color: whitesmoke;
+  background-color: var(--if-paper-colour);
   padding: 20px;
   overflow-x: auto;
   white-space: pre-wrap;

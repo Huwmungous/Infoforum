@@ -24,12 +24,25 @@
 }
 
 .left-pane {
-  flex: 0 0 75%;
+  flex: 0 0 40%;
   padding: 10px;
   box-sizing: border-box;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.input-area{
+  background-color: var(--if-paper-colour);
+  border-radius: 8px;
+  resize: both;
+  overflow: auto;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
 .splitter {

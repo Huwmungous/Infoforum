@@ -12,6 +12,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     --if-hl-medium-colour: #fa7733;
     --if-hl-dark-colour: #db592e;
 
+    --if-window-colour: rgb(240, 238, 238);
+    --if-paper-colour: whitesmoke;
+
     --mdc-outlined-text-field-input-text-color:black;
     --mat-expansion-container-background-color: whitesmoke;
     --mat-expansion-container-text-color: black;
@@ -42,8 +45,8 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     font-size: 14px;
     font-weight: 400;
     color: #000;
-    background: #f0f0f0;
-    box-shadow: 0 2px 6px #0b2144;
+    background: var(--if-window-colour);
+    box-shadow: 0 2px 6px var(--if-dark-colour);
     padding: 2px;
     border-radius: 6px;
     border-style: solid; 
@@ -82,9 +85,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 @mixin panel-icon-style {
-    color: var(--if-dark-colour);
+    color: var(--if-light-colour);
     cursor: pointer;
-    font-size: 18px;
+    font-size: 25px;
     margin-left: 10px;
 }
 
