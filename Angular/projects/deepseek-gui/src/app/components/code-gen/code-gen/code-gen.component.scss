@@ -1,0 +1,57 @@
+@use '../../../styles.scss' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.code-gen-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  overflow: auto;
+  padding: 5px;
+
+}
+
+.request-card {
+  @include card-style;
+  flex: 0 0 auto;
+}
+
+.responses-container {
+  flex: 1 1 auto;
+  width: 100%;
+  overflow-y: auto;
+  padding:10px;
+}
+
+mat-form-field {
+  mat-label {
+    color: #000;
+  }
+
+  textarea {
+    background: #fff;
+    color: #000;
+    ::placeholder {
+      color: #000;
+      opacity: 1;
+    }
+    ::content {
+      color: #000;
+    }
+  }
+}
+
+.send-button {
+  @include button-style;
+}
+
+.save-icon, .delete-icon {
+  cursor: pointer;
+  font-size: 24px;
+  margin-left: 10px;
+}
