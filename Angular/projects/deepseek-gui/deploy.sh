@@ -116,9 +116,17 @@ deploy_application() {
     sudo chmod -R 755 $DEPLOY_PATH
 }
 
+# Clean build artifacts
+clean_build() {
+    echo -e "${YELLOW}Cleaning build artifacts...${NC}"
+    ng clean || handle_error "Build clean failed"
+}
+
 # Main deployment workflow
 main() {
     git_pull
+
+    clean_build
     
     npm install || handle_error "NPM install failed"
     
