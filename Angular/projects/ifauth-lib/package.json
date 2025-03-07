@@ -1,6 +1,6 @@
 {
   "name": "ifauth-lib",
-  "version": "1.0.0",
+  "version": "1.0.10",
   "description": "IF Angular Auth Module - A simple library for authenticating with OIDC providers.",
   "main": "./public-api.ts",
   "scripts": {

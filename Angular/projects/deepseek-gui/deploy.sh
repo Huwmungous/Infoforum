@@ -119,7 +119,9 @@ deploy_application() {
 # Clean build artifacts
 clean_build() {
     echo -e "${YELLOW}Cleaning build artifacts...${NC}"
-    ng clean || handle_error "Build clean failed"
+    sudo rm -rf ../../dist
+    sudo rm -rf ../../node_modules
+    sudo rm - ../../package-lock.json
 }
 
 # Main deployment workflow
