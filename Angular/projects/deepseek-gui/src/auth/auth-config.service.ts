@@ -63,9 +63,9 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   debugger;
 
   const authority =  KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm));
-  const orgn = location.origin;
-  const redirect = `${orgn}/auth-callback`;
-  const renew = `${orgn}/silent-renew`;
+  const base = location.href;
+  const redirect = `${base}/auth-callback`;
+  const renew = `${base}/silent-renew`;
 
   console.log('authority:', authority);
   console.log('redirect:', redirect);
