@@ -1,6 +1,7 @@
 import { importProvidersFrom, Injectable } from "@angular/core"; 
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
+import { environment } from "../environments/environment";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -62,7 +63,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   const cfg = { 
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: location.origin + '/auth-callback',
+    redirectUrl: location.origin + environment.appName + '/auth-callback',
     postLogoutRedirectUri: location.href,
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
