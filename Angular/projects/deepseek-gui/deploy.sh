@@ -120,8 +120,6 @@ deploy_application() {
 clean_build() {
     echo -e "${YELLOW}Cleaning build artifacts...${NC}"
     sudo rm -rf ../../dist
-    sudo rm -rf ../../node_modules
-    sudo rm - ../../package-lock.json
 }
 
 # Main deployment workflow

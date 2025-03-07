@@ -25,3 +25,4 @@ bin
 /Angular/.editorconfig
 /Angular/package-lock.json
 /Angular/projects/deepseek-gui/package-lock.json
+/Angular/projects/ifauth-lib/package-lock.json
