@@ -130,14 +130,6 @@ main() {
     
     npm install || handle_error "NPM install failed"
     
-    # Only increment version if library has changed
-    if check_library_changes; then
-        echo -e "${YELLOW}*** New IFAuthLib detected ***${NC}"
-        increment_library_version
-        git_commit_and_push
-    fi
-    
-    rebuild_library
     build_application
     deploy_application
     echo -e "${GREEN}Deployment completed successfully!${NC}"
