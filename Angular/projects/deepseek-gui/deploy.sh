@@ -95,7 +95,7 @@ rebuild_library() {
 # Build application
 build_application() {
     echo -e "${YELLOW}Building application...${NC}"
-    ng build $APP_NAME --configuration=production --base-href=/intelligence/|| handle_error "Application build failed"
+    ng build $APP_NAME --configuration=production --base-href=/intelligence/ || handle_error "Application build failed"
 }
 
 # Deploy application
