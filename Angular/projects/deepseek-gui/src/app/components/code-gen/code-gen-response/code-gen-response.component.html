@@ -14,7 +14,7 @@
       <div *ngIf="section.type === 'text'" class="text-block" [innerHTML]="section.content"></div>
       <div *ngIf="section.type === 'code'" class="code-block-container">
         <div class="code-block">
-          <mat-icon class="copy-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
+          <mat-icon class="copy-icon panel-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
           <pre>
             <code [class]="'language-' + section.language">
               {{ section.content }} 
