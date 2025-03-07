@@ -21,7 +21,7 @@ export class AuthCallbackComponent implements OnInit {
     this.oidcSecurityService.checkAuth().subscribe({
       next: ({ isAuthenticated }) => {
         if (isAuthenticated) {
-          this.router.navigate(['/']);
+          this.router.navigate(['/home']);
         } else {
           console.error('Auth Callback - Authentication failed');
         }

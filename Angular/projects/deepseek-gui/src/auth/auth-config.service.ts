@@ -59,13 +59,17 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+
+  debugger;
+
   const authority =  KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm));
-  const redirect = location.href + 'auth-callback';
-  const renew = location.href + 'silent-renew.html';
+  const href = location.href;
+  const redirect = `${href}auth-callback`;
+  const renew = `${href}silent-renew`;
 
   console.log('authority:', authority);
   console.log('redirect:', redirect);
-  console.log('renew:', renew); 
+  console.log('renew:', renew);
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -82,7 +86,6 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     postLoginRoute: '/'
   };
   console.log('buildConfig', cfg);
-  debugger;
   return cfg;
 }
 

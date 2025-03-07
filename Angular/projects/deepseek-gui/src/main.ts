@@ -5,7 +5,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes } from '@angular/router';
 import { importProvidersFrom } from '@angular/core';
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
-import { AuthCallbackComponent, AuthGuard, IFAuthModule } from '../ifauth-lib';
+import { AuthCallbackComponent } from './auth/auth-callback.component';
+import { AuthGuard } from './auth/auth.guard';
+import { IFAuthModule } from './auth/ifauth.module';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
