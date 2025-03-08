@@ -95,7 +95,9 @@ rebuild_library() {
 # Build application
 build_application() {
     echo -e "${YELLOW}Building application...${NC}"
+    cd ../..
     ng build $APP_NAME --configuration=production --base-href=/intelligence/ || handle_error "Application build failed"
+    cd projects/$APP_NAME # return to the project directory
 }
 
 # Deploy application
@@ -132,6 +134,8 @@ main() {
     
     build_application
     deploy_application
+
+    git checkout --force # Discard any local changes
     echo -e "${GREEN}Deployment completed successfully!${NC}"
 }
 
