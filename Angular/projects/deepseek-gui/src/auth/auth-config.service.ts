@@ -65,10 +65,10 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
     
     // Ensure consistent redirectUrl format with no double slashes
-    redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + '/auth-callback',
+    redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
     
     // Match the redirectUrl pattern for post-logout
-    postLogoutRedirectUri: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + '/auth-callback',
+    postLogoutRedirectUri: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
     
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
@@ -76,7 +76,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     silentRenew: true,
     
     // Fix the silentRenewUrl to use correct origin and path separator
-    silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + '/silent-renew.html',
+    silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'silent-renew.html',
     
     useRefreshToken: true,
     

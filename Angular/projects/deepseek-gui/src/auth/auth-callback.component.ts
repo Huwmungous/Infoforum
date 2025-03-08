@@ -23,15 +23,47 @@ export class AuthCallbackComponent implements OnInit {
     console.log('Auth Callback - checkAuth()');
     console.log(this.authConfigService.configs);
     console.log('Config ID : ', this.authConfigService.configId);
+    
+    // Check if there are error parameters in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (error) {
+      console.error('Auth Callback - Error in URL parameters:', error, errorDescription);
+    }
+    
+    // Log current URL for debugging
+    console.log('Current URL:', window.location.href);
+    
     this.oidcSecurityService.checkAuth().subscribe({
-      next: ({ isAuthenticated }) => {
+      next: ({ isAuthenticated, userData, accessToken, idToken }) => {
+        console.log('Auth check result:', { isAuthenticated, hasUserData: !!userData, hasToken: !!accessToken });
+        
         if (isAuthenticated) {
           this.router.navigate(['/']);
         } else {
           console.error('Auth Callback - Authentication failed');
+          
+          // Try to get more information about why authentication failed
+          this.oidcSecurityService.getAuthenticationResult().subscribe({
+            next: (result) => console.log('Auth result:', result),
+            error: (err) => console.error('Error getting auth result:', err)
+          });
         }
       },
-      error: (error) => console.error('Auth Callback - Error during checkAuth():', error)
+      error: (error) => {
+        console.error('Auth Callback - Error during checkAuth():', error);
+        
+        // Additional error details
+        if (error && error.message) {
+          console.error('Error message:', error.message);
+        }
+        
+        if (error && error.stack) {
+          console.error('Error stack:', error.stack);
+        }
+      }
     });
   }
 }
