@@ -64,13 +64,13 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   const cfg = { 
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: location.origin + environment.appName + '/auth-callback',
+    redirectUrl: location.origin + environment.appName + 'auth-callback',
     postLogoutRedirectUri: location.href,
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: window.location.origin + 'silent-renew.html',
+    silentRenewUrl: location.origin + environment.appName +  'silent-renew.html',
     useRefreshToken: true, 
     logLevel: 3,
     postLoginRoute: '/'
@@ -79,8 +79,11 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   return cfg;
 }
 
-export function realmFromName(name: string): string { 
-  return name === 'BreakTackle' ? name : 'LongmanRd'; 
+export function realmFromName(name: string): string {
+  const n = name.toLowerCase(); 
+  return n === 'breaktackle' ? n : 
+    n === 'intelligence' ? n : 
+      'LongmanRd'; 
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
