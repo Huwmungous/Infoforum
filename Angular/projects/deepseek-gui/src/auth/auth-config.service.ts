@@ -2,6 +2,7 @@ import { importProvidersFrom, Injectable } from "@angular/core";
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 import { environment } from "../environments/environment";
+import { LogAuthService } from "./log-auth.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -74,7 +75,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     logLevel: 3,
     postLoginRoute: '/'
   };
-  console.log('buildAuthConfig', cfg);
+  new LogAuthService().logAuthDebug('buildAuthConfig', cfg);
   return cfg;
 }
 
