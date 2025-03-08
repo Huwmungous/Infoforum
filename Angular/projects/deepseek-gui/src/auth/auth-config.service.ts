@@ -71,9 +71,25 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     responseType: 'code',
     silentRenew: true,
     silentRenewUrl: location.origin + environment.appName +  'silent-renew.html',
-    useRefreshToken: true, 
-    logLevel: 3,
-    postLoginRoute: '/'
+    useRefreshToken: true,
+    storage: localStorage,
+    storagePrefix: 'app-auth-' + configId + '-',
+    logLevel: environment.production ? 0 : 3,
+    
+    //postLoginRoute: '/' + (appPath ? appPath : ''),
+    
+    // Additional configuration for reliable auth processing
+    disablePkce: false,
+    tokenRefreshInSeconds: 60,
+    renewTimeBeforeTokenExpiresInSeconds: 30,
+    triggerAuthorizationResultEvent: true,
+    
+    // Add these to improve compatibility
+    ignoreNonceAfterRefresh: true,
+    clearHashAfterLogin: true,
+    tokenAcquisitionTimeout: 10000
+
+
   };
   new LogAuthService().logAuthDebug('buildAuthConfig', cfg);
   return cfg;
