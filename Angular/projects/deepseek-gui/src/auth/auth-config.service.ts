@@ -67,9 +67,13 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     : '';
   
   const baseUrl = location.origin;
+
+  
+  const logger = new LogAuthService();
   
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
+    logger.logAuthDebug(`Production Build Detected: ${environment.appName} ${location.hostname}`);
     const appPath = environment.appName ? `/${environment.appName}` : '';
     redirectUrl = `${baseUrl}${appPath}/auth-callback`;
   } else {
@@ -83,7 +87,6 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     silentRenewUrl = baseUrl + '/silent-renew.html';
   }
 
-  const logger = new LogAuthService();
   logger.logAuthDebug('Building config for realm:', realm);
   logger.logAuthDebug('client:', client);
   logger.logAuthDebug('realm:', client);
