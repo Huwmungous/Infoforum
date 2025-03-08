@@ -67,11 +67,6 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     : '';
   
   const baseUrl = location.origin;
-
-  
-  // const logger = new LogAuthService();
-  // logger.logAuthDebug(`Production = ${environment.production}`);
-  // logger.logAuthDebug(`Location Hostname = ${location.hostname}`);
   
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
@@ -87,14 +82,6 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   } else {
     silentRenewUrl = baseUrl + '/silent-renew.html';
   }
-
-  // logger.logAuthDebug('Building config for realm:', realm);
-  // logger.logAuthDebug('client:', client);
-  // logger.logAuthDebug('realm:', client);
-  // logger.logAuthDebug('baseUrl:', baseUrl);
-  // logger.logAuthDebug('appPath:', appPath);
-  // logger.logAuthDebug('redirectUrl:', redirectUrl);
-  // logger.logAuthDebug('silentRenewUrl:', silentRenewUrl);
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -124,7 +111,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     tokenAcquisitionTimeout: 10000
   };
  
-  // logger.logAuthDebug('Config:', cfg);
+  new LogAuthService().logAuthDebug('Config:', cfg);
   return cfg;
 }
 
