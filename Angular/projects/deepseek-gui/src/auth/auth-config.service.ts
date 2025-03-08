@@ -96,13 +96,13 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     useRefreshToken: true,
     storage: localStorage,
     storagePrefix: 'app-auth-' + configId + '-',
-    logLevel: environment.production ? 0 : 3,
+    logLevel: 3,
     postLoginRoute: '/',
     
     // Additional configuration for reliable auth processing
     disablePkce: false,
-    tokenRefreshInSeconds: 60,
-    renewTimeBeforeTokenExpiresInSeconds: 30,
+    tokenRefreshInSeconds: 600,
+    renewTimeBeforeTokenExpiresInSeconds: 300,
     triggerAuthorizationResultEvent: true,
     
     // Add these to improve compatibility
