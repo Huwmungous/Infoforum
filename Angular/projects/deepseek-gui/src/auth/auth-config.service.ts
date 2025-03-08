@@ -61,14 +61,19 @@ export class AuthConfigService {
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
   // Normalize the app name path - remove any leading or trailing slashes
+
   const appPath = environment.appName 
-    ? environment.appName.replace(/^\/+|\/+$/g, '')
-    : '';
-  
+  ? environment.appName.replace(/^\/+|\/+$/g, '')
+  : '';
+
   // Build proper URLs with correct path separators
   const baseUrl = location.origin;
   // Modified line to include appPath in the middle of the URL
   const redirectUrl = baseUrl + (appPath ? '/' + appPath : '') + '/auth-callback';
+  
+  console.log('DEBUG - Redirect URL:', redirectUrl);
+  console.log('DEBUG - AppPath:', appPath);
+  console.log('DEBUG - BaseUrl:', baseUrl);
   
   const cfg = { 
     configId: configId ? configId : '1',
