@@ -63,17 +63,42 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   const cfg = { 
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: location.origin + environment.appName + '/auth-callback',
-    postLogoutRedirectUri: location.href,
+    
+    // Ensure consistent redirectUrl format with no double slashes
+    redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + '/auth-callback',
+    
+    // Match the redirectUrl pattern for post-logout
+    postLogoutRedirectUri: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + '/auth-callback',
+    
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: window.location.origin + 'silent-renew.html',
-    useRefreshToken: true, 
-    logLevel: 3,
-    postLoginRoute: '/'
+    
+    // Fix the silentRenewUrl to use correct origin and path separator
+    silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + '/silent-renew.html',
+    
+    useRefreshToken: true,
+    
+    // Add storage configuration to prevent conflicts
+    storage: localStorage,
+    
+    // Add a unique prefix to avoid conflicts with Keycloak's own storage
+    storagePrefix: 'app-auth-' + configId + '-',
+    
+    // Reduce log level in production
+    logLevel: environment.production ? 0 : 3,
+    
+    postLoginRoute: '/',
+    
+    // Additional settings to improve state handling
+    disableRefreshIdTokenAuthTimeValidation: true,
+    ignoreNonceAfterRefresh: true,
+    
+    // Enable secure options
+    secureRoutes: [location.origin]
   };
+  
   console.log('buildAuthConfig', cfg);
   return cfg;
 }
