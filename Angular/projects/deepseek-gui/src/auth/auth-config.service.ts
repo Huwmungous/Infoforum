@@ -66,13 +66,9 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     : '';
   
   // Build proper URLs with correct path separators
-  const baseUrl = location.origin + (appPath ? '/' + appPath : '');
-  const redirectUrl = baseUrl + '/auth-callback';
-
-  // In buildConfig, add validation
-if (realm === 'Intelligence' && client !== '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7') {
-  console.warn('Mismatched client ID for Intelligence realm');
-}
+  const baseUrl = location.origin;
+  // Modified line to include appPath in the middle of the URL
+  const redirectUrl = baseUrl + (appPath ? '/' + appPath : '') + '/auth-callback';
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -83,7 +79,7 @@ if (realm === 'Intelligence' && client !== '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: baseUrl + '/silent-renew.html',
+    silentRenewUrl: baseUrl + (appPath ? '/' + appPath : '') + '/silent-renew.html',
     useRefreshToken: true,
     storage: localStorage,
     storagePrefix: 'app-auth-' + configId + '-',
