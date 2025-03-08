@@ -81,8 +81,8 @@ export function buildConfig(configId: string, realm: string, client: string): Op
 
 export function realmFromName(name: string): string {
   const n = name.toLowerCase(); 
-  return n === 'breaktackle' ? n : 
-    n === 'intelligence' ? n : 
+  return n === 'breaktackle' ? name : 
+    n === 'intelligence' ? name : 
       'LongmanRd'; 
 }
 
