@@ -77,6 +77,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     const appPath = environment.appName ? `/${environment.appName}` : '';
     redirectUrl = `${baseUrl}${appPath}/auth-callback`;
   } else {
+    logger.logAuthDebug(`Development Build Detected: ${environment.appName} ${location.hostname}`);
     redirectUrl = `${baseUrl}/auth-callback`;
   }
   
