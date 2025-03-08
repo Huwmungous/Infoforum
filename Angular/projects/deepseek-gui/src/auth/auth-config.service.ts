@@ -70,8 +70,8 @@ export function buildConfig(configId: string, realm: string, client: string): Op
 
   
   const logger = new LogAuthService();
-  logger.logAuthDebug('Production = ${environment.production}');
-  logger.logAuthDebug('Location Hostname = ${location.hostname}');
+  logger.logAuthDebug(`Production = ${environment.production}`);
+  logger.logAuthDebug(`Location Hostname = ${location.hostname}`);
   
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
