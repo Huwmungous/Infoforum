@@ -87,7 +87,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
     redirectUrl: redirectUrl,
-    postLogoutRedirectUri: redirectUrl,
+    postLogoutRedirectUri: '/',
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
@@ -97,7 +97,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     storage: localStorage,
     storagePrefix: 'app-auth-' + configId + '-',
     logLevel: environment.production ? 0 : 3,
-    postLoginRoute: '/' + (appPath ? appPath : ''),
+    postLoginRoute: '/',
     
     // Additional configuration for reliable auth processing
     disablePkce: false,
