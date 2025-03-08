@@ -60,7 +60,6 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-  // Normalize the app name path - remove any leading or trailing slashes
 
   const appPath = environment.appName 
   ? environment.appName.replace(/^\/+|\/+$/g, '')
@@ -68,12 +67,24 @@ export function buildConfig(configId: string, realm: string, client: string): Op
 
   // Build proper URLs with correct path separators
   const baseUrl = location.origin;
-  // Modified line to include appPath in the middle of the URL
-  const redirectUrl = baseUrl + (appPath ? '/' + appPath : '') + '/auth-callback';
   
-  console.log('DEBUG - Redirect URL:', redirectUrl);
-  console.log('DEBUG - AppPath:', appPath);
-  console.log('DEBUG - BaseUrl:', baseUrl);
+  // Store the debug info in localStorage
+  localStorage.setItem('auth_debug_appPath', appPath);
+  localStorage.setItem('auth_debug_baseUrl', baseUrl);
+  
+  // Try using a hardcoded redirect URL for production
+  let redirectUrl;
+  if (environment.production && location.hostname === 'longmanrd.net') {
+    // Use exact URL format from your Keycloak config
+    redirectUrl = 'https://longmanrd.net/intelligence/auth-callback';
+    localStorage.setItem('auth_debug_redirectUrl', redirectUrl);
+    localStorage.setItem('auth_debug_source', 'hardcoded');
+  } else {
+    // For development or any other environment
+    redirectUrl = baseUrl + (appPath ? '/' + appPath : '') + '/auth-callback';
+    localStorage.setItem('auth_debug_redirectUrl', redirectUrl);
+    localStorage.setItem('auth_debug_source', 'dynamic');
+  }
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -105,7 +116,14 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     tokenAcquisitionTimeout: 10000
   };
   
-  console.log('buildAuthConfig', cfg);
+  // Store the full config for debugging
+  localStorage.setItem('auth_debug_config', JSON.stringify({
+    configId: cfg.configId,
+    authority: cfg.authority,
+    redirectUrl: cfg.redirectUrl,
+    clientId: cfg.clientId
+  }));
+
   return cfg;
 }
 
