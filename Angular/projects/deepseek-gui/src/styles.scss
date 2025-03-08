@@ -15,9 +15,9 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     --if-window-colour: rgb(240, 240, 240);
     --if-paper-colour: whitesmoke;
 
-    --mdc-outlined-text-field-input-text-color:black;
+    --mdc-outlined-text-field-input-text-color: var(--if-dark-colour);
     --mat-expansion-container-background-color: whitesmoke;
-    --mat-expansion-container-text-color: black;
+    --mat-expansion-container-text-color: var(--if-dark-colour);
     --mat-expansion-container-shape: 6px;
     --mat-expansion-header-indicator-color: var(--if-dark-colour);
     --mdc-elevated-card-container-color: white;
@@ -36,7 +36,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     border-color: var(--if-dark-colour);
     background-color: var(--if-light-colour);
     color: white;
-    box-shadow: 2px 4px 6px #0b2144;
+    box-shadow: 2px 4px 6px var(--if-dark-colour);
     margin: 10px;
     cursor: pointer
 }
