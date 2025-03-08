@@ -69,17 +69,15 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   const baseUrl = location.origin;
 
   
-  const logger = new LogAuthService();
-  logger.logAuthDebug(`Production = ${environment.production}`);
-  logger.logAuthDebug(`Location Hostname = ${location.hostname}`);
+  // const logger = new LogAuthService();
+  // logger.logAuthDebug(`Production = ${environment.production}`);
+  // logger.logAuthDebug(`Location Hostname = ${location.hostname}`);
   
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
-    logger.logAuthDebug(`Production Build Detected: ${environment.appName} ${location.hostname}`);
     const appPath = environment.appName ? `/${environment.appName}` : '';
     redirectUrl = `${baseUrl}${appPath}/auth-callback`;
   } else {
-    logger.logAuthDebug(`Development Build Detected: ${environment.appName} ${location.hostname}`);
     redirectUrl = `${baseUrl}/auth-callback`;
   }
   
@@ -90,13 +88,13 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     silentRenewUrl = baseUrl + '/silent-renew.html';
   }
 
-  logger.logAuthDebug('Building config for realm:', realm);
-  logger.logAuthDebug('client:', client);
-  logger.logAuthDebug('realm:', client);
-  logger.logAuthDebug('baseUrl:', baseUrl);
-  logger.logAuthDebug('appPath:', appPath);
-  logger.logAuthDebug('redirectUrl:', redirectUrl);
-  logger.logAuthDebug('silentRenewUrl:', silentRenewUrl);
+  // logger.logAuthDebug('Building config for realm:', realm);
+  // logger.logAuthDebug('client:', client);
+  // logger.logAuthDebug('realm:', client);
+  // logger.logAuthDebug('baseUrl:', baseUrl);
+  // logger.logAuthDebug('appPath:', appPath);
+  // logger.logAuthDebug('redirectUrl:', redirectUrl);
+  // logger.logAuthDebug('silentRenewUrl:', silentRenewUrl);
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -126,7 +124,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     tokenAcquisitionTimeout: 10000
   };
  
-  logger.logAuthDebug('Config:', cfg);
+  // logger.logAuthDebug('Config:', cfg);
   return cfg;
 }
 
