@@ -70,9 +70,10 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
-    redirectUrl = baseUrl + '/intelligence/auth-callback';
+    const appPath = environment.appName ? `/${environment.appName}` : '';
+    redirectUrl = `${baseUrl}${appPath}/auth-callback`;
   } else {
-    redirectUrl = baseUrl + '/auth-callback';
+    redirectUrl = `${baseUrl}/auth-callback`;
   }
   
   let silentRenewUrl;
@@ -116,8 +117,6 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     // Add these to improve compatibility
     ignoreNonceAfterRefresh: true,
     clearHashAfterLogin: true,
-    
-    // Enhance timeout for token retrieval
     tokenAcquisitionTimeout: 10000
   };
  
@@ -125,11 +124,9 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   return cfg;
 }
 
-// Modify the realmFromName function to properly choose realm based on path
 export function realmFromName(name: string): string { 
-  // Add explicit mapping for Intelligence
-  if (name === 'Intelligence') return 'Intelligence';
-  if (name === 'BreakTackle') return 'BreakTackle';
+  if (name.toLowerCase() === 'intelligence') return 'Intelligence';
+  if (name.toLowerCase() === 'breaktackle') return 'BreakTackle';
   return 'LongmanRd'; 
 }
 
