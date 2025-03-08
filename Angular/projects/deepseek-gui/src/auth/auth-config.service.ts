@@ -68,6 +68,11 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   // Build proper URLs with correct path separators
   const baseUrl = location.origin + (appPath ? '/' + appPath : '');
   const redirectUrl = baseUrl + '/auth-callback';
+
+  // In buildConfig, add validation
+if (realm === 'Intelligence' && client !== '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7') {
+  console.warn('Mismatched client ID for Intelligence realm');
+}
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -103,8 +108,12 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   return cfg;
 }
 
+// Modify the realmFromName function to properly choose realm based on path
 export function realmFromName(name: string): string { 
-  return name === 'BreakTackle' ? name : 'LongmanRd'; 
+  // Add explicit mapping for Intelligence
+  if (name === 'Intelligence') return 'Intelligence';
+  if (name === 'BreakTackle') return 'BreakTackle';
+  return 'LongmanRd'; 
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
