@@ -70,8 +70,8 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
-    const appPath = environment.appName ? `/${environment.appName}` : '';
-    redirectUrl = `${baseUrl}${appPath}/auth-callback`;
+    const appPath = environment.appName ? `${environment.appName}` : '';
+    redirectUrl = `${baseUrl}${appPath}auth-callback`;
   } else {
     redirectUrl = `${baseUrl}/auth-callback`;
   }
