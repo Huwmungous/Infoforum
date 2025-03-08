@@ -19,7 +19,7 @@ const routes: Routes = [
 bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(IFAuthModule.forRoot({
-      realm: 'LongmanRd',
+      realm: 'Intelligence',
       client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
       multiple: false // or true if you want to support multiple configs
     })),
