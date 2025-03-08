@@ -2,6 +2,7 @@ import { importProvidersFrom, Injectable } from "@angular/core";
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 import { environment } from "../environments/environment";
+import { LogAuthService } from "./log-auth.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -65,26 +66,30 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     ? environment.appName.replace(/^\/+|\/+$/g, '')
     : '';
   
-  // Build proper URLs with correct path separators
   const baseUrl = location.origin;
   
-  // For production, ensure we use the /intelligence/ path in the redirect URL
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
-    // Specific format for production
     redirectUrl = baseUrl + '/intelligence/auth-callback';
   } else {
-    // For development
     redirectUrl = baseUrl + '/auth-callback';
   }
   
-  // Also update silentRenewUrl to match
   let silentRenewUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
     silentRenewUrl = baseUrl + '/intelligence/silent-renew.html';
   } else {
     silentRenewUrl = baseUrl + '/silent-renew.html';
   }
+
+  const logger = new LogAuthService();
+  logger.logAuthDebug('Building config for realm:', realm);
+  logger.logAuthDebug('client:', client);
+  logger.logAuthDebug('realm:', client);
+  logger.logAuthDebug('baseUrl:', baseUrl);
+  logger.logAuthDebug('appPath:', appPath);
+  logger.logAuthDebug('redirectUrl:', redirectUrl);
+  logger.logAuthDebug('silentRenewUrl:', silentRenewUrl);
   
   const cfg = { 
     configId: configId ? configId : '1',
@@ -115,7 +120,8 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     // Enhance timeout for token retrieval
     tokenAcquisitionTimeout: 10000
   };
-  
+ 
+  logger.logAuthDebug('Config:', cfg);
   return cfg;
 }
 
