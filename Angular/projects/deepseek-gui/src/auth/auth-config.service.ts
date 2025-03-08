@@ -60,30 +60,30 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
-
+  // Normalize the app name path - remove any leading or trailing slashes
   const appPath = environment.appName 
-  ? environment.appName.replace(/^\/+|\/+$/g, '')
-  : '';
-
+    ? environment.appName.replace(/^\/+|\/+$/g, '')
+    : '';
+  
   // Build proper URLs with correct path separators
   const baseUrl = location.origin;
   
-  // Store the debug info in localStorage
-  localStorage.setItem('auth_debug_appPath', appPath);
-  localStorage.setItem('auth_debug_baseUrl', baseUrl);
-  
-  // Try using a hardcoded redirect URL for production
+  // For production, ensure we use the /intelligence/ path in the redirect URL
   let redirectUrl;
   if (environment.production && location.hostname === 'longmanrd.net') {
-    // Use exact URL format from your Keycloak config
-    redirectUrl = 'https://longmanrd.net/intelligence/auth-callback';
-    localStorage.setItem('auth_debug_redirectUrl', redirectUrl);
-    localStorage.setItem('auth_debug_source', 'hardcoded');
+    // Specific format for production
+    redirectUrl = baseUrl + '/intelligence/auth-callback';
   } else {
-    // For development or any other environment
-    redirectUrl = baseUrl + (appPath ? '/' + appPath : '') + '/auth-callback';
-    localStorage.setItem('auth_debug_redirectUrl', redirectUrl);
-    localStorage.setItem('auth_debug_source', 'dynamic');
+    // For development
+    redirectUrl = baseUrl + '/auth-callback';
+  }
+  
+  // Also update silentRenewUrl to match
+  let silentRenewUrl;
+  if (environment.production && location.hostname === 'longmanrd.net') {
+    silentRenewUrl = baseUrl + '/intelligence/silent-renew.html';
+  } else {
+    silentRenewUrl = baseUrl + '/silent-renew.html';
   }
   
   const cfg = { 
@@ -95,7 +95,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: baseUrl + (appPath ? '/' + appPath : '') + '/silent-renew.html',
+    silentRenewUrl: silentRenewUrl,
     useRefreshToken: true,
     storage: localStorage,
     storagePrefix: 'app-auth-' + configId + '-',
@@ -116,14 +116,6 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     tokenAcquisitionTimeout: 10000
   };
   
-  // Store the full config for debugging
-  localStorage.setItem('auth_debug_config', JSON.stringify({
-    configId: cfg.configId,
-    authority: cfg.authority,
-    redirectUrl: cfg.redirectUrl,
-    clientId: cfg.clientId
-  }));
-
   return cfg;
 }
 
