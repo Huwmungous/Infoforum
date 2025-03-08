@@ -61,22 +61,56 @@ export class AuthConfigService {
 }
 
 export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+  // Normalize the app name path - remove any leading or trailing slashes
+  const appPath = environment.appName 
+    ? environment.appName.replace(/^\/+|\/+$/g, '')
+    : '';
+  
+  const baseUrl = location.origin;
+
+  
+  // const logger = new LogAuthService();
+  // logger.logAuthDebug(`Production = ${environment.production}`);
+  // logger.logAuthDebug(`Location Hostname = ${location.hostname}`);
+  
+  let redirectUrl;
+  if (environment.production && location.hostname === 'longmanrd.net') {
+    const appPath = environment.appName ? `/${environment.appName}` : '';
+    redirectUrl = `${baseUrl}${appPath}/auth-callback`;
+  } else {
+    redirectUrl = `${baseUrl}/auth-callback`;
+  }
+  
+  let silentRenewUrl;
+  if (environment.production && location.hostname === 'longmanrd.net') {
+    silentRenewUrl = baseUrl + '/intelligence/silent-renew.html';
+  } else {
+    silentRenewUrl = baseUrl + '/silent-renew.html';
+  }
+
+  // logger.logAuthDebug('Building config for realm:', realm);
+  // logger.logAuthDebug('client:', client);
+  // logger.logAuthDebug('realm:', client);
+  // logger.logAuthDebug('baseUrl:', baseUrl);
+  // logger.logAuthDebug('appPath:', appPath);
+  // logger.logAuthDebug('redirectUrl:', redirectUrl);
+  // logger.logAuthDebug('silentRenewUrl:', silentRenewUrl);
+  
   const cfg = { 
     configId: configId ? configId : '1',
     authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
-    redirectUrl: location.origin + environment.appName + 'auth-callback',
-    postLogoutRedirectUri: location.href,
+    redirectUrl: redirectUrl,
+    postLogoutRedirectUri: redirectUrl,
     clientId: client ? client : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-    silentRenewUrl: location.origin + environment.appName +  'silent-renew.html',
+    silentRenewUrl: silentRenewUrl,
     useRefreshToken: true,
     storage: localStorage,
     storagePrefix: 'app-auth-' + configId + '-',
     logLevel: environment.production ? 0 : 3,
-    
-    //postLoginRoute: '/' + (appPath ? appPath : ''),
+    postLoginRoute: '/' + (appPath ? appPath : ''),
     
     // Additional configuration for reliable auth processing
     disablePkce: false,
@@ -88,18 +122,16 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     ignoreNonceAfterRefresh: true,
     clearHashAfterLogin: true,
     tokenAcquisitionTimeout: 10000
-
-
   };
-  new LogAuthService().logAuthDebug('buildAuthConfig', cfg);
+ 
+  // logger.logAuthDebug('Config:', cfg);
   return cfg;
 }
 
-export function realmFromName(name: string): string {
-  const n = name.toLowerCase(); 
-  return n === 'breaktackle' ? name : 
-    n === 'intelligence' ? name : 
-      'LongmanRd'; 
+export function realmFromName(name: string): string { 
+  if (name.toLowerCase() === 'intelligence') return 'Intelligence';
+  if (name.toLowerCase() === 'breaktackle') return 'BreakTackle';
+  return 'LongmanRd'; 
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
