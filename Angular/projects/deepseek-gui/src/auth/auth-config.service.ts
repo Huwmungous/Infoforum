@@ -59,10 +59,10 @@ export class AuthConfigService {
   }
 }
 
-export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+export function buildConfig(configId: string, clientName: string, clientId: string): OpenIdConfiguration {
   const cfg = { 
     configId: configId ? configId : '1',
-    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
+    authority: KEYCLOAK_BASE_URL + (clientName ? clientName : realmFromClientName(clientName)),
     
     // Ensure consistent redirectUrl format with no double slashes
     redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
@@ -70,7 +70,7 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     // Match the redirectUrl pattern for post-logout
     postLogoutRedirectUri: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
     
-    clientId: client ? client : DEFAULT_CLIENT,
+    clientId: clientId ? clientId : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
@@ -103,13 +103,13 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   return cfg;
 }
 
-export function realmFromName(name: string): string { 
-  return name === 'BreakTackle' ? name : 'LongmanRd'; 
+export function realmFromClientName(name: string): string { 
+  return name.toLowerCase() === 'breaktackle' ? name : 'LongmanRd'; 
 }
 
-export function provideConfig(realm: string = '', client: string = '') {
+export function provideConfig(clientName: string = '', clientId: string = '') {
   if(AuthConfigService.configs.length === 0)
-    AuthConfigService.configs.push(buildConfig('1', realmFromName(realm), client));
+    AuthConfigService.configs.push(buildConfig('1', realmFromClientName(clientName), clientId));
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
 
