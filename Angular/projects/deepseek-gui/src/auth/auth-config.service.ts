@@ -4,16 +4,16 @@ import { DEFAULT_CLIENT } from "./client.service";
 import { environment } from "../environments/environment";
 import { LogAuthService } from "./log-auth.service";
 
-export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
+export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms';
 
 @Injectable({ providedIn: 'root' })
 export class AuthConfigService {
 
   private static clients = [
-    { id: 1, realmName: 'Default', client: '9F32F055-D2FF-4461-A47B-4A2FCA6720DA' },
-    { id: 2, realmName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
-    { id: 3, realmName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
-    { id: 4, realmName: 'LongmanRd', client: '9F32F055-D2FF-4461-A47B-4A2FCA6720DA' }
+    { id: 1, clientName: 'Default', client: '9F32F055-D2FF-4461-A47B-4A2FCA6720DA' },
+    { id: 2, clientName: 'Intelligence', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' },
+    { id: 3, clientName: 'BreakTackle', client: '46279F81-ED75-4CFA-868C-A36AE8BE22B0' },
+    { id: 4, clientName: 'LongmanRd', client: '9F32F055-D2FF-4461-A47B-4A2FCA6720DA' }
   ];
 
   static multipleConfigs: boolean = false;
@@ -21,7 +21,7 @@ export class AuthConfigService {
   static configs: OpenIdConfiguration[] = []; 
   
   static initialiseMultipleConfigs() {
-    AuthConfigService.configs = AuthConfigService.clients.map(c => buildConfig(c.id.toString(), c.realmName, c.client)); 
+    AuthConfigService.configs = AuthConfigService.clients.map(c => buildConfig(c.id.toString(), c.clientName, c.client)); 
   }
 
   static initialConfig(): OpenIdConfiguration {
@@ -60,7 +60,7 @@ export class AuthConfigService {
   }
 }
 
-export function buildConfig(configId: string, realm: string, client: string): OpenIdConfiguration {
+export function buildConfig(configId: string, clientName: string, clientId: string): OpenIdConfiguration {
   // Normalize the app name path - remove any leading or trailing slashes
   const appPath = environment.appName 
     ? environment.appName.replace(/^\/+|\/+$/g, '')
@@ -85,16 +85,16 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   
   const cfg = { 
     configId: configId ? configId : '1',
-    authority: KEYCLOAK_BASE_URL + (realm ? realm : realmFromName(realm)),
+    authority: `${KEYCLOAK_BASE_URL}/${(clientName ? clientName : realmFromClientName(clientName))}`,
     redirectUrl: redirectUrl,
     postLogoutRedirectUri: '/',
-    clientId: client ? client : DEFAULT_CLIENT,
+    clientId: clientId ? clientId : DEFAULT_CLIENT,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
     silentRenewUrl: silentRenewUrl,
     useRefreshToken: true, 
-    storage: typeof window !== 'undefined' ? window.localStorage : null, 
+    storage: localStorage, 
     storagePrefix: 'app-auth-' + configId + '-',
     logLevel: 3,
     postLoginRoute: '/',
@@ -106,8 +106,8 @@ export function buildConfig(configId: string, realm: string, client: string): Op
     triggerAuthorizationResultEvent: true,
     
     // Add these to improve compatibility
-    ignoreNonceAfterRefresh: true,
-    clearHashAfterLogin: true,
+    // ignoreNonceAfterRefresh: true,
+    // clearHashAfterLogin: true,
     tokenAcquisitionTimeout: 10000
   };
  
@@ -115,15 +115,13 @@ export function buildConfig(configId: string, realm: string, client: string): Op
   return cfg;
 }
 
-export function realmFromName(name: string): string { 
-  if (name.toLowerCase() === 'intelligence') return 'Intelligence';
-  if (name.toLowerCase() === 'breaktackle') return 'BreakTackle';
-  return 'LongmanRd'; 
+export function realmFromClientName(name: string): string { 
+  return name.toLowerCase() === 'breaktackle' ? 'BreakTackle' : 'LongmanRd'; 
 }
 
 export function provideConfig(realm: string = '', client: string = '') {
   if(AuthConfigService.configs.length === 0)
-    AuthConfigService.configs.push(buildConfig('1', realmFromName(realm), client));
+    AuthConfigService.configs.push(buildConfig('1', realmFromClientName(realm), client));
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
 

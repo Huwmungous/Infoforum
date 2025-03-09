@@ -7,6 +7,7 @@ import { AuthConfigService, provideConfig, provideMultipleConfigs } from './auth
 import { IFTokenInterceptor } from './token-interceptor';
 import { AuthGuard } from './auth.guard';
 import { ClientService } from './client.service';
+import { AuthModule } from 'angular-auth-oidc-client';
 
 export interface IFAuthConfigOptions {
   realm: string;
@@ -15,12 +16,11 @@ export interface IFAuthConfigOptions {
 }
 
 @NgModule({
-  imports: [CommonModule],
-  exports: [] // Export any shared components, directives, or pipes if needed
+  imports: [CommonModule, AuthModule],
+  exports: []
 })
 export class IFAuthModule {
   static forRoot(options: IFAuthConfigOptions): ModuleWithProviders<IFAuthModule> {
-    // Choose the appropriate provider function based on options.multiple:
     const configProviders: EnvironmentProviders = options.multiple
       ? provideMultipleConfigs()
       : provideConfig(options.realm, options.client);
@@ -33,7 +33,8 @@ export class IFAuthModule {
         { provide: HTTP_INTERCEPTORS, useClass: IFTokenInterceptor, multi: true },
         AuthConfigService,
         AuthGuard,
-        ClientService
+        ClientService,
+        AuthModule
       ]
     };
   }
