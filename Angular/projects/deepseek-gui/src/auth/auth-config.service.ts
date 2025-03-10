@@ -18,37 +18,58 @@ export class AuthConfigService {
 
   static buildConfig(config: string, realm : string, client: string): OpenIdConfiguration {
     AuthConfigService.realm = realm;
-    const cfg = { 
+    
+    // Normalize the app path to ensure consistency
+    const appPath = environment.appName ? 
+      (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) : 
+      '/';
+      
+    // Ensure appPath ends with a slash
+    const normalizedAppPath = appPath.endsWith('/') ? appPath : appPath + '/';
+    
+    const cfg = {
       configId: config,
       authority: KEYCLOAK_BASE_URL + realm,
-  
-      redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
-      postLogoutRedirectUri: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
-      
+      redirectUrl: location.origin + normalizedAppPath + 'auth-callback',
+      postLogoutRedirectUri: location.origin + normalizedAppPath + 'auth-callback',
       clientId: client,
       scope: 'openid profile email offline_access',
       responseType: 'code',
       silentRenew: true,
-      silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'silent-renew.html',
+      silentRenewUrl: location.origin + normalizedAppPath + 'silent-renew.html',
       useRefreshToken: true,
-      // Here we assign the actual storage reference rather than a serialized version:
       storage: localStorage,
-      
-      // Add a unique prefix to avoid conflicts with Keycloak's own storage
       storagePrefix: 'app-auth-' + config + '-',
       logLevel: environment.production ? 0 : 3,
       postLoginRoute: '/',
       
-      // Additional settings to improve state handling
+      // Enhanced security and state handling
       disableRefreshIdTokenAuthTimeValidation: true,
       ignoreNonceAfterRefresh: false,
       startCheckSession: true,
       
-      // Enable secure options
+      // Add these to improve state handling
+      renewTimeBeforeTokenExpiresInSeconds: 30,
+      tokenRefreshInSeconds: 10,
+      silentRenewTimeoutInSeconds: 20,
+      
+      // Cookie handling
+      useCookiesForState: true, // Try using cookies for state as a fallback
+      
+      // CORS settings
       secureRoutes: [environment.apiUrl]
     };
     
+    // Store config for later reference
     AuthConfigService.config = cfg;
+    
+    // Log config in non-production for debugging
+    if (!environment.production) {
+      console.log('Auth config:', JSON.stringify(cfg, null, 2));
+    }
+    
     return cfg;
   }
+  
+
 } 
