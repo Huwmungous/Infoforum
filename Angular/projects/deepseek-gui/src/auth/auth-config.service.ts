@@ -31,7 +31,7 @@ export class AuthConfigService {
       silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'silent-renew.html',
       useRefreshToken: true,
       // Here we assign the actual storage reference rather than a serialized version:
-      customStorage: localStorage,
+      storage: localStorage,
       
       // Add a unique prefix to avoid conflicts with Keycloak's own storage
       storagePrefix: 'app-auth-' + config + '-',
@@ -40,7 +40,7 @@ export class AuthConfigService {
       
       // Additional settings to improve state handling
       disableRefreshIdTokenAuthTimeValidation: true,
-      // ignoreNonceAfterRefresh: false,
+      ignoreNonceAfterRefresh: false,
       
       // Enable secure options
       secureRoutes: [location.origin]
