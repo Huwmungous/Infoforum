@@ -14,8 +14,6 @@ export class OllamaService {
   sendPrompt(conversationId: string, prompt: string, dest: string = 'code'): Observable<any> {
     const url = `${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-
-    console.log(`sendPrompt() - url: ${url}, prompt: ${prompt}`);
     return this.http.post(url, JSON.stringify(prompt), { headers, responseType: 'text' });
   }
 }
