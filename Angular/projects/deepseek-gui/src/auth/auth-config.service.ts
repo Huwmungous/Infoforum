@@ -2,7 +2,6 @@ import { importProvidersFrom, Injectable } from "@angular/core";
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { DEFAULT_CLIENT } from "./client.service";
 import { environment } from "../environments/environment";
-// import { LogAuthService } from "./log-auth.service"; // if needed
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -21,7 +20,6 @@ export class AuthConfigService {
   set configId(value: string) { this._configId = value; }
 
   constructor() {
-    // Attempt to rehydrate configuration from localStorage on instantiation.
     this.loadLastConfig();
   }
 
@@ -30,21 +28,19 @@ export class AuthConfigService {
   }
 
   private loadLastConfig() {
+    // Read the minimal data from localStorage
     const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
-    // Only build the config if it's not already loaded.
-    if (!AuthConfigService.configs.some(c => c.configId === storedConfigId)) {
-      AuthConfigService.configs.push(buildConfig(storedConfigId, DEFAULT_CLIENT));
+    // Optionally, you could read the clientId if needed:
+    const storedClientId = localStorage.getItem('selectedClientId') || DEFAULT_CLIENT;
+    
+    // Rebuild the config using buildConfig; this will ensure that the storage reference is correctly set
+    const newConfig = buildConfig(storedConfigId, storedClientId);
+    
+    // Ensure we add it only if it's not already there.
+    if (!AuthConfigService.configs.some(c => c.configId === newConfig.configId)) {
+      AuthConfigService.configs.push(newConfig);
     }
     this.configId = storedConfigId;
-  }
-
-  selectConfigById(configId: number) {
-    const config = this.configs.find(c => c.configId === configId.toString());
-    if (config) {
-      this.configId = config.configId || '1';
-    } else {
-      console.warn(`Config not found for id: ${configId}`);
-    }
   }
 }
 
@@ -62,6 +58,7 @@ export function buildConfig(configId: string, clientId: string): OpenIdConfigura
     silentRenew: true,
     silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'silent-renew.html',
     useRefreshToken: true,
+    // Here we assign the actual storage reference rather than a serialized version:
     storage: localStorage,
     
     // Add a unique prefix to avoid conflicts with Keycloak's own storage
@@ -77,16 +74,15 @@ export function buildConfig(configId: string, clientId: string): OpenIdConfigura
     secureRoutes: [location.origin]
   };
   
-  // Optionally log the built configuration for debugging:
-  // new LogAuthService().logAuthDebug('buildAuthConfig', cfg);
   return cfg;
 }
 
 export function provideConfig(clientId: string) {
-  // Ensure the configuration is rehydrated before passing it to the Auth module.
+  // Always rebuild the configuration if none exists
   if (AuthConfigService.configs.length === 0) {
     const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
-    AuthConfigService.configs.push(buildConfig(storedConfigId, clientId));
+    const storedClientId = localStorage.getItem('selectedClientId') || clientId;
+    AuthConfigService.configs.push(buildConfig(storedConfigId, storedClientId));
   }
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
