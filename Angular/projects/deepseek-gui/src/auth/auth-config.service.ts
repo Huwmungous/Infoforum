@@ -58,7 +58,8 @@ export function buildConfig(config: string, realm : string, client: string): Ope
     // Enable secure options
     secureRoutes: [location.origin],
 
-    autoCleanStateAfterAuthentication: false
+    autoCleanStateAfterAuthentication: false,
+    historyCleanupOff: false
   };
   
   new LogAuthService().logAuthDebug('Config:', cfg);
