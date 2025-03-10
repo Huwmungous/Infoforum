@@ -25,13 +25,7 @@ export class AuthGuard implements CanActivate, CanActivateChild {
       take(1),
       tap((response: { isAuthenticated: boolean }) => {
         if (!response.isAuthenticated && !this.isAuthProcessInProgress) {
-          console.warn('Auth Guard: Not authenticated, initiating login...');
-          this.isAuthProcessInProgress = true;
-          // Persist only the minimal keys needed
-          localStorage.setItem('selectedConfigId', this.configService.configId);
-          // Optionally, if you need to persist the clientId:
-          localStorage.setItem('selectedClientId', '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7');
-          
+          this.isAuthProcessInProgress = true;          
           this.oidcSecurityService.authorize(this.configService.configId);
         }
       }),

@@ -20,9 +20,6 @@ export class AuthCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    console.log('Auth Callback - checkAuth()');
-    console.log(this.authConfigService.configs);
-    console.log('Config ID : ', this.authConfigService.configId);
     
     // Check if there are error parameters in the URL
     const urlParams = new URLSearchParams(window.location.search);
