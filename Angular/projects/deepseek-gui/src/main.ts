@@ -18,11 +18,7 @@ const routes: Routes = [
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(IFAuthModule.forRoot({
-      clientName: 'Intelligence',
-      clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
-      multiple: false
-    })),
+    importProvidersFrom(IFAuthModule.forRoot()),
     provideHttpClient(),
     provideRouter(routes),
     provideAnimations()
