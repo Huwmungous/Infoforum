@@ -1,6 +1,7 @@
 import { importProvidersFrom, Injectable } from "@angular/core"; 
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
 import { environment } from "../environments/environment";
+import { LogAuthService } from "./log-auth.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -15,13 +16,9 @@ export class AuthConfigService {
 
   constructor() {}
 
-  get configs() {
-    return AuthConfigService.configs;
-  }
+  get configs() { return AuthConfigService.configs; }
 
-  async initialize() {
-    this.loadLastConfig();
-  }
+  async initialize() { this.loadLastConfig(); }
 
   loadLastConfig() { 
     if (!AuthConfigService.configs.some(c => c.configId === '1')) {
@@ -62,6 +59,7 @@ export function buildConfig(config: string, realm : string, client: string): Ope
     secureRoutes: [location.origin]
   };
   
+  new LogAuthService().logAuthDebug('Config:', cfg);
   return cfg;
 }
 
