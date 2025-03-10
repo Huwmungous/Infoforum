@@ -12,10 +12,6 @@ export class ClientService {
     private oidcSecurityService: OidcSecurityService,
     private configService: AuthConfigService) {}
 
-  isAuthenticated(): boolean {
-    return this.oidcSecurityService.isAuthenticated('1') ? true : false;
-  }
-
   login(configId: number = 1): void { 
     this.logout(); 
     this.oidcSecurityService.authorize(configId.toString());
