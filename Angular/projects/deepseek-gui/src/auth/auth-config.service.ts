@@ -1,6 +1,5 @@
 import { importProvidersFrom, Injectable } from "@angular/core"; 
 import { AuthModule, OpenIdConfiguration } from "angular-auth-oidc-client";
-import { DEFAULT_CLIENT } from "./client.service";
 import { environment } from "../environments/environment";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
@@ -9,12 +8,7 @@ export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 export class AuthConfigService {
 
   // Static config storage – note this will be cleared on a full reload.
-  static configs: OpenIdConfiguration[] = []; 
-
-  static initialConfig(): OpenIdConfiguration {
-    return AuthConfigService.configs[0];
-  }
-  
+  static configs: OpenIdConfiguration[] = [];   
   private _configId: string = '1';
   get configId(): string { return this._configId; }
   set configId(value: string) { this._configId = value; }
@@ -25,28 +19,28 @@ export class AuthConfigService {
     return AuthConfigService.configs;
   }
 
-  loadLastConfig() {
-    const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
-    const storedClientId = localStorage.getItem('selectedClientId') || DEFAULT_CLIENT;
-    
-    const newConfig = buildConfig(storedConfigId, storedClientId);
-    // Ensure we add it only if it's not already there.
-    if (!AuthConfigService.configs.some(c => c.configId === newConfig.configId)) {
+  async initialize() {
+    this.loadLastConfig();
+  }
+
+  loadLastConfig() { 
+    if (!AuthConfigService.configs.some(c => c.configId === '1')) {
+      const newConfig = buildConfig('1', 'LongmanRd', '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7');
       AuthConfigService.configs.push(newConfig);
     }
-    this.configId = storedConfigId;
+    this.configId = '1';
   }
 }
 
-export function buildConfig(configId: string, clientId: string): OpenIdConfiguration {
+export function buildConfig(config: string, realm : string, client: string): OpenIdConfiguration {
   const cfg = { 
-    configId: configId || '1',
-    authority: KEYCLOAK_BASE_URL + 'LongmanRd',
+    configId: config,
+    authority: KEYCLOAK_BASE_URL + realm,
 
     redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
     postLogoutRedirectUri: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
     
-    clientId: clientId || DEFAULT_CLIENT,
+    clientId: client,
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
@@ -56,7 +50,7 @@ export function buildConfig(configId: string, clientId: string): OpenIdConfigura
     storage: localStorage,
     
     // Add a unique prefix to avoid conflicts with Keycloak's own storage
-    storagePrefix: 'app-auth-' + configId + '-',
+    storagePrefix: 'app-auth-' + config + '-',
     logLevel: environment.production ? 0 : 3,
     postLoginRoute: '/',
     
@@ -71,12 +65,10 @@ export function buildConfig(configId: string, clientId: string): OpenIdConfigura
   return cfg;
 }
 
-export function provideConfig(clientId: string) {
+export function provideConfig(realm: string, clientId: string) {
   // Always rebuild the configuration if none exists
   if (AuthConfigService.configs.length === 0) {
-    const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
-    const storedClientId = localStorage.getItem('selectedClientId') || clientId;
-    AuthConfigService.configs.push(buildConfig(storedConfigId, storedClientId));
+    AuthConfigService.configs.push(buildConfig('1', realm,  clientId));
   }
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }

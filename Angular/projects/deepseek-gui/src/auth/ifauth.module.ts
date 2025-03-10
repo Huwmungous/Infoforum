@@ -19,7 +19,7 @@ export class IFAuthModule {
   }
 
   static forRoot(): ModuleWithProviders<IFAuthModule> {
-    const configProviders: EnvironmentProviders = provideConfig('53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7');
+    const configProviders: EnvironmentProviders = provideConfig('Longmanrd', '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7');
     return {
       ngModule: IFAuthModule,
       providers: [
