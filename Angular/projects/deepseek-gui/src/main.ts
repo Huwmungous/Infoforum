@@ -20,8 +20,8 @@ bootstrapApplication(AppComponent, {
   providers: [
     importProvidersFrom(IFAuthModule.forRoot({
       realm: 'LongmanRd',
-      client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
-      multiple: false // or true if you want to support multiple configs
+      clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
+      multiple: false
     })),
     provideHttpClient(),
     provideRouter(routes),

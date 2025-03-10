@@ -3,7 +3,7 @@
 import { NgModule, ModuleWithProviders, importProvidersFrom, EnvironmentProviders } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
-import { AuthConfigService, provideConfig, provideMultipleConfigs } from './auth-config.service';
+import { AuthConfigService, provideConfig } from './auth-config.service';
 import { IFTokenInterceptor } from './token-interceptor';
 import { AuthGuard } from './auth.guard';
 import { ClientService } from './client.service';
@@ -11,8 +11,8 @@ import { AuthModule } from 'angular-auth-oidc-client';
 
 export interface IFAuthConfigOptions {
   realm: string;
-  client: string;
-  multiple?: boolean;
+  clientId: string;
+  multiple: false;
 }
 
 @NgModule({
@@ -21,9 +21,7 @@ export interface IFAuthConfigOptions {
 })
 export class IFAuthModule {
   static forRoot(options: IFAuthConfigOptions): ModuleWithProviders<IFAuthModule> {
-    const configProviders: EnvironmentProviders = options.multiple
-      ? provideMultipleConfigs()
-      : provideConfig(options.realm, options.client);
+    const configProviders: EnvironmentProviders = provideConfig(options.realm, options.clientId);
       
     // Since EnvironmentProviders might not be iterable, we include it as is.
     return {

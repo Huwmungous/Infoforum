@@ -56,8 +56,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   }
 
   ngAfterViewInit() {
-    this.codeGenResponses.changes.subscribe(() => {
-    });
+    this.codeGenResponses.changes.subscribe(() => { });
   }
 
   ngOnInit() {
