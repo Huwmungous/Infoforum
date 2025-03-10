@@ -27,6 +27,11 @@ export class AuthGuard implements CanActivate, CanActivateChild {
         if (!response.isAuthenticated && !this.isAuthProcessInProgress) {
           console.warn('Auth Guard: Not authenticated, initiating login...');
           this.isAuthProcessInProgress = true;
+          // Persist the configuration before redirecting:
+          localStorage.setItem('auth_config', JSON.stringify(this.configService.configs[0]));
+          localStorage.setItem('selectedConfigId', this.configService.configId);
+          
+          // Trigger the login redirect using the config ID.
           this.oidcSecurityService.authorize(this.configService.configId);
         }
       }),
@@ -47,5 +52,4 @@ export class AuthGuard implements CanActivate, CanActivateChild {
   ): Observable<boolean> {
     return this.checkAuthentication();
   }
-
 }
