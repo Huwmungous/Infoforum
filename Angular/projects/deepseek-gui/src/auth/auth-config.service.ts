@@ -63,7 +63,7 @@ export class AuthConfigService {
 export function buildConfig(configId: string, clientName: string, clientId: string): OpenIdConfiguration {
   const cfg = { 
     configId: configId ? configId : '1',
-    authority: KEYCLOAK_BASE_URL + (clientName ? clientName : realmFromClientName(clientName)),
+    authority: KEYCLOAK_BASE_URL + 'LongmanRd',
 
     redirectUrl: location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'auth-callback',
 
@@ -95,17 +95,13 @@ export function buildConfig(configId: string, clientName: string, clientId: stri
     secureRoutes: [location.origin]
   };
   
-  new LogAuthService().logAuthDebug('buildAuthConfig', cfg);
+  // new LogAuthService().logAuthDebug('buildAuthConfig', cfg);
   return cfg;
 }
 
-export function realmFromClientName(name: string): string { 
-  return name.toLowerCase() === 'breaktackle' ? name : 'LongmanRd'; 
-}
-
-export function provideConfig(realm: string = '', clientId: string = '') {
+export function provideConfig(clientName: string, clientId: string) {
   if(AuthConfigService.configs.length === 0)
-    AuthConfigService.configs.push(buildConfig('1', realm, clientId));
+    AuthConfigService.configs.push(buildConfig('1', clientName, clientId));
   return importProvidersFrom(AuthModule.forRoot({ config: AuthConfigService.configs }));
 }
 

@@ -10,7 +10,7 @@ import { ClientService } from './client.service';
 import { AuthModule } from 'angular-auth-oidc-client';
 
 export interface IFAuthConfigOptions {
-  realm: string;
+  clientName: string;
   clientId: string;
   multiple: false;
 }
@@ -21,9 +21,7 @@ export interface IFAuthConfigOptions {
 })
 export class IFAuthModule {
   static forRoot(options: IFAuthConfigOptions): ModuleWithProviders<IFAuthModule> {
-    const configProviders: EnvironmentProviders = provideConfig(options.realm, options.clientId);
-      
-    // Since EnvironmentProviders might not be iterable, we include it as is.
+    const configProviders: EnvironmentProviders = provideConfig(options.clientName, options.clientId);
     return {
       ngModule: IFAuthModule,
       providers: [
