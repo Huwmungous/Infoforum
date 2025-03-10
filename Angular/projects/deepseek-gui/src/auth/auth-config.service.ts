@@ -42,6 +42,7 @@ export class AuthConfigService {
       // Additional settings to improve state handling
       disableRefreshIdTokenAuthTimeValidation: true,
       ignoreNonceAfterRefresh: false,
+      startCheckSession: true,
       
       // Enable secure options
       secureRoutes: [environment.apiUrl]
