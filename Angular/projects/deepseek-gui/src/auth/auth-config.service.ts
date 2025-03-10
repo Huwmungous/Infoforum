@@ -19,23 +19,17 @@ export class AuthConfigService {
   get configId(): string { return this._configId; }
   set configId(value: string) { this._configId = value; }
 
-  constructor() {
-    this.loadLastConfig();
-  }
+  constructor() {}
 
   get configs() {
     return AuthConfigService.configs;
   }
 
-  private loadLastConfig() {
-    // Read the minimal data from localStorage
+  loadLastConfig() {
     const storedConfigId = localStorage.getItem('selectedConfigId') || '1';
-    // Optionally, you could read the clientId if needed:
     const storedClientId = localStorage.getItem('selectedClientId') || DEFAULT_CLIENT;
     
-    // Rebuild the config using buildConfig; this will ensure that the storage reference is correctly set
     const newConfig = buildConfig(storedConfigId, storedClientId);
-    
     // Ensure we add it only if it's not already there.
     if (!AuthConfigService.configs.some(c => c.configId === newConfig.configId)) {
       AuthConfigService.configs.push(newConfig);
