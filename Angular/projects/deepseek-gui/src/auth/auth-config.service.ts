@@ -44,7 +44,7 @@ export function buildConfig(config: string, realm : string, client: string): Ope
     silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'silent-renew.html',
     useRefreshToken: true,
     // Here we assign the actual storage reference rather than a serialized version:
-    storage: localStorage,
+    customStorage: localStorage,
     
     // Add a unique prefix to avoid conflicts with Keycloak's own storage
     storagePrefix: 'app-auth-' + config + '-',
