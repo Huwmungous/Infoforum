@@ -8,7 +8,6 @@ import {
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
-import { KEYCLOAK_BASE_URL } from './auth-config.service';
 
 @Injectable({
   providedIn: 'root',
