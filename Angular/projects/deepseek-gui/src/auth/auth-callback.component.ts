@@ -31,15 +31,10 @@ export class AuthCallbackComponent implements OnInit {
       localStorage: this.getLocalStorageAuthItems(),
       sessionStorage: this.getSessionStorageAuthItems()
     };
-
-    // Log for debugging
-    console.log('Auth Callback - Debug Info:', this.debugInfo);
     
     // Let the library handle the callback
     this.oidcSecurityService.checkAuth().subscribe({
-      next: (authResult) => {
-        console.log('Auth Callback - Success:', authResult);
-      },
+      next: (authResult) => {},
       error: (err) => {
         console.error('Auth Callback - Error during checkAuth():', err);
         this.error = err.message || 'Authentication error';
