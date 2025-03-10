@@ -44,7 +44,7 @@ export class AuthConfigService {
       ignoreNonceAfterRefresh: false,
       
       // Enable secure options
-      secureRoutes: [location.origin]
+      secureRoutes: [environment.apiUrl]
     };
     
     AuthConfigService.config = cfg;

@@ -18,14 +18,11 @@ export class IFTokenInterceptor implements HttpInterceptor {
   constructor(private oidcSecurityService: OidcSecurityService) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    if (!request.url.includes(KEYCLOAK_BASE_URL)) { 
-      return this.oidcSecurityService.getAccessToken().pipe(
-        switchMap((token: string) => {
-          const clone = request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }); 
-          return next.handle(clone);
-        })
-      );
-    }
-    return next.handle(request);
+    return this.oidcSecurityService.getAccessToken().pipe(
+      switchMap((token: string) => {
+        const clone = request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }); 
+        return next.handle(clone);
+      })
+    );
   }
 }
