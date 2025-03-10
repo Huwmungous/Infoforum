@@ -56,7 +56,9 @@ export function buildConfig(config: string, realm : string, client: string): Ope
     ignoreNonceAfterRefresh: true,
     
     // Enable secure options
-    secureRoutes: [location.origin]
+    secureRoutes: [location.origin],
+
+    autoCleanStateAfterAuthentication: false
   };
   
   new LogAuthService().logAuthDebug('Config:', cfg);
