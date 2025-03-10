@@ -19,7 +19,7 @@ export class ClientService {
   login(configId: number = 1): void { 
     this.logout(); 
     this.oidcSecurityService.authorize(configId.toString());
-    this.afterLoginEvent.emit({ realm: 'LongmanRd', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' });
+    this.afterLoginEvent.emit({ realm: this.configService.realm, client:  this.configService.client });
   }
 
   logout(configId: number = 1): void {
@@ -27,7 +27,7 @@ export class ClientService {
     if (this.oidcSecurityService.isAuthenticated(cfg)) {
       this.oidcSecurityService.logoffAndRevokeTokens(cfg).subscribe(() => {
         window.location.href = window.location.origin;
-        this.afterLogoutEvent.emit({ realm: 'LongmanRd', client: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7' });
+        this.afterLogoutEvent.emit({ realm: this.configService.realm, client:  this.configService.client });
       });
     }
   }

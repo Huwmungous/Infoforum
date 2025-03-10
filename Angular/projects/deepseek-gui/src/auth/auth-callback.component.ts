@@ -30,13 +30,8 @@ export class AuthCallbackComponent implements OnInit {
       console.error('Auth Callback - Error in URL parameters:', error, errorDescription);
     }
     
-    // Log current URL for debugging
-    console.log('Current URL:', window.location.href);
-    
     this.oidcSecurityService.checkAuth().subscribe({
-      next: ({ isAuthenticated, userData, accessToken, idToken }) => {
-        console.log('Auth check result:', { isAuthenticated, hasUserData: !!userData, hasToken: !!accessToken });
-        
+      next: ({ isAuthenticated, userData, accessToken, idToken }) => {        
         if (isAuthenticated) {
           this.router.navigate(['/']);
         } else {
