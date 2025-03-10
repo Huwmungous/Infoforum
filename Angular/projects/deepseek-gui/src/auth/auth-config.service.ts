@@ -53,7 +53,7 @@ export function buildConfig(config: string, realm : string, client: string): Ope
     
     // Additional settings to improve state handling
     disableRefreshIdTokenAuthTimeValidation: true,
-    ignoreNonceAfterRefresh: true,
+    ignoreNonceAfterRefresh: false,
     
     // Enable secure options
     secureRoutes: [location.origin],
