@@ -40,13 +40,10 @@ export class AuthConfigService {
       
       // Additional settings to improve state handling
       disableRefreshIdTokenAuthTimeValidation: true,
-      ignoreNonceAfterRefresh: false,
+      // ignoreNonceAfterRefresh: false,
       
       // Enable secure options
-      secureRoutes: [location.origin],
-  
-      autoCleanStateAfterAuthentication: false,
-      historyCleanupOff: false
+      secureRoutes: [location.origin]
     };
     
     AuthConfigService.config = cfg;
