@@ -73,18 +73,13 @@ export function buildConfig(configId: string, clientName: string, clientId: stri
     scope: 'openid profile email offline_access',
     responseType: 'code',
     silentRenew: true,
-
     silentRenewUrl: window.location.origin + (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) + 'silent-renew.html',
-    
     useRefreshToken: true,
-
     storage: localStorage,
     
     // Add a unique prefix to avoid conflicts with Keycloak's own storage
     storagePrefix: 'app-auth-' + configId + '-',
-
     logLevel: environment.production ? 0 : 3,
-    
     postLoginRoute: '/',
     
     // Additional settings to improve state handling
