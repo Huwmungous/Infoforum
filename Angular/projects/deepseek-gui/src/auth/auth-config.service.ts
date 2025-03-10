@@ -21,8 +21,9 @@ export class AuthConfigService {
     
     // Normalize the app path to ensure consistency
     const appPath = environment.appName ? 
-      (environment.appName.startsWith('/') ? environment.appName : '/' + environment.appName) : 
-      '/';
+      (environment.appName.startsWith('/') ? environment.appName : 
+        '/' + environment.appName) : 
+        '/';
       
     // Ensure appPath ends with a slash
     const normalizedAppPath = appPath.endsWith('/') ? appPath : appPath + '/';
