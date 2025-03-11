@@ -33,7 +33,7 @@ export class AuthConfigService {
       configId: config,
       authority: KEYCLOAK_BASE_URL + realm,
       redirectUrl: location.origin + normalizedAppPath + 'auth-callback',
-      postLogoutRedirectUri: normalizedAppPath,
+      postLogoutRedirectUri: location.origin + normalizedAppPath,
       clientId: client,
       scope: 'openid profile email offline_access',
       responseType: 'code',
