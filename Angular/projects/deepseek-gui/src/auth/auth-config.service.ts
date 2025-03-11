@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core"; 
 import { OpenIdConfiguration } from "angular-auth-oidc-client";
 import { environment } from "../environments/environment";
+import { StorageLogService } from "./storage-log.service";
 
 export const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 
@@ -55,19 +56,18 @@ export class AuthConfigService {
       silentRenewTimeoutInSeconds: 20,
       
       // Cookie handling
-      useCookiesForState: true, // Try using cookies for state as a fallback
+      useCookiesForState: true,
       
       // CORS settings
       secureRoutes: [environment.apiUrl]
     };
     
+    new StorageLogService().log('Auth config:', JSON.stringify(cfg, null, 2));
+
+    debugger;
+
     // Store config for later reference
     AuthConfigService.config = cfg;
-    
-    // Log config in non-production for debugging
-    if (!environment.production) {
-      console.log('Auth config:', JSON.stringify(cfg, null, 2));
-    }
     
     return cfg;
   }

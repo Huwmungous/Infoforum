@@ -13,6 +13,8 @@ import { AuthModule, provideAuth } from 'angular-auth-oidc-client';
 })
 export class IFAuthModule {
   static forRoot(): ModuleWithProviders<IFAuthModule> { 
+    
+    // const cfg = AuthConfigService.buildConfig( '1', 'LongmanRd', '9F32F055-D2FF-4461-A47B-4A2FCA6720DA');
     const cfg = AuthConfigService.buildConfig( '1', 'LongmanRd', '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7');
     return {
       ngModule: IFAuthModule,
