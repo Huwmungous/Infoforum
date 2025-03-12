@@ -38,7 +38,7 @@ export class AuthConfigService {
       scope: 'openid profile email offline_access',
       responseType: 'code',
       silentRenew: true,
-      silentRenewUrl: location.origin + normalizedAppPath + 'silent-renew.html',
+      silentRenewUrl: location.origin + normalizedAppPath + 'silent-renew',
       useRefreshToken: true,
       storage: localStorage,
       storagePrefix: 'app-auth-' + config + '-',
