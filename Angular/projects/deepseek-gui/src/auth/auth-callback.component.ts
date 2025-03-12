@@ -3,19 +3,20 @@ import { ActivatedRoute } from '@angular/router';
 import { AuthModule, OidcSecurityService } from 'angular-auth-oidc-client';
 import { environment } from '../environments/environment';
 import { CommonModule } from '@angular/common';
+import { LoadingSpinnerComponent } from '../app/components/loading-spinner/loading-spinner.component';
 
 @Component({
   selector: 'app-auth-callback',
   templateUrl: './auth-callback.component.html',
   styleUrls: ['./auth-callback.component.scss'],
   standalone: true,
-  imports: [ CommonModule, AuthModule ]
+  imports: [CommonModule, AuthModule, LoadingSpinnerComponent]
 })
-
 export class AuthCallbackComponent implements OnInit {
   debugMode = !environment.production;
   debugInfo: any = {};
   error: string = '';
+  loading: boolean = false; // Add loading flag
 
   constructor(
     private oidcSecurityService: OidcSecurityService,
@@ -23,7 +24,7 @@ export class AuthCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    // Collect debug info
+    this.loading = true;
     this.debugInfo = {
       url: window.location.href,
       hasState: this.route.snapshot.queryParams['state'] ? true : false,
@@ -34,10 +35,13 @@ export class AuthCallbackComponent implements OnInit {
     
     // Let the library handle the callback
     this.oidcSecurityService.checkAuth().subscribe({
-      next: (authResult) => {},
+      next: (authResult) => {
+        this.loading = false;
+      },
       error: (err) => {
         console.error('Auth Callback - Error during checkAuth():', err);
         this.error = err.message || 'Authentication error';
+        this.loading = false;
       }
     });
   }
@@ -63,4 +67,5 @@ export class AuthCallbackComponent implements OnInit {
     }
     return items;
   }
+
 }

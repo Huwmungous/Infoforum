@@ -1,5 +1,6 @@
 
-<p>Processing login...</p>
-<!-- <mat-progress-spinner class="progress-spinner" mode="indeterminate" diameter="30" /> -->
 
-<div *ngIf="debugMode">Debug info: {{debugInfo | json}}</div><div *ngIf="error">Error: {{error}}</div>
+<div *ngIf="loading" class="spinner-container">
+    <p>Authorising ...</p>
+    <app-loading-spinner></app-loading-spinner> 
+</div>
