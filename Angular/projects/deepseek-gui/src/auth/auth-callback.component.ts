@@ -4,10 +4,15 @@ import { AuthModule, OidcSecurityService } from 'angular-auth-oidc-client';
 import { environment } from '../environments/environment';
 import { CommonModule } from '@angular/common';
 import { LoadingSpinnerComponent } from '../app/components/loading-spinner/loading-spinner.component';
+import { delay } from 'rxjs';
 
 @Component({
   selector: 'app-auth-callback',
-  templateUrl: './auth-callback.component.html',
+  template: `
+  <div *ngIf="loading" class="spinner-container">
+    <p class="msg">Authorising ...</p>
+    <app-loading-spinner></app-loading-spinner> 
+  </div>`,
   styleUrls: ['./auth-callback.component.scss'],
   standalone: true,
   imports: [CommonModule, AuthModule, LoadingSpinnerComponent]
@@ -16,7 +21,7 @@ export class AuthCallbackComponent implements OnInit {
   debugMode = !environment.production;
   debugInfo: any = {};
   error: string = '';
-  loading: boolean = false; // Add loading flag
+  loading: boolean = true;
 
   constructor(
     private oidcSecurityService: OidcSecurityService,
@@ -25,13 +30,14 @@ export class AuthCallbackComponent implements OnInit {
 
   ngOnInit() {
     this.loading = true;
-    this.debugInfo = {
-      url: window.location.href,
-      hasState: this.route.snapshot.queryParams['state'] ? true : false,
-      queryParams: this.route.snapshot.queryParams,
-      localStorage: this.getLocalStorageAuthItems(),
-      sessionStorage: this.getSessionStorageAuthItems()
-    };
+
+    // this.debugInfo = {
+    //   url: window.location.href,
+    //   hasState: this.route.snapshot.queryParams['state'] ? true : false,
+    //   queryParams: this.route.snapshot.queryParams,
+    //   localStorage: this.getLocalStorageAuthItems(),
+    //   sessionStorage: this.getSessionStorageAuthItems()
+    // };
     
     // Let the library handle the callback
     this.oidcSecurityService.checkAuth().subscribe({
@@ -46,26 +52,26 @@ export class AuthCallbackComponent implements OnInit {
     });
   }
 
-  private getLocalStorageAuthItems() {
-    const items: Record<string, string> = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.includes('auth')) {
-        items[key] = localStorage.getItem(key) || '';
-      }
-    }
-    return items;
-  }
+  // private getLocalStorageAuthItems() {
+  //   const items: Record<string, string> = {};
+  //   for (let i = 0; i < localStorage.length; i++) {
+  //     const key = localStorage.key(i);
+  //     if (key && key.includes('auth')) {
+  //       items[key] = localStorage.getItem(key) || '';
+  //     }
+  //   }
+  //   return items;
+  // }
 
-  private getSessionStorageAuthItems() {
-    const items: Record<string, string> = {};
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key && key.includes('auth')) {
-        items[key] = sessionStorage.getItem(key) || '';
-      }
-    }
-    return items;
-  }
+  // private getSessionStorageAuthItems() {
+  //   const items: Record<string, string> = {};
+  //   for (let i = 0; i < sessionStorage.length; i++) {
+  //     const key = sessionStorage.key(i);
+  //     if (key && key.includes('auth')) {
+  //       items[key] = sessionStorage.getItem(key) || '';
+  //     }
+  //   }
+  //   return items;
+  // }
 
 }
