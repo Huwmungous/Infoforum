@@ -54,9 +54,9 @@ builder.Services.AddAuthentication(options =>
 // Configure authorization policies.
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("RequireIntelligenceUsersGroup", policy =>
+    options.AddPolicy("MustBeIntelligenceUser", policy =>
     {
-        policy.RequireClaim("Mapped Groups", "IntelligenceUsers");
+        policy.RequireClaim("kc_groups", "IntelligenceUsers");
     });
 });
 

@@ -22,7 +22,7 @@ namespace IFOllama.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "RequireIntelligenceUsersGroup")]
+        [Authorize(Policy = "MustBeIntelligenceUser")]
         public async Task<IActionResult> SendPrompt([FromQuery] string conversationId, [FromBody] string prompt, string dest = "code")
         {
             try
@@ -58,7 +58,7 @@ namespace IFOllama.Controllers
 
 
         [HttpGet("query")]
-        [Authorize(Policy = "RequireIntelligenceUsersGroup")]
+        [Authorize(Policy = "MustBeIntelligenceUser")]
         public async Task<IActionResult> QueryCodebase([FromQuery] string query)
         {
             if (string.IsNullOrWhiteSpace(query))
