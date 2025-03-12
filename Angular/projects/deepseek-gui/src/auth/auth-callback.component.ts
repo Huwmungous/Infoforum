@@ -31,6 +31,8 @@ export class AuthCallbackComponent implements OnInit {
   ngOnInit() {
     this.loading = true;
 
+    delay(3000);
+
     // this.debugInfo = {
     //   url: window.location.href,
     //   hasState: this.route.snapshot.queryParams['state'] ? true : false,
