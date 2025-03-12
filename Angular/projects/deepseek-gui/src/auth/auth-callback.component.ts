@@ -39,8 +39,9 @@ export class AuthCallbackComponent implements OnInit {
       sessionStorage: this.getSessionStorageAuthItems()
     };
     
-    this.oidcSecurityService.checkAuth().pipe(delay(3000)).subscribe({
+    this.oidcSecurityService.checkAuth().subscribe({
       next: (authResult) => {
+        console.log('Auth Callback - Auth Result:', authResult);
         this.loading = false;
       },
       error: (err) => {
