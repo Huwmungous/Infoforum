@@ -64,10 +64,9 @@ export class AuthConfigService {
     
     new StorageLogService().log('Auth config:', JSON.stringify(cfg, null, 2));
 
-    debugger;
-
-    // Store config for later reference
-    AuthConfigService.config = cfg;
+    // debugger;
+    // // Store config for later reference
+    // AuthConfigService.config = cfg;
     
     return cfg;
   }
