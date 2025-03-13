@@ -62,7 +62,7 @@ export class AuthConfigService {
       secureRoutes: [environment.apiUrl]
     };
     
-    new StorageLogService().log('Auth config:', JSON.stringify(cfg, null, 2));
+    // new StorageLogService().log('Auth config:', JSON.stringify(cfg, null, 2));
     // debugger;
     // // Store config for later reference
     
