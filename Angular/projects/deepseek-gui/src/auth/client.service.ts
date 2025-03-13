@@ -60,7 +60,7 @@ export class ClientService {
     this.clearLocalAuthData();
     
     // Redirect to home and emit event
-    window.location.href = window.location.origin;
+    window.location.href = this.configService.postLogoutRedirectUri;
     this.afterLogoutEvent.emit({ 
       realm: this.configService.realm, 
       client: this.configService.client 

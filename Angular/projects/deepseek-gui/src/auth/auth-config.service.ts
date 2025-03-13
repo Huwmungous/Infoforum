@@ -16,6 +16,7 @@ export class AuthConfigService {
   get configId() : string { return AuthConfigService.config.configId || '1'; }
   get client() : string { return AuthConfigService.config.clientId || ''; }
   get realm() : string { return AuthConfigService.realm || ''; }
+  get postLogoutRedirectUri() : string { return AuthConfigService.config.postLogoutRedirectUri || '/'; }
 
   static buildConfig(config: string, realm : string, client: string): OpenIdConfiguration {
     AuthConfigService.realm = realm;
