@@ -81,7 +81,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
   onBlur() {
     this.placeholderText = 'Ask away!';  
-    this.placeholderLabel = 'Ask away';  
+    this.placeholderLabel = 'Ask away (shift+enter for newline)';  
   }
 
   onKeyDown(event: KeyboardEvent) {

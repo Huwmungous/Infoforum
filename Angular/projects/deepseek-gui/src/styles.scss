@@ -12,15 +12,15 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     --if-hl-medium-colour: #fa7733;
     --if-hl-dark-colour: #db592e;
 
-    --if-window-colour: rgb(240, 240, 240);
-    --if-paper-colour: whitesmoke;
+    --if-window-colour: rgb(245, 245, 245);
+    --if-paper-colour: rgb(252, 252, 252);
 
     --mdc-outlined-text-field-input-text-color: var(--if-dark-colour);
-    --mat-expansion-container-background-color: whitesmoke;
+    --mat-expansion-container-background-color: var(--if-paper-colour);
     --mat-expansion-container-text-color: var(--if-dark-colour);
-    --mat-expansion-container-shape: 6px;
+    --mat-expansion-container-shape: 3px;
     --mat-expansion-header-indicator-color: var(--if-dark-colour);
-    --mdc-elevated-card-container-color: white;
+    --mdc-elevated-card-container-color: var(--if-paper-colour);
     --mat-expansion-header-collapsed-state-height: 25px;
 
     --bs-danger-bg-subtle: var(--if-hl-light-colour);
@@ -35,7 +35,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     border-width: 0.25px;
     border-color: var(--if-dark-colour);
     background-color: var(--if-light-colour);
-    color: white;
+    color: var(--if-paper-colour);
     box-shadow: 2px 4px 6px var(--if-dark-colour);
     margin: 10px;
     cursor: pointer
@@ -47,15 +47,14 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     color: var(--if-dark-colour);
     background: var(--if-window-colour);
     box-shadow: 0 2px 6px var(--if-dark-colour);
-    padding: 2px;
-    border-radius: 6px;
+    border-radius: 10px;
     border-style: solid; 
     border-color: var(--if-medium-colour);
     border-width: 0.5px;
     white-space: pre-wrap;
     word-wrap: break-word;
-    padding: 3px;
-    margin: 5px;
+    padding: 1px;
+    margin: 1px;
 }
 
 @mixin expansion-panel-style {
