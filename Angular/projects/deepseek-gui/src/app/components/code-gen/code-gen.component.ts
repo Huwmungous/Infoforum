@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChildren, QueryList, OnInit, HostListener } from '@angular/core';
+import { Component, AfterViewInit, ViewChildren, QueryList, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -33,12 +33,14 @@ import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
 export class CodeGenComponent implements AfterViewInit, OnInit {
   
   @ViewChildren(CodeGenResponseComponent) codeGenResponses!: QueryList<CodeGenResponseComponent>;
+  @ViewChild('inputArea') inputArea!: ElementRef;
 
   prompt: string = '';
   responses: { response: string }[] = [];
   loading: boolean = false;
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
+  placeholderText: string = 'Ask away!'; // Placeholder text
 
   private isDragging = false;
   private startX = 0;
@@ -57,6 +59,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
   ngAfterViewInit() {
     this.codeGenResponses.changes.subscribe(() => { });
+    this.inputArea.nativeElement.focus(); // Set focus on the textarea when the component loads
   }
 
   ngOnInit() {
@@ -68,6 +71,14 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
         console.error('Error receiving quote of the day:', err);
       }
     });
+  }
+
+  onFocus() {
+    this.placeholderText = ''; // Clear placeholder text on focus
+  }
+
+  onBlur() {
+    this.placeholderText = 'Ask away!'; // Restore placeholder text on blur
   }
 
   onSubmit() {
@@ -92,11 +103,13 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
             firstResponseComponent.prompt = this.prompt; 
           }
           this.prompt = '';
+          this.inputArea.nativeElement.focus(); // Set focus back to the textarea after sending the prompt
         },
         error: (err) => {
           console.error('Error:', err);
           this.error = 'An error occurred while processing your request.';
           this.loading = false;
+          this.inputArea.nativeElement.focus(); // Set focus back to the textarea in case of error
         },
         complete: () => {
           this.loading = false; 

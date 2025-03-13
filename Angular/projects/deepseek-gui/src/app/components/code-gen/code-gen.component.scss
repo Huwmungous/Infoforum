@@ -34,6 +34,7 @@
 }
 
 .input-area{
+  caret-color: var(--if-dark-colour);
   background-color: var(--if-paper-colour);
   border-radius: 8px;
   resize: both;
