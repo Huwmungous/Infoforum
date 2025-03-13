@@ -41,6 +41,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
   placeholderText: string = 'Ask away!'; // Placeholder text
+  placeholderLabel: string = 'Ask away'; // Label text
 
   private isDragging = false;
   private startX = 0;
@@ -74,11 +75,20 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   }
 
   onFocus() {
-    this.placeholderText = ''; // Clear placeholder text on focus
+    this.placeholderText = '';
+    this.placeholderLabel = 'Ask away (shift+enter for newline)'; 
   }
 
   onBlur() {
-    this.placeholderText = 'Ask away!'; // Restore placeholder text on blur
+    this.placeholderText = 'Ask away!';  
+    this.placeholderLabel = 'Ask away';  
+  }
+
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault(); 
+      this.onSubmit(); 
+    }
   }
 
   onSubmit() {
