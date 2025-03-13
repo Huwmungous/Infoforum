@@ -33,12 +33,18 @@
   flex-direction: column;
 }
 
-.input-area{
+.input-area {
   caret-color: var(--if-dark-colour);
   background-color: var(--if-paper-colour);
   border-radius: 8px;
-  resize: both;
+  resize: vertical;
   overflow: auto;
+  width: 100%;
+}
+
+
+.input-area:focus {
+  border: 1px solid var(--if-light-colour); /* Border when focused */
 }
 
 .button-container {
@@ -82,19 +88,6 @@ mat-form-field {
     color: #000;
   }
 
-  textarea {
-    flex: 1;
-    background: #fff;
-    color: #000;
-    resize: none; /* Prevent resizing */
-    ::placeholder {
-      color: #000;
-      opacity: 1;
-    }
-    ::content {
-      color: #000;
-    }
-  }
 }
 
 .send-button {
