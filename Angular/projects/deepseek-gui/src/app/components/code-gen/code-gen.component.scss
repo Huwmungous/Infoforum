@@ -33,6 +33,12 @@
   flex-direction: column;
 }
 
+.right-pane {
+  flex: 1;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
 .input-area {
   caret-color: var(--if-dark-colour);
   background-color: var(--if-paper-colour);
@@ -59,16 +65,14 @@
   cursor: col-resize;
 }
 
-.right-pane {
-  flex: 1;
-  padding: 10px;
-  box-sizing: border-box;
-  overflow-y: auto;
-}
+
 
 .responses-container {
   height: 100%;
   overflow-y: auto;
+  margin-top: 0px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .request-card {

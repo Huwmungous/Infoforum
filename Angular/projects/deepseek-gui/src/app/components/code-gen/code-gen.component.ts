@@ -122,8 +122,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
           this.inputArea.nativeElement.focus(); // Set focus back to the textarea in case of error
         },
         complete: () => {
-          this.loading = false; 
-          this.codeGenResponses.forEach(response => response.highlightCode());
+          this.loading = false;
         }
       });
   }

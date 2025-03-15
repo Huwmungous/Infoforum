@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,6 +28,10 @@ export class CodeGenResponseComponent {
   prompt: string = '';
   private partialChunk: string = '';
 
+  ngAfterViewChecked(): void {
+    this.highlightCode();
+  } 
+
   processChunk(chunk: string) { 
     this.partialChunk += chunk; 
     const parts = this.partialChunk.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g); 
@@ -55,6 +59,8 @@ export class CodeGenResponseComponent {
         return { type: 'text', content: formattedContent };
       }
     }).filter(section => section !== null);
+
+    this.highlightCode();
   }
 
   highlightCode() {
