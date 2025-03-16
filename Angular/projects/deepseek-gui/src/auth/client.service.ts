@@ -19,8 +19,6 @@ export class ClientService {
   }
 
   logout(configId: string = '1'): void { 
-    
-    // First check if authenticated
     this.oidcSecurityService.isAuthenticated(configId).subscribe((isAuthenticated) => {
       if (isAuthenticated) {
         // Try to properly logout with token revocation
@@ -31,7 +29,6 @@ export class ClientService {
           },
           error: (error) => {
             console.warn('Error during logoffAndRevokeTokens:', error);
-            
             // Fallback to basic logout without revocation
             console.log('Attempting fallback logout method');
             this.oidcSecurityService.logoff(configId).subscribe({
@@ -41,7 +38,6 @@ export class ClientService {
               },
               error: (fallbackError) => {
                 console.error('Fallback logout also failed:', fallbackError);
-                
                 // Last resort: clear local auth data and redirect
                 this.forceLogout();
               }
