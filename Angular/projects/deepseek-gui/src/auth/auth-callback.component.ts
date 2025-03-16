@@ -29,16 +29,7 @@ export class AuthCallbackComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loading = true;
-
-    this.debugInfo = {
-      url: window.location.href,
-      hasState: this.route.snapshot.queryParams['state'] ? true : false,
-      queryParams: this.route.snapshot.queryParams,
-      localStorage: this.getLocalStorageAuthItems(),
-      sessionStorage: this.getSessionStorageAuthItems()
-    };
-    
+    this.loading = true;    
     this.oidcSecurityService.checkAuth().subscribe({
       next: (authResult) => {
         console.log('Auth Callback - Auth Result:', authResult);
@@ -50,28 +41,6 @@ export class AuthCallbackComponent implements OnInit {
         this.loading = false;
       }
     });
-  }
-
-  private getLocalStorageAuthItems() {
-    const items: Record<string, string> = {};
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.includes('auth')) {
-        items[key] = localStorage.getItem(key) || '';
-      }
-    }
-    return items;
-  }
-
-  private getSessionStorageAuthItems() {
-    const items: Record<string, string> = {};
-    for (let i = 0; i < sessionStorage.length; i++) {
-      const key = sessionStorage.key(i);
-      if (key && key.includes('auth')) {
-        items[key] = sessionStorage.getItem(key) || '';
-      }
-    }
-    return items;
   }
 
 

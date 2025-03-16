@@ -14,10 +14,7 @@ export class SilentRenewComponent implements OnInit {
   ngOnInit() {
     this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated }) => {
       console.log('Silent Renew - Auth Result:', isAuthenticated);
-      
-      if (isAuthenticated) {
-        // Redirect user to the home page or any other place after successful authentication
-      } else {
+      if (!isAuthenticated) {
         this.oidcSecurityService.authorize();
       }
     });
