@@ -25,7 +25,7 @@ export class IntelligenceComponent {
   
   conversationId: string = generateGUID(); 
 
-  constructor( @Inject(ClientService) private clientService : ClientService ) { }
+  constructor(private clientService : ClientService) {}
 
   createNewConversation() {
     this.conversationId = generateGUID(); 
