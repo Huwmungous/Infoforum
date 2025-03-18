@@ -35,8 +35,7 @@ namespace IFGlobal
         {
             get
             {
-                if (_appName == null)
-                    _appName = Assembly.GetEntryAssembly()?.GetName().Name;
+                _appName ??= Assembly.GetEntryAssembly()?.GetName().Name;
                 return _appName!;
             }
         }
