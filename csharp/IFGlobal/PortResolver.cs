@@ -5,7 +5,7 @@ namespace IFGlobal
 {
     public class PortResolver
     {
-        static string? _appName;
+        static string _appName = "";
 
         public static int GetPort() { return GetPort(AppName); }
 
