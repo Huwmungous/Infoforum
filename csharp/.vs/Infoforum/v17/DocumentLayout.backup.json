@@ -1,20 +1,7 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\repos\\Infoforum\\csharp\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\controllers\\ifollamacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\controllers\\ifollamacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|d:\\repos\\infoforum\\csharp\\ifollama\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6D4A9F63-9BDD-415F-BA74-72FB6436D3F2}|IFOllama\\IFOllama.csproj|solutionrelative:ifollama\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -22,7 +9,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": -1,
           "Children": [
             {
               "$type": "Bookmark",
@@ -39,45 +26,20 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\appsettings.json",
-              "RelativeDocumentMoniker": "IFOllama\\appsettings.json",
-              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\appsettings.json",
-              "RelativeToolTip": "IFOllama\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-03-15T09:33:50.69Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "IFOllamaController.cs",
-              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Controllers\\IFOllamaController.cs",
-              "RelativeDocumentMoniker": "IFOllama\\Controllers\\IFOllamaController.cs",
-              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Controllers\\IFOllamaController.cs",
-              "RelativeToolTip": "IFOllama\\Controllers\\IFOllamaController.cs",
-              "ViewState": "AgIAAGkAAAAAAAAAAAAAAHMAAABIAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-15T09:32:27.638Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
-              "RelativeDocumentMoniker": "IFOllama\\Program.cs",
-              "ToolTip": "D:\\repos\\Infoforum\\csharp\\IFOllama\\Program.cs",
-              "RelativeToolTip": "IFOllama\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAYAAAAQAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-03-14T12:03:22.283Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             }
           ]
         }
