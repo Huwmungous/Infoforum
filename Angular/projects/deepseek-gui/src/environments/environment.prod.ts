@@ -1,6 +1,6 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://longmanrd.net/AiApi', 
+    apiUrl: 'https://longmanrd.net/aiapi',
     consoleLog: true,
     appName: '/intelligence/'
   };
