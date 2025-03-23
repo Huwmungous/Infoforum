@@ -1,112 +1,83 @@
 ﻿using Newtonsoft.Json;
 using Npgsql;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BTTranslate
 {
     class Program
     {
-        static async Task Main(string[] args)
+        private static string accessToken = "";
+        private static readonly string ifollamaApiUrl = "https://longmanrd.net/aiapi";
+        private static string connectionString = "";
+        private static readonly string conversationId = Guid.NewGuid().ToString();
+
+        private static NpgsqlConnection? readConnection;
+        private static NpgsqlConnection? writeConnection;
+
+        private static string sendPromptUrl = $"{ifollamaApiUrl}?conversationId={Uri.EscapeDataString(conversationId)}&dest=chat";
+
+        static async Task Main()
         {
             Console.WriteLine("BTTranslate started.");
-
-            // Keycloak token endpoint and service account credentials
-            string tokenEndpoint = "https://longmanrd.net/auth/realms/LongmanRd/protocol/openid-connect/token";
-            string clientId = "53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7";
-            string clientSecret = "YOUR_CLIENT_SECRET"; // Replace with your actual secret
-            string scope = "openid"; // Add additional scopes if needed
-
-            // Obtain access token using client credentials flow
-            string accessToken = await GetAccessTokenAsync(tokenEndpoint, clientId, clientSecret, scope);
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                Console.WriteLine("Failed to obtain access token from Keycloak.");
-                return;
-            }
-            Console.WriteLine("Access token acquired.");
-
-            string connectionString = GetConnStr();
-
-            // IFOllama API URL – update if necessary
-            string ifollamaApiUrl = "https://longmanrd.net/AiApi";
+            await AcquireTokenAsync();
+            GetConnStr();
 
             try
             {
-                using (var conn = new NpgsqlConnection(connectionString))
+                using (var reader = UpdatableEntriesReader())
                 {
-                    await conn.OpenAsync();
-
-                    // Query to retrieve records needing translation; update table/column names as required
-                    string selectQuery =
-                        "WITH foreignlanguages as " +
-                        "( " +
-                        "  SELECT l.code langcode " +
-                        "  FROM dbo.LANGUAGE l WHERE " +
-                        "  l.code<> 'en' " +
-                        "), " +
-                        "englishentries as " +
-                        "( " +
-                        "  SELECT code, entry " +
-                        "  FROM dbo.languageentry " +
-                        "  WHERE lang = 'en' " +
-                        "), " +
-                        "foreignentries as " +
-                        "( " +
-                        "  SELECT code, entry " +
-                        "  FROM dbo.languageentry " +
-                        "  WHERE lang<> 'en' " +
-                        ")  " +
-                        "SELECT * from foreignlanguages fl, englishentries ee " +
-                        "LEFT JOIN foreignentries fe on fe.code = ee.code " +
-                        "WHERE fe.entry IS NULL ";
-
-                    using (var selectCmd = new NpgsqlCommand(selectQuery, conn))
-                    using (var reader = await selectCmd.ExecuteReaderAsync())
+                    using (var httpClient = new HttpClient())
                     {
-                        while (await reader.ReadAsync())
+                        using var writeConnection = new NpgsqlConnection(connectionString);
                         {
-                            int recordId = reader.GetInt32(0);
-                            string originalText = reader.GetString(1);
-
-                            // Generate a conversation ID for this translation request
-                            string conversationId = Guid.NewGuid().ToString();
-
-                            // Build the URL for the IFOllama API endpoint.
-                            // Optionally, include additional query parameters (e.g., dest=code).
-                            string sendPromptUrl = $"{ifollamaApiUrl}?conversationId={Uri.EscapeDataString(conversationId)}&dest=code";
-
-                            // Prepare the JSON payload (in this example, just the text)
-                            string promptJson = JsonConvert.SerializeObject(originalText);
-                            var requestContent = new StringContent(promptJson, Encoding.UTF8, "application/json");
-
-                            // Create an HTTP client and add the access token as a Bearer token in the header.
-                            using (var httpClient = new HttpClient())
+                            string englishentry = "";
+                            while (reader.Read())
                             {
+                                if (reader.GetString(2) != englishentry)
+                                {
+                                    englishentry = reader.GetString(2);
+                                    Console.WriteLine();
+                                    Console.WriteLine($"*** Translating '{englishentry}' ***");
+                                    Console.WriteLine(new string('-', englishentry.Length + 22));
+                                }
+
+                                string langcode = reader.GetString(0);
+                                string entrycode = reader.GetString(1);
+
+                                string promptJson = JsonConvert.SerializeObject($"The equivalent of the phrase '{englishentry}' in the language with iso code '{langcode}'. The translation in your response MUST be tagged with '<trans>' and '</trans>'. Please do not include any variables or placeholders such as 'X' or [X] in the phrase you come up with.");
+                                var requestContent = new StringContent(promptJson, Encoding.UTF8, "application/json");
+
                                 httpClient.DefaultRequestHeaders.Authorization =
                                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
                                 var response = await httpClient.PostAsync(sendPromptUrl, requestContent);
                                 if (response.IsSuccessStatusCode)
                                 {
-                                    string translation = await response.Content.ReadAsStringAsync();
-                                    Console.WriteLine($"Record {recordId} translated: {translation}");
+                                    string responseContent = await response.Content.ReadAsStringAsync();
+                                    string translation = ExtractTranslationFromResponse(responseContent);
 
-                                    // Insert the translation into your database; update the query as needed.
-                                    string insertQuery = "INSERT INTO translations (record_id, translated_text) VALUES (@id, @translation)";
-                                    using (var insertCmd = new NpgsqlCommand(insertQuery, conn))
-                                    {
-                                        insertCmd.Parameters.AddWithValue("id", recordId);
-                                        insertCmd.Parameters.AddWithValue("translation", translation);
-                                        await insertCmd.ExecuteNonQueryAsync();
-                                    }
+                                    Console.WriteLine($"'{translation}' in '{langcode}'");
+
+                                    //// Insert the translation into your database; update the query as needed.
+                                    //string insertQuery = "INSERT INTO translations (record_id, translated_text) VALUES (@id, @translation)";
+                                    //using (var insertCmd = new NpgsqlCommand(insertQuery, conn))
+                                    //{
+                                    //    insertCmd.Parameters.AddWithValue("id", recordId);
+                                    //    insertCmd.Parameters.AddWithValue("translation", translation);
+                                    //    await insertCmd.ExecuteNonQueryAsync();
+                                    //}
+                                    responseContent = string.Empty;
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"Failed to translate record {recordId}. Status code: {response.StatusCode}");
+                                    Console.WriteLine($"Failed to translate record {englishentry}. Status code: {response.StatusCode}");
                                 }
                             }
                         }
                     }
+
+                    readConnection?.Close();
                 }
             }
             catch (Exception ex)
@@ -117,7 +88,85 @@ namespace BTTranslate
             Console.WriteLine("BTTranslate processing complete.");
         }
 
-        private static string GetConnStr()
+
+        private static string ExtractTranslationFromResponse(string responseContent)
+        {
+            ReadOnlySpan<char> responseSpan = responseContent.AsSpan();
+            ReadOnlySpan<char> startTag = "<trans>".AsSpan();
+            ReadOnlySpan<char> endTag = "</trans>".AsSpan();
+
+            int startIndex = responseSpan.IndexOf(startTag);
+            if (startIndex == -1)
+            {
+                throw new Exception("Start tag '<trans>' not found in response content.");
+            }
+            startIndex += startTag.Length;
+
+            int endIndex = responseSpan.Slice(startIndex).IndexOf(endTag);
+            if (endIndex == -1)
+            {
+                throw new Exception("End tag '</trans>' not found in response content.");
+            }
+
+            ReadOnlySpan<char> translationSpan = responseSpan.Slice(startIndex, endIndex);
+            return translationSpan.ToString();
+        }
+
+
+
+        private static NpgsqlDataReader UpdatableEntriesReader()
+        {
+            readConnection = new NpgsqlConnection(connectionString);
+            readConnection.Open();
+            // Query to retrieve records needing translation; update table/column names as required
+            string selectQuery =
+            "WITH foreignlanguages as " +
+            "( " +
+            "  SELECT l.code langcode " +
+            "  FROM dbo.LANGUAGE l WHERE " +
+            "  l.code<> 'en' " +
+            "), " +
+            "englishentries as " +
+            "( " +
+            "  SELECT code, entry " +
+            "  FROM dbo.languageentry " +
+            "  WHERE lang = 'en' " +
+            "), " +
+            "foreignentries as " +
+            "( " +
+            "  SELECT code, entry " +
+            "  FROM dbo.languageentry " +
+            "  WHERE lang<> 'en' " +
+            ")  " +
+            "SELECT langcode, ee.code entrycode, ee.entry englishentry " +
+            "FROM foreignlanguages fl, englishentries ee " +
+            "LEFT JOIN foreignentries fe on fe.code = ee.code " +
+            "WHERE fe.entry IS NULL ";
+
+            var result = new NpgsqlCommand(selectQuery, readConnection).ExecuteReader();
+
+            return result;
+        }
+
+        private static async Task AcquireTokenAsync()
+        {
+            // Keycloak token endpoint and service account credentials
+            string tokenEndpoint = "https://longmanrd.net/auth/realms/LongmanRd/protocol/openid-connect/token";
+            string clientId = "E1BF0E47-FEA7-4C8E-8449-39971E549BBC";
+            string clientSecret = "vIY62Sf8Obi5kBzCNmeyDH0wH3oabCj6";
+            string scope = "openid";
+
+            // Obtain access token using client credentials flow
+            accessToken = await GetAccessTokenAsync(tokenEndpoint, clientId, clientSecret, scope);
+            if (string.IsNullOrEmpty(accessToken))
+            {
+                Console.WriteLine("Failed to obtain access token from Keycloak.");
+                return;
+            }
+            Console.WriteLine("Access token acquired.");
+        }
+
+        private static void GetConnStr()
         {
             // Get the host and password from environment variables
             string? host = Environment.GetEnvironmentVariable("BT_DBSERVER");
@@ -135,7 +184,7 @@ namespace BTTranslate
             }
 
             // Database connection details – update with your actual connection string
-            return $"Host={host};Username=languagemanager;Password={password};Database=RozeBowl";
+            connectionString = $"Host={host};Username=languagemanager;Password={password};Database=RozeBowl";
         }
 
         /// <summary>
