@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Npgsql;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace BTTranslate
 {
@@ -11,7 +12,7 @@ namespace BTTranslate
         private static string accessToken = "";
         private static readonly string ifollamaApiUrl = "https://longmanrd.net/aiapi";
         private static string connectionString = "";
-        private static readonly string conversationId = Guid.NewGuid().ToString();
+        private static readonly string conversationId = "3E48E5D3-6EE3-4E6D-B816- 8E6E9FB23C37";
 
         private static NpgsqlConnection? readConnection;
         private static readonly HashSet<string> updatedLanguages = [];
@@ -77,12 +78,14 @@ namespace BTTranslate
         {
             string promptJson =
                 "I want to send you a series of English words or phrases and language codes. " +
-                "In each case I want a single translation of the English phrase in the modern language denoted by the language code." +
-                "The translation in your response MUST be tagged with <trans> and </trans>. " +
-                "Please do NOT include any variables or placeholders such as 'X' or [X] in the phrase you come up with. " +
-                "If in doubt, the terms should relate to BloodBowl, rugby, competitions, teams or sports in general, or be captions or actions of a software application." +
+                "In each case, I want a single translation of the English phrase in the modern language denoted by the language code. " +
+                "The translation in your response MUST be enclosed within <trans></trans> tags. " +
+                "It is critically important you do not give me any other extra tags, especially between the <trans> and </trans> tags in any reponse. " +
+                "It is critically important that only one translation is included in any reponse. " +
+                "Please ensure that your response adheres to this format strictly. " +
+                "If in doubt, the terms relate to BloodBowl, rugby, competitions, teams, or sports in general, or be captions or actions of a software application. " +
                 "The term 'BreakTackle' should remain unchanged in any translation.";
-            
+
             var requestContent = new StringContent(JsonConvert.SerializeObject(promptJson), Encoding.UTF8, "application/json");
 
             httpClient.DefaultRequestHeaders.Authorization =
@@ -91,34 +94,69 @@ namespace BTTranslate
             var response = await httpClient.PostAsync(sendPromptUrl, requestContent);
 
             response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            using var stream = new StreamReader(responseStream);
+            _ = await stream.ReadToEndAsync();
+        }
+
+        private static async Task SubmitErrorInstruction(HttpClient httpClient, string error)
+        {
+            string promptJson = $"Your last response was no good because {error}.  Please remember this.";
+
+            var instructionContent = new StringContent(JsonConvert.SerializeObject(promptJson), Encoding.UTF8, "application/json");
+
+            httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await httpClient.PostAsync(sendPromptUrl, instructionContent);
+
+            response.EnsureSuccessStatusCode();
+
+            using var responseStream = await response.Content.ReadAsStreamAsync();
+            using var stream = new StreamReader(responseStream);
+            _ = await stream.ReadToEndAsync();
         }
 
         private static async Task<string> RequestTranslation(HttpClient httpClient, string englishentry, string langcode)
         {
+            int retries = 3;
             string result = "";
-            string promptJson = JsonConvert.SerializeObject($"'{englishentry}' in the modern language with code '{langcode}'");
+            string promptJson = JsonConvert.SerializeObject($"Please translate '{englishentry}' into the language denoted by '{langcode}'");
             var requestContent = new StringContent(promptJson, Encoding.UTF8, "application/json");
 
             httpClient.DefaultRequestHeaders.Authorization =
                 new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
 
-            using (var response = await httpClient.PostAsync(sendPromptUrl, requestContent))
+            while (retries > 0)
             {
-                response.EnsureSuccessStatusCode();
+                try
+                {
+                    using (var response = await httpClient.PostAsync(sendPromptUrl, requestContent))
+                    {
 
-                using var responseStream = await response.Content.ReadAsStreamAsync();
-                using var stream = new StreamReader(responseStream);
-                char[] buffer = new char[READ_BUF_SIZE];
-                int read;
+                        response.EnsureSuccessStatusCode();
 
-                StringBuilder responseBuilder = new();
+                        using var responseStream = await response.Content.ReadAsStreamAsync();
+                        using var stream = new StreamReader(responseStream);
+                        var responseContent = await stream.ReadToEndAsync();
 
-                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                    responseBuilder.Append(buffer, 0, read);
-
-                result = ExtractTranslationFromResponse(responseBuilder.ToString(), langcode);
+                        result = ExtractTranslationFromResponse(responseContent, langcode);
+                        retries = 0;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: " + ex.Message);
+                    await SubmitErrorInstruction(httpClient, ex.Message);
+                    result = "";
+                    retries--;
+                    if (retries <= 0)
+                        Console.WriteLine("maximum retries reached - giving up");
+                    else
+                        Console.WriteLine($"retrying ({retries} left)");
+                }
             }
-
             return result;
         }
 
@@ -156,49 +194,25 @@ namespace BTTranslate
 
         private static string ExtractTranslationFromResponse(string responseContent, string langcode)
         {
-            try
-            {
-                ReadOnlySpan<char> responseSpan = responseContent.AsSpan();
-                ReadOnlySpan<char> startTag = "<trans>".AsSpan();
-                ReadOnlySpan<char> endTag = "</trans>".AsSpan();
-                ReadOnlySpan<char> thinkStartTag = "<think>".AsSpan();
-                ReadOnlySpan<char> thinkEndTag = "</think>".AsSpan();
+            // Log the raw response for debugging
+            // Console.WriteLine("Raw Response: " + responseContent);
 
-                // Remove text between <think> and </think> tags
-                int thinkEndIndex = -1;
-                while (true)
-                {
-                    int thinkStartIndex = responseSpan.IndexOf(thinkStartTag);
-                    if (thinkStartIndex >= 0)
-                    {
-                        thinkEndIndex = responseSpan[thinkStartIndex..].IndexOf(thinkEndTag);
+            // Remove the think section if present
+            string cleanedResponseContent = Regex.Replace(responseContent, "<think>.*?</think>", string.Empty, RegexOptions.Singleline);
 
-                        if (thinkEndIndex == -1)
-                            throw new Exception("No Closing Tag '</think>' in Response.");
+            // Find translation between <trans> and </trans>
+            int startIndex = cleanedResponseContent.IndexOf("<trans>");
+            if (startIndex == -1)
+                throw new Exception("The start tag '<trans>' was not found in the response content.");
 
-                        thinkEndIndex += thinkEndTag.Length;
-                        responseSpan = responseSpan[..thinkStartIndex].ToString() + responseSpan[(thinkStartIndex + thinkEndIndex)..].ToString();
-                    }
+            startIndex += "<trans>".Length;
 
-                    int transStartIndex = responseSpan.IndexOf(startTag);
-                    if (transStartIndex == -1)
-                        throw new Exception("Start tag '<trans>' not found in response content.");
+            int endIndex = cleanedResponseContent.IndexOf("</trans>", startIndex);
+            if (endIndex == -1)
+                throw new Exception("The end tag '</trans>' was not found in the response content.");
 
-                    transStartIndex += startTag.Length;
-
-                    int transEndIndex = responseSpan[transStartIndex..].IndexOf(endTag);
-                    if (transEndIndex == -1)
-                        throw new Exception("End tag '</trans>' not found in response content.");
-
-                    ReadOnlySpan<char> translationSpan = responseSpan.Slice(transStartIndex, transEndIndex);
-                    return translationSpan.ToString();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error translating to '{langcode}': " + ex.Message);
-                return "";
-            }
+            // Extract the translation
+            return cleanedResponseContent[startIndex..endIndex].Trim();
         }
 
         private static NpgsqlDataReader UpdatableEntriesReader()
@@ -309,3 +323,5 @@ namespace BTTranslate
         public string? token_type { get; set; }
     }
 }
+
+
