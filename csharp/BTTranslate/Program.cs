@@ -1,29 +1,30 @@
 ﻿using Newtonsoft.Json;
 using Npgsql;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text;
-using System.Transactions;
 
 namespace BTTranslate
 {
     class Program
     {
+        private static readonly int READ_BUF_SIZE = 1024;
+
         private static string accessToken = "";
         private static readonly string ifollamaApiUrl = "https://longmanrd.net/aiapi";
         private static string connectionString = "";
         private static readonly string conversationId = Guid.NewGuid().ToString();
 
         private static NpgsqlConnection? readConnection;
+        private static readonly HashSet<string> updatedLanguages = [];
 
-        private static string sendPromptUrl = $"{ifollamaApiUrl}?conversationId={Uri.EscapeDataString(conversationId)}&dest=chat";
-        private static string insertQuery = "INSERT INTO dbo.languageentry( code, entry, lang) VALUES(@code, @entry, @lang);";
+        private static readonly string sendPromptUrl = $"{ifollamaApiUrl}?conversationId={Uri.EscapeDataString(conversationId)}&dest=chat";
+        private static readonly string insertQuery = "INSERT INTO dbo.languageentry( code, entry, lang) VALUES(@code, @entry, @lang);";
+        private static readonly string updateLanguageQuery = "UPDATE dbo.language SET version = @version WHERE code = @code";
 
         static async Task Main()
         {
             Console.WriteLine("BTTranslate started.");
             await AcquireTokenAsync();
-            GetConnStr();
+            BuildConnStr();
 
             try
             {
@@ -31,6 +32,8 @@ namespace BTTranslate
                 {
                     using (var httpClient = new HttpClient())
                     {
+                        await SubmitBasicIntructions(httpClient);
+
                         using var writeConnection = new NpgsqlConnection(connectionString);
                         {
                             writeConnection.Open();
@@ -48,15 +51,19 @@ namespace BTTranslate
                                 string langcode = reader.GetString(0);
                                 string entrycode = reader.GetString(1);
 
-                                string translation = await RequestTranslation(httpClient, writeConnection, englishentry, langcode, entrycode);
+                                string translation = await RequestTranslation(httpClient, englishentry, langcode);
 
-                                InsertTranslationEntry(writeConnection, langcode, entrycode, translation);
+                                if (translation != string.Empty)
+                                    InsertTranslationEntry(writeConnection, langcode, entrycode, translation);
                             }
                         }
                     }
 
                     readConnection?.Close();
                 }
+
+                // Update the dbo.language table with the new version for each language code
+                UpdateLanguageVersions();
             }
             catch (Exception ex)
             {
@@ -66,10 +73,30 @@ namespace BTTranslate
             Console.WriteLine("BTTranslate processing complete.");
         }
 
-        private static async Task<string> RequestTranslation(HttpClient httpClient, NpgsqlConnection writeConnection, string englishentry, string langcode, string entrycode)
+        private static async Task SubmitBasicIntructions(HttpClient httpClient)
+        {
+            string promptJson =
+                "I want to send you a series of English words or phrases and language codes. " +
+                "In each case I want a single translation of the English phrase in the modern language denoted by the language code." +
+                "The translation in your response MUST be tagged with <trans> and </trans>. " +
+                "Please do NOT include any variables or placeholders such as 'X' or [X] in the phrase you come up with. " +
+                "If in doubt, the terms should relate to BloodBowl, rugby, competitions, teams or sports in general, or be captions or actions of a software application." +
+                "The term 'BreakTackle' should remain unchanged in any translation.";
+            
+            var requestContent = new StringContent(JsonConvert.SerializeObject(promptJson), Encoding.UTF8, "application/json");
+
+            httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var response = await httpClient.PostAsync(sendPromptUrl, requestContent);
+
+            response.EnsureSuccessStatusCode();
+        }
+
+        private static async Task<string> RequestTranslation(HttpClient httpClient, string englishentry, string langcode)
         {
             string result = "";
-            string promptJson = JsonConvert.SerializeObject($"I need the equivalent of the phrase '{englishentry}' in the language with iso code '{langcode}'. The translation in your response MUST be tagged with '<trans>' and '</trans>'. Please do not include any variables or placeholders such as 'X' or [X] in the phrase you come up with.");
+            string promptJson = JsonConvert.SerializeObject($"'{englishentry}' in the modern language with code '{langcode}'");
             var requestContent = new StringContent(promptJson, Encoding.UTF8, "application/json");
 
             httpClient.DefaultRequestHeaders.Authorization =
@@ -79,22 +106,17 @@ namespace BTTranslate
             {
                 response.EnsureSuccessStatusCode();
 
-                using (var responseStream = await response.Content.ReadAsStreamAsync())
-                using (var reader = new StreamReader(responseStream))
-                {
-                    char[] buffer = new char[512];
-                    int read;
+                using var responseStream = await response.Content.ReadAsStreamAsync();
+                using var stream = new StreamReader(responseStream);
+                char[] buffer = new char[READ_BUF_SIZE];
+                int read;
 
-                    StringBuilder responseBuilder = new();
+                StringBuilder responseBuilder = new();
 
-                    // Read the stream until the end
-                    while ((read = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                        responseBuilder.Append(buffer, 0, read);
+                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    responseBuilder.Append(buffer, 0, read);
 
-                    string responseContent = responseBuilder.ToString();
-
-                    result = ExtractTranslationFromResponse(responseContent);
-                }
+                result = ExtractTranslationFromResponse(responseBuilder.ToString(), langcode);
             }
 
             return result;
@@ -102,57 +124,82 @@ namespace BTTranslate
 
         private static void InsertTranslationEntry(NpgsqlConnection writeConnection, string langcode, string entrycode, string translation)
         {
+            Console.WriteLine($"Writing '{entrycode}', '{translation}', '{langcode}'");
             using (var insertCmd = new NpgsqlCommand(insertQuery, writeConnection))
             {
                 insertCmd.Parameters.AddWithValue("@code", entrycode);
-                insertCmd.Parameters.AddWithValue("@entry", translation);
+                insertCmd.Parameters.AddWithValue("@entry", translation.Trim());
                 insertCmd.Parameters.AddWithValue("@lang", langcode);
                 insertCmd.ExecuteNonQuery();
             }
+
+            // Add the language code to the HashSet
+            updatedLanguages.Add(langcode);
         }
 
-        private static string ExtractTranslationFromResponse(string responseContent)
+        private static void UpdateLanguageVersions()
         {
-            ReadOnlySpan<char> responseSpan = responseContent.AsSpan();
-            ReadOnlySpan<char> startTag = "<trans>".AsSpan();
-            ReadOnlySpan<char> endTag = "</trans>".AsSpan();
-            ReadOnlySpan<char> thinkStartTag = "<think>".AsSpan();
-            ReadOnlySpan<char> thinkEndTag = "</think>".AsSpan();
+            using var connection = new NpgsqlConnection(connectionString);
+            connection.Open();
 
-            // Remove text between <think> and </think> tags
-            int thinkEndIndex = -1;
-            while (true)
+            foreach (var langcode in updatedLanguages)
             {
-                int thinkStartIndex = responseSpan.IndexOf(thinkStartTag);
-                if (thinkStartIndex >= 0)
-                {
-                    thinkEndIndex = responseSpan.Slice(thinkStartIndex).IndexOf(thinkEndTag);
 
-                    if (thinkEndIndex == -1)
-                        throw new Exception("End tag '</think>' not found in response content.");
+                using var updateCmd = new NpgsqlCommand(updateLanguageQuery, connection);
+                updateCmd.Parameters.AddWithValue("@version", Guid.NewGuid());
+                updateCmd.Parameters.AddWithValue("@code", langcode);
+                updateCmd.ExecuteNonQuery();
 
-                    thinkEndIndex += thinkEndTag.Length;
-                }
-                responseSpan = responseSpan.Slice(0, thinkStartIndex).ToString() + responseSpan.Slice(thinkStartIndex + thinkEndIndex).ToString();
-
-
-                int transStartIndex = responseSpan.IndexOf(startTag);
-                if (transStartIndex == -1) 
-                    throw new Exception("Start tag '<trans>' not found in response content."); 
-
-                transStartIndex += startTag.Length;
-
-                int transEndIndex = responseSpan.Slice(transStartIndex).IndexOf(endTag);
-                if (transEndIndex == -1) 
-                    throw new Exception("End tag '</trans>' not found in response content."); 
-
-                ReadOnlySpan<char> translationSpan = responseSpan.Slice(transStartIndex, transEndIndex);
-                return translationSpan.ToString();
+                Console.WriteLine($"Language Updated : {langcode}");
             }
         }
 
+        private static string ExtractTranslationFromResponse(string responseContent, string langcode)
+        {
+            try
+            {
+                ReadOnlySpan<char> responseSpan = responseContent.AsSpan();
+                ReadOnlySpan<char> startTag = "<trans>".AsSpan();
+                ReadOnlySpan<char> endTag = "</trans>".AsSpan();
+                ReadOnlySpan<char> thinkStartTag = "<think>".AsSpan();
+                ReadOnlySpan<char> thinkEndTag = "</think>".AsSpan();
 
+                // Remove text between <think> and </think> tags
+                int thinkEndIndex = -1;
+                while (true)
+                {
+                    int thinkStartIndex = responseSpan.IndexOf(thinkStartTag);
+                    if (thinkStartIndex >= 0)
+                    {
+                        thinkEndIndex = responseSpan[thinkStartIndex..].IndexOf(thinkEndTag);
 
+                        if (thinkEndIndex == -1)
+                            throw new Exception("No Closing Tag '</think>' in Response.");
+
+                        thinkEndIndex += thinkEndTag.Length;
+                        responseSpan = responseSpan[..thinkStartIndex].ToString() + responseSpan[(thinkStartIndex + thinkEndIndex)..].ToString();
+                    }
+
+                    int transStartIndex = responseSpan.IndexOf(startTag);
+                    if (transStartIndex == -1)
+                        throw new Exception("Start tag '<trans>' not found in response content.");
+
+                    transStartIndex += startTag.Length;
+
+                    int transEndIndex = responseSpan[transStartIndex..].IndexOf(endTag);
+                    if (transEndIndex == -1)
+                        throw new Exception("End tag '</trans>' not found in response content.");
+
+                    ReadOnlySpan<char> translationSpan = responseSpan.Slice(transStartIndex, transEndIndex);
+                    return translationSpan.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error translating to '{langcode}': " + ex.Message);
+                return "";
+            }
+        }
 
         private static NpgsqlDataReader UpdatableEntriesReader()
         {
@@ -160,28 +207,23 @@ namespace BTTranslate
             readConnection.Open();
             // Query to retrieve records needing translation; update table/column names as required
             string selectQuery =
-            "WITH foreignlanguages as " +
-            "( " +
-            "  SELECT l.code langcode " +
-            "  FROM dbo.LANGUAGE l WHERE " +
-            "  l.code<> 'en' " +
-            "), " +
-            "englishentries as " +
-            "( " +
-            "  SELECT code, entry " +
-            "  FROM dbo.languageentry " +
-            "  WHERE lang = 'en' " +
-            "), " +
-            "foreignentries as " +
-            "( " +
-            "  SELECT code, entry " +
-            "  FROM dbo.languageentry " +
-            "  WHERE lang<> 'en' " +
-            ")  " +
-            "SELECT langcode, ee.code entrycode, ee.entry englishentry " +
-            "FROM foreignlanguages fl, englishentries ee " +
-            "LEFT JOIN foreignentries fe on fe.code = ee.code " +
-            "WHERE fe.entry IS NULL ";
+              "WITH foreignlanguages AS  " +
+              "(  " +
+              "  SELECT l.code AS langcode  " +
+              "  FROM dbo.LANGUAGE l  " +
+              "  WHERE l.code <> 'en'  " +
+              "), " +
+              "englishentries AS  " +
+              "(  " +
+              "  SELECT code, entry  " +
+              "  FROM dbo.languageentry  " +
+              "  WHERE lang = 'en'  " +
+              ") " +
+              "SELECT fl.langcode, ee.code AS entrycode, ee.entry AS englishentry " +
+              "FROM foreignlanguages fl " +
+              "CROSS JOIN englishentries ee " +
+              "LEFT JOIN dbo.languageentry fe ON fe.code = ee.code AND fe.lang = fl.langcode " +
+              "WHERE fe.code IS NULL; ";
 
             var result = new NpgsqlCommand(selectQuery, readConnection).ExecuteReader();
 
@@ -207,17 +249,12 @@ namespace BTTranslate
 
             string scope = "openid";
 
-            // Obtain access token using client credentials flow
             accessToken = await GetAccessTokenAsync(tokenEndpoint, clientId, clientSecret, scope);
-            if (string.IsNullOrEmpty(accessToken))
-            {
-                throw new Exception("Failed to obtain access token.");
-            }
+            if (string.IsNullOrEmpty(accessToken)) 
+                throw new Exception("Failed to obtain access token."); 
         }
 
-
-
-        private static void GetConnStr()
+        private static void BuildConnStr()
         {
             // Get the host and password from environment variables
             string? host = Environment.GetEnvironmentVariable("BT_DBSERVER");
@@ -226,27 +263,23 @@ namespace BTTranslate
             // Throw an error if either environment variable is not found
             if (string.IsNullOrEmpty(host))
             {
-                throw new Exception("Environment variable BT_DBSERVER is not set.");
+                throw new Exception("No BT_DBSERVER.");
             }
 
             if (string.IsNullOrEmpty(password))
             {
-                throw new Exception("Environment variable BT_LANGPASS is not set.");
+                throw new Exception("No BT_LANGPASS.");
             }
 
             // Database connection details – update with your actual connection string
             connectionString = $"Host={host};Username=languagemanager;Password={password};Database=RozeBowl";
         }
 
-        /// <summary>
-        /// Acquires an access token from Keycloak using the client credentials flow.
-        /// </summary>
         static async Task<string> GetAccessTokenAsync(string tokenEndpoint, string clientId, string clientSecret, string scope)
         {
-            using (var httpClient = new HttpClient())
-            {
-                // Prepare the POST parameters for the token request
-                var parameters = new Dictionary<string, string>
+            using var httpClient = new HttpClient();
+            // Prepare the POST parameters for the token request
+            var parameters = new Dictionary<string, string>
                 {
                     { "client_id", clientId },
                     { "client_secret", clientSecret },
@@ -254,26 +287,25 @@ namespace BTTranslate
                     { "scope", scope }
                 };
 
-                var content = new FormUrlEncodedContent(parameters);
-                var response = await httpClient.PostAsync(tokenEndpoint, content);
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("Token request failed: " + response.StatusCode);
-                    return null;
-                }
-
-                string json = await response.Content.ReadAsStringAsync();
-                var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
-                return tokenResponse?.access_token;
+            var content = new FormUrlEncodedContent(parameters);
+            var response = await httpClient.PostAsync(tokenEndpoint, content);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Token request failed: " + response.StatusCode);
+                return "";
             }
+
+            string json = await response.Content.ReadAsStringAsync();
+            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
+            return tokenResponse?.access_token ?? "";
         }
     }
 
     // Class for deserializing the token response JSON.
     public class TokenResponse
     {
-        public string access_token { get; set; }
+        public string? access_token { get; set; }
         public int expires_in { get; set; }
-        public string token_type { get; set; }
+        public string? token_type { get; set; }
     }
 }
