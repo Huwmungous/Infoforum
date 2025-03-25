@@ -1,40 +1,53 @@
-
 @use '../../../styles.scss' as *;
 
 :host {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
 
-.chat-container {
-    height: 100%;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .user, .ai {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .user {
-    background-color: lightblue;
-  }
-  
-  .ai {
-    background-color: lightgrey;
-  }
+.chat-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  overflow: hidden;
+  padding: 10px;
+  margin: 10px;
+}
 
-  .prompt-input{
-    width: 100%;
-    height: 50px;
-    padding: 10px;
-    display: flex;
-    justify-content: space-between;
-    border-style: none;
-    border-width:5px;
-    border-radius:10px;
-    border-color: var(--if-medium-colour); 
-  }
+.user-message, .ai-message, .prompt-input {
+  min-width:60%;
+  max-width: 90%;
+  @include card-style;
+}
+
+.user-message {
+  align-self: flex-end;
+  background-color: var(--if-medium-colour);
+  color: var(--if-paper-colour);
+  margin-bottom: 7px;
+}
+
+.ai-message { 
+  align-self: flex-start;
+  background-color: var(--if-light-colour);
+  color: var(--if-dark-colour);
+  margin-bottom: 7px;
+}
+
+.message {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin: 5px;
+}
+
+.prompt-input { 
+  min-width: 90%;
+  min-height: 50px;
+  margin: 0 auto;
+  padding: 10px;
+  background-color: var(--if-paper-colour); 
+}

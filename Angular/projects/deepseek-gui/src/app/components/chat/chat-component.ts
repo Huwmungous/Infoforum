@@ -13,7 +13,7 @@ interface Message {
 @Component({
   selector: 'app-chat',
   templateUrl: './chat-component.html',
-  styleUrls: ['./chat-component.css'],
+  styleUrls: ['./chat-component.scss'],
   standalone: true,
   imports:[CommonModule, FormsModule]
 })
@@ -28,7 +28,7 @@ export class ChatComponent {
 
   constructor(private ollamaService: OllamaService ) {}
 
-  sendMessage(event: Event): void {
+  sendMessage(event: Event, msg: string): void {
     event.preventDefault();
     if (!this.prompt.trim()) {
       this.error = 'Please ask a question first.';
@@ -36,16 +36,16 @@ export class ChatComponent {
     }
 
     this.loading = true;
-    this.error = '';
+    this.error = ''; 
+    
+    this.messages.push({ isUser: true, text: this.prompt });
 
     const newResponse = { response: '' };
 
     this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'chat')
       .subscribe({
         next: (chunk: string) => {
-          this.messages.push({ isUser: true, text: this.prompt });
-          this.messages.push({ isUser: false, text: chunk });
-          this.prompt = '';
+          this.messages.push({ isUser: false, text: chunk }); 
         },
         error: (err) => {
           console.error('Error:', err);
@@ -54,6 +54,7 @@ export class ChatComponent {
         },
         complete: () => {
           this.loading = false;
+          this.prompt = '';
         }
       });
     this.prompt = '';

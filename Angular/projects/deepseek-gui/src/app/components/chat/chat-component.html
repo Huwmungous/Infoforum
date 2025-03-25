@@ -1,9 +1,18 @@
-  <div class="chat-container">
-    <div *ngFor="let message of messages" [class]="message.isUser ? 'user' : 'ai'">
-      <p>{{ message.text }}</p>
-    </div>
-  </div>
-  <form (submit)="sendMessage($event)">
-    <input type="text" class="prompt-input" name="prompt" [(ngModel)]="prompt" required />
-    <button type="submit">Send</button>
+<div class="chat-component">
+  <ng-container *ngFor="let message of messages">
+    <ng-container *ngIf="message.isUser; else aiMessage">
+      <div class="user-message">
+        <div class="message">{{ message.text }}</div>
+      </div>
+    </ng-container>
+    <ng-template #aiMessage>
+      <div class="ai-message">
+        <div class="message">{{ message.text }}</div>
+      </div>
+    </ng-template>
+  </ng-container>
+
+  <form (submit)="sendMessage($event, prompt)">
+    <input type="text" class="prompt-input" name="prompt" [(ngModel)]="prompt" (keydown.enter)="sendMessage($event, prompt)" required />
   </form>
+</div>
