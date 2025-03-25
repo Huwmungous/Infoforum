@@ -24,15 +24,15 @@
 
 .main-container { 
     flex: 1 1 auto; 
-    height: calc(100% - 150px); 
+    height: calc(100% - 155px); 
     width: 100%;
     overflow: auto;
     padding: 5px;
  }
 
-.code-gen, .chat-tab-content {
+.code-tab-content, .chat-tab-content {
     height:100%;
-    width:100%;
+    width:95%;
 }
 
 .tab-group {
