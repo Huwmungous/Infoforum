@@ -1,47 +1,46 @@
-<div class="intelligence-header">
-  <div style="display: flex; align-items: center;">
-    <img src="IF-Logo.png" alt="IF Logo" class="if-logo" />
-    <span style="margin-left: 10px;">The Information Forum Ltd. Intelligence AI</span>
+<div class="intelligence-component">
+  <div class="intelligence-header">
+    <div style="display: flex; align-items: center;">
+      <img src="IF-Logo.png" alt="IF Logo" class="if-logo" />
+      <span style="margin-left: 10px;">The Information Forum Ltd. Intelligence AI</span>
+    </div>
+    <button class="logout-button" (click)="logout()">
+      Logout
+    </button>
   </div>
-  <button class="logout-button" (click)="logout()">
-    Logout
-  </button>
-</div>
 
-<div class="main-container">
-  <mat-tab-group class="tab-group">
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="panel-icon">code</mat-icon>
-        <span>Code</span>
-      </ng-template>
-      <div class="code-tab-content">
-        <app-code-gen></app-code-gen> 
-      </div>
-    </mat-tab>
-    <mat-tab label="Images">
-      <ng-template mat-tab-label>
-        <mat-icon class="panel-icon">image</mat-icon>
-        <span>Images</span>
-      </ng-template>
-      <!-- Content for Images tab -->
-      <div class="images-tab-content">
-        <!-- Add your content for the Images tab here -->
-      </div>
-    </mat-tab>
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <mat-icon class="panel-icon">chat</mat-icon>
-        <span>Chat</span>
-      </ng-template>
-      <!-- Content for Chat tab -->
-      <div class="chat-tab-content">
-        <app-chat></app-chat>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
-</div>
+  <div class="main-container">
+    <mat-tab-group class="tab-group">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="panel-icon">code</mat-icon>
+          <span>Code</span>
+        </ng-template>
+        <div class="code-tab-content">
+          <app-code-gen></app-code-gen>
+        </div>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="panel-icon">image</mat-icon>
+          <span>Images</span>
+        </ng-template>
+        <div class="images-tab-content">
+        </div>
+      </mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <mat-icon class="panel-icon">chat</mat-icon>
+          <span>Chat</span>
+        </ng-template>
+        <div class="chat-tab-content">
+          <app-chat></app-chat>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </div>
 
-<footer class="intelligence-footer">
-  <p>&copy; 2025 The Information Forum Ltd. All rights reserved.</p>
-</footer>
+  <footer class="intelligence-footer">
+    <p>&copy; 2025 The Information Forum Ltd. All rights reserved.</p>
+  </footer>
+</div>
