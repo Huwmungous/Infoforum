@@ -24,8 +24,7 @@
 
 .main-container { 
     flex: 1 1 auto; 
-    height: calc(100% - 160px); 
-    width: 100%;
+    max-height: calc(100% - 160px); 
     overflow: auto;
  }
 
