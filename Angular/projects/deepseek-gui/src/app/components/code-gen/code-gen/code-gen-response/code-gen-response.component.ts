@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { mapDeepseekToHighlight } from '../../../deepseek/deepseek-to-highlight-map';
+import { mapDeepseekToHighlight } from '../../../../deepseek/deepseek-to-highlight-map';
 
 
 declare const hljs: any;

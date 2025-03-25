@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component'; 
 import { ClientService } from '../../auth/client.service';
 import { IFAuthModule } from '../../auth/ifauth.module';
+import { ChatComponent } from '../components/chat/chat-component';
 
 @Component({
   selector: 'app-intelligence',
@@ -18,7 +19,8 @@ import { IFAuthModule } from '../../auth/ifauth.module';
     MatIconModule,
     MatButtonModule,
     IFAuthModule,
-    CodeGenComponent
+    CodeGenComponent,
+    ChatComponent
   ]
 })
 export class IntelligenceComponent {

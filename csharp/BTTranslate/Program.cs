@@ -20,6 +20,7 @@ namespace BTTranslate
 
         private static NpgsqlConnection? readConnection;
         private static readonly HashSet<string> updatedLanguages = new HashSet<string>();
+        private static readonly Dictionary<string, string> languageDictionary = new();
 
         private static readonly string sendPromptUrl = $"{ifollamaApiUrl}?conversationId={Uri.EscapeDataString(conversationId)}&dest=chat";
         private static readonly string insertQuery = "INSERT INTO dbo.languageentry( code, entry, lang) VALUES(@code, @entry, @lang);";
@@ -32,6 +33,7 @@ namespace BTTranslate
             {
                 AcquireToken();
                 BuildConnStr();
+                LoadLanguageDictionary();
 
                 using (var reader = UpdatableEntriesReader())
                 {
@@ -76,11 +78,36 @@ namespace BTTranslate
             Console.WriteLine("BTTranslate processing complete.");
         }
 
+        private static void LoadLanguageDictionary()
+        {
+            using var connection = new NpgsqlConnection(connectionString);
+            connection.Open();
+
+            string selectQuery = "SELECT code, english_name FROM dbo.language";
+            using var selectCmd = new NpgsqlCommand(selectQuery, connection);
+            using var reader = selectCmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                string code = reader.GetString(0);
+                string englishName = reader.GetString(1);
+                languageDictionary[code] = englishName;
+            }
+        }
+
+        private static string GetEnglishName(string code)
+        {
+            if (languageDictionary.TryGetValue(code, out var englishName))
+            {
+                return englishName;
+            }
+            return string.Empty;
+        }
+
         private static void SubmitBasicIntructions(HttpClient httpClient)
         {
             string promptJson =
-                "I want to send you a series of English words or phrases and language codes. " +
-                "In each case, I want a translation of the English phrase in the modern language denoted by the language code. " +
+                "I want to send you a series of English words or phrases to translate into various languages. " +
                 "The translation in your response MUST be enclosed within <trans></trans> tags and must contain nothing but the translated version of the English word or phrase. " +
                 "It is critically important you do not give me any other extra tags, especially between the <trans> and </trans> tags in any reponse. " +
                 "It is critically important that only one translation is included in any reponse. " +
@@ -122,7 +149,7 @@ namespace BTTranslate
         {
             int retries = 3;
             string result = "";
-            string promptJson = JsonConvert.SerializeObject($"Please translate '{englishentry}' into the language denoted by '{langcode}'");
+            string promptJson = JsonConvert.SerializeObject($"Please let me have the {languageDictionary[langcode]} equivalent of the English '{englishentry}'");
             var requestContent = new StringContent(promptJson, Encoding.UTF8, "application/json");
 
             httpClient.DefaultRequestHeaders.Authorization =
@@ -147,7 +174,7 @@ namespace BTTranslate
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error: " + ex.Message);
-                    SubmitErrorInstruction(httpClient, ex.Message);
+                    //  SubmitErrorInstruction(httpClient, ex.Message);
                     result = "";
                     retries--;
                     if (retries <= 0)
@@ -199,7 +226,7 @@ namespace BTTranslate
             string cleanedResponseContent;
             int endThinkIndex = responseContent.IndexOf("</think>");
             if (endThinkIndex >= 0)
-                cleanedResponseContent = responseContent.Substring(endThinkIndex + "</think>".Length);
+                cleanedResponseContent = responseContent[(endThinkIndex + "</think>".Length)..];
             else
                 cleanedResponseContent = responseContent;
 
@@ -214,7 +241,7 @@ namespace BTTranslate
                 throw new Exception("The end tag '</trans>' was not found in the response content.");
 
             // Extract the translation
-            return cleanedResponseContent.Substring(transStartIndex, endIndex - transStartIndex).Trim();
+            return cleanedResponseContent[transStartIndex..endIndex].Trim();
         }
 
         private static NpgsqlDataReader UpdatableEntriesReader()
@@ -324,3 +351,4 @@ namespace BTTranslate
         public string? token_type { get; set; }
     }
 }
+

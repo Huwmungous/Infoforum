@@ -1,0 +1,40 @@
+
+@use '../../../styles.scss' as *;
+
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+.chat-container {
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .user, .ai {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .user {
+    background-color: lightblue;
+  }
+  
+  .ai {
+    background-color: lightgrey;
+  }
+
+  .prompt-input{
+    width: 100%;
+    height: 50px;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    border-style: none;
+    border-width:5px;
+    border-radius:10px;
+    border-color: var(--if-medium-colour); 
+  }

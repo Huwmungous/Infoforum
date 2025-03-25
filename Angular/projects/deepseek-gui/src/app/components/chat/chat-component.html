@@ -1,0 +1,9 @@
+  <div class="chat-container">
+    <div *ngFor="let message of messages" [class]="message.isUser ? 'user' : 'ai'">
+      <p>{{ message.text }}</p>
+    </div>
+  </div>
+  <form (submit)="sendMessage($event)">
+    <input type="text" class="prompt-input" name="prompt" [(ngModel)]="prompt" required />
+    <button type="submit">Send</button>
+  </form>
