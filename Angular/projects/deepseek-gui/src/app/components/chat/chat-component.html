@@ -13,6 +13,6 @@
   </ng-container>
 
   <form (submit)="sendMessage($event, prompt)">
-    <input type="text" class="prompt-input" name="prompt" [(ngModel)]="prompt" (keydown.enter)="sendMessage($event, prompt)" required />
+    <textarea class="prompt-input" name="prompt" [(ngModel)]="prompt" (keydown.enter)="sendMessage($event, prompt)" required></textarea>
   </form>
 </div>

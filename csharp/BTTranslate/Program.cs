@@ -19,8 +19,7 @@ namespace BTTranslate
         private static readonly string conversationId = Guid.NewGuid().ToString(); //"3E48E5D3-6EE3-4E6D-B816-8E6E9FB23C37";
 
         private static NpgsqlConnection? readConnection;
-        private static readonly HashSet<string> updatedLanguages = new HashSet<string>();
-        private static readonly Dictionary<string, string> languageDictionary = new();
+        private static readonly HashSet<string> updatedLanguages = [];
 
         private static readonly string sendPromptUrl = $"{ifollamaApiUrl}?conversationId={Uri.EscapeDataString(conversationId)}&dest=chat";
         private static readonly string insertQuery = "INSERT INTO dbo.languageentry( code, entry, lang) VALUES(@code, @entry, @lang);";
@@ -33,7 +32,6 @@ namespace BTTranslate
             {
                 AcquireToken();
                 BuildConnStr();
-                LoadLanguageDictionary();
 
                 using (var reader = UpdatableEntriesReader())
                 {
@@ -46,18 +44,19 @@ namespace BTTranslate
                         string englishentry = "";
                         while (reader.Read())
                         {
-                            if (reader.GetString(2) != englishentry)
+                            if (reader.GetString(3) != englishentry)
                             {
-                                englishentry = reader.GetString(2);
+                                englishentry = reader.GetString(3);
                                 Console.WriteLine();
                                 Console.WriteLine($"*** Translating '{englishentry}' ***");
                                 Console.WriteLine(new string('-', englishentry.Length + 22));
                             }
 
-                            string langcode = reader.GetString(0);
-                            string entrycode = reader.GetString(1);
+                            string language = reader.GetString(0);
+                            string langcode = reader.GetString(1);
+                            string entrycode = reader.GetString(2);
 
-                            string translation = RequestTranslation(httpClient, englishentry, langcode);
+                            string translation = RequestTranslation(httpClient, englishentry, language);
 
                             if (!string.IsNullOrEmpty(translation))
                                 InsertTranslationEntry(writeConnection, langcode, entrycode, translation);
@@ -76,32 +75,6 @@ namespace BTTranslate
             }
 
             Console.WriteLine("BTTranslate processing complete.");
-        }
-
-        private static void LoadLanguageDictionary()
-        {
-            using var connection = new NpgsqlConnection(connectionString);
-            connection.Open();
-
-            string selectQuery = "SELECT code, english_name FROM dbo.language";
-            using var selectCmd = new NpgsqlCommand(selectQuery, connection);
-            using var reader = selectCmd.ExecuteReader();
-
-            while (reader.Read())
-            {
-                string code = reader.GetString(0);
-                string englishName = reader.GetString(1);
-                languageDictionary[code] = englishName;
-            }
-        }
-
-        private static string GetEnglishName(string code)
-        {
-            if (languageDictionary.TryGetValue(code, out var englishName))
-            {
-                return englishName;
-            }
-            return string.Empty;
         }
 
         private static void SubmitBasicIntructions(HttpClient httpClient)
@@ -145,11 +118,11 @@ namespace BTTranslate
             _ = stream.ReadToEnd();
         }
 
-        private static string RequestTranslation(HttpClient httpClient, string englishentry, string langcode)
+        private static string RequestTranslation(HttpClient httpClient, string englishentry, string language)
         {
             int retries = 3;
             string result = "";
-            string promptJson = JsonConvert.SerializeObject($"Please let me have the {languageDictionary[langcode]} equivalent of the English '{englishentry}'");
+            string promptJson = JsonConvert.SerializeObject($"I want the {language} equivalent of the English '{englishentry}' enclosed in tags '<trans' and '</trans>");
             var requestContent = new StringContent(promptJson, Encoding.UTF8, "application/json");
 
             httpClient.DefaultRequestHeaders.Authorization =
@@ -167,7 +140,7 @@ namespace BTTranslate
                         using var stream = new StreamReader(responseStream);
                         var responseContent = stream.ReadToEnd();
 
-                        result = ExtractTranslationFromResponse(responseContent, langcode);
+                        result = ExtractTranslationFromResponse(responseContent, language);
                         retries = 0;
                     }
                 }
@@ -249,24 +222,24 @@ namespace BTTranslate
             readConnection = new NpgsqlConnection(connectionString);
             readConnection.Open();
             // Query to retrieve records needing translation; update table/column names as required
-            string selectQuery =
-              "WITH foreignlanguages AS  " +
-              "(  " +
-              "  SELECT l.code AS langcode  " +
-              "  FROM dbo.LANGUAGE l  " +
-              "  WHERE l.code <> 'en'  " +
-              "), " +
-              "englishentries AS  " +
-              "(  " +
-              "  SELECT code, entry  " +
-              "  FROM dbo.languageentry  " +
-              "  WHERE lang = 'en'  " +
-              ") " +
-              "SELECT fl.langcode, ee.code AS entrycode, ee.entry AS englishentry " +
-              "FROM foreignlanguages fl " +
-              "CROSS JOIN englishentries ee " +
-              "LEFT JOIN dbo.languageentry fe ON fe.code = ee.code AND fe.lang = fl.langcode " +
-              "WHERE fe.code IS NULL; ";
+            string selectQuery = @"
+                WITH foreignlanguages AS  
+                (  
+                  SELECT l.english_name AS languagename, l.code AS language  
+                  FROM dbo.language l  
+                  WHERE l.code <> 'en'  
+                ), 
+                englishentries AS  
+                (  
+                  SELECT code, entry  
+                  FROM dbo.languageentry  
+                  WHERE lang = 'en'  
+                ) 
+                SELECT fl.languagename, fl.language, ee.code AS entrycode, ee.entry AS englishentry 
+                FROM foreignlanguages fl 
+                CROSS JOIN englishentries ee 
+                LEFT JOIN dbo.languageentry fe ON fe.code = ee.code AND fe.lang = fl.language 
+                WHERE fe.code IS NULL;";
 
             var result = new NpgsqlCommand(selectQuery, readConnection).ExecuteReader();
             return result;

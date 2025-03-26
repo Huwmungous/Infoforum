@@ -40,13 +40,16 @@
   padding: 7px;
 }
 
-.prompt-input { 
+.prompt-input {
   width: 100%;
-  margin-left: 30px;
-  margin-right: 30px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin: 10px auto;
   min-height: 50px;
+  max-height: 25vh;  
   padding: 7px;
-  background-color: var(--if-paper-colour); 
+  background-color: var(--if-paper-colour);
+  color: var(--if-dark-colour);
+  resize: vertical; 
+  overflow: auto;
+  box-sizing: border-box;
+  @include bt-font;
 }
