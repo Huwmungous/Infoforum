@@ -4,8 +4,8 @@ import { IntelligenceComponent } from "./deepseek/intelligence.component";
 
 @Component({
   selector: 'app-root',
-  template: `<app-intelligence></app-intelligence>`,
+  template: `<router-outlet></router-outlet>`,
   standalone: true,
-  imports: [RouterModule, IntelligenceComponent]
+  imports: [RouterModule]
 })
 export class AppComponent {}
