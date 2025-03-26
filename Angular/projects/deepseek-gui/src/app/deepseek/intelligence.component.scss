@@ -27,7 +27,6 @@
     flex-direction: column;
     height: calc(100% - 160px); /* Adjust based on header and footer height */
     width: 100%;
-    overflow: auto;
   }
 
 .code-tab-page, .images-tab-page, .chat-tab-page {
@@ -35,20 +34,9 @@
   width: 100%;
 }
 
-.tab-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.start-new-button {
-  @include button-style;
-}
-
 .intelligence-footer {
   background: #333;
-  color: white;
+  color:var(--if-window-colour);
   text-align: center;
   padding: 7px 0;
   position: fixed;
