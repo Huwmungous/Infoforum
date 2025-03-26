@@ -41,9 +41,12 @@
 }
 
 .prompt-input { 
-  min-width: 90%;
+  width: 100%;
+  margin-left: 30px;
+  margin-right: 30px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   min-height: 50px;
-  margin: 7px;
   padding: 7px;
   background-color: var(--if-paper-colour); 
 }
