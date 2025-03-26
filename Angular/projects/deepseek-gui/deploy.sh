@@ -135,7 +135,8 @@ main() {
     build_application
     deploy_application
 
-    git checkout --force # Discard any local changes
+    git checkout --force # Discard any local changes    
+    chmod 755 ./deploy.sh
     echo -e "${GREEN}Deployment completed successfully!${NC}"
 }
 
