@@ -9,13 +9,13 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 })
 export class SilentRenewComponent implements OnInit {
 
-  constructor(private oidcSecurityService: OidcSecurityService) {}
+  constructor(private oidc: OidcSecurityService) {}
 
   ngOnInit() {
-    this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated }) => {
+    this.oidc.checkAuth().subscribe(({ isAuthenticated }) => {
       console.log('Silent Renew - Auth Result:', isAuthenticated);
       if (!isAuthenticated) {
-        this.oidcSecurityService.authorize();
+        this.oidc.authorize();
       }
     });
   }

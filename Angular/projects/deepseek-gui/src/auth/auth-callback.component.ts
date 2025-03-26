@@ -24,13 +24,13 @@ export class AuthCallbackComponent implements OnInit {
   message = 'Authenticating...';
 
   constructor(
-    private oidcSecurityService: OidcSecurityService,
+    private oidc: OidcSecurityService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.loading = true;    
-    this.oidcSecurityService.checkAuth().subscribe({
+    this.oidc.checkAuth().subscribe({
       next: (authResult) => {
         console.log('Auth Callback - Auth Result:', authResult);
         this.loading = false;

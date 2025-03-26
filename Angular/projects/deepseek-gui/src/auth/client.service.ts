@@ -9,20 +9,20 @@ export class ClientService {
   afterLogoutEvent: EventEmitter<{ realm: string, client: string }> = new EventEmitter<{ realm: string, client: string }>();
 
   constructor(
-    private oidcSecurityService: OidcSecurityService,
+    private oidc: OidcSecurityService,
     private configService: AuthConfigService) {}
 
   login(configId: number = 1): void { 
     this.logout(); 
-    this.oidcSecurityService.authorize(configId.toString());
+    this.oidc.authorize(configId.toString());
     this.afterLoginEvent.emit({ realm: this.configService.realm, client:  this.configService.client });
   }
 
   logout(configId: string = '1'): void { 
-    this.oidcSecurityService.isAuthenticated(configId).subscribe((isAuthenticated) => {
+    this.oidc.isAuthenticated(configId).subscribe((isAuthenticated) => {
       if (isAuthenticated) {
         // Try to properly logout with token revocation
-        this.oidcSecurityService.logoffAndRevokeTokens(configId).subscribe({
+        this.oidc.logoffAndRevokeTokens(configId).subscribe({
           next: () => {
             console.log('Logout successful with token revocation');
             this.handleSuccessfulLogout();
@@ -31,7 +31,7 @@ export class ClientService {
             console.warn('Error during logoffAndRevokeTokens:', error);
             // Fallback to basic logout without revocation
             console.log('Attempting fallback logout method');
-            this.oidcSecurityService.logoff(configId).subscribe({
+            this.oidc.logoff(configId).subscribe({
               next: () => {
                 console.log('Fallback logout successful');
                 this.handleSuccessfulLogout();

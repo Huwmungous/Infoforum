@@ -17,16 +17,16 @@ export class AuthGuard implements CanActivate, CanActivateChild {
   private isAuthProcessInProgress = false;
 
   constructor(
-    private oidcSecurityService: OidcSecurityService,
+    private oidc: OidcSecurityService,
     private configService: AuthConfigService) {}
 
   private checkAuthentication(): Observable<boolean> {
-    return this.oidcSecurityService.checkAuth().pipe(
+    return this.oidc.checkAuth().pipe(
       take(1),
       tap((response: { isAuthenticated: boolean }) => {
         if (!response.isAuthenticated && !this.isAuthProcessInProgress) {
           this.isAuthProcessInProgress = true;          
-          this.oidcSecurityService.authorize(this.configService.configId);
+          this.oidc.authorize(this.configService.configId);
         }
       }),
       map((response: { isAuthenticated: boolean }) => response.isAuthenticated)
