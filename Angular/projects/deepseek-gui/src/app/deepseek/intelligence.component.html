@@ -8,15 +8,14 @@
       Logout
     </button>
   </div>
-
-  <div class="main-container">
-    <mat-tab-group class="tab-group">
+ 
+    <mat-tab-group class="tab-control">
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="panel-icon">code</mat-icon>
           <span>Code</span>
         </ng-template>
-        <div class="code-tab-content">
+        <div class="code-tab-page">
           <app-code-gen></app-code-gen>
         </div>
       </mat-tab>
@@ -25,7 +24,7 @@
           <mat-icon class="panel-icon">image</mat-icon>
           <span>Images</span>
         </ng-template>
-        <div class="images-tab-content">
+        <div class="images-tab-page">
         </div>
       </mat-tab>
       <mat-tab>
@@ -33,7 +32,7 @@
           <mat-icon class="panel-icon">chat</mat-icon>
           <span>Chat</span>
         </ng-template>
-        <div class="chat-tab-content">
+        <div class="chat-tab-page">
           <app-chat></app-chat>
         </div>
       </mat-tab>
@@ -42,5 +41,4 @@
 
   <footer class="intelligence-footer">
     <p>&copy; 2025 The Information Forum Ltd. All rights reserved.</p>
-  </footer>
-</div>
+  </footer> 

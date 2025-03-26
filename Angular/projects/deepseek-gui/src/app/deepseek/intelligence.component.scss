@@ -1,56 +1,60 @@
 @use '../../styles.scss' as *;
 
 .intelligence-header {
-    display: flex; 
-    justify-content: 
-    space-between; 
-    align-items: center; 
-    padding: 10px; 
-    background: #333; 
-    color: white;
-    font-size: larger;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #333;
+  color: var(--if-window-colour);
+  font-size: larger;
 }
 
 .if-logo {
-    height: 75px;
-    width: 75px;    
+  height: 75px;
+  width: 75px;
 }
 
 .logout-button {
-    @include button-style;
-    background: var(--if-hl-medium-colour);   
-    color: white;
+  @include button-style;
+  background: var(--if-hl-medium-colour);
+  color: white;
 }
 
-.main-container { 
-    flex: 1 1 auto; 
-    max-height: calc(100% - 160px); 
+.tab-control {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 160px); /* Adjust based on header and footer height */
+    width: 100%;
     overflow: auto;
- }
+  }
 
-.code-tab-content, .chat-tab-content {
-    height:98%;
-    width:96%;
-    padding : 5px;
+.code-tab-page, .images-tab-page, .chat-tab-page {
+  height: 100%;
+  width: 100%;
 }
 
 .tab-group {
-    width:100%;
- }
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
 
 .start-new-button {
-    @include button-style;
+  @include button-style;
 }
 
 .intelligence-footer {
-    background: #333;
-    color: white;
-    text-align: center;
-    padding: 7px 0;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;  
-    align-items: center; 
+  background: #333;
+  color: white;
+  text-align: center;
+  padding: 7px 0;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

@@ -11,14 +11,13 @@
   flex-direction: column;
   flex: 1 1 auto;
   width: 100%;
-  overflow: hidden;
-  padding: 10px;
-  margin: 10px;
+  overflow: auto;
 }
 
 .user-message, .ai-message, .prompt-input {
   min-width:60%;
   max-width: 90%;
+  padding:5px;
   @include card-style;
 }
 
@@ -26,28 +25,24 @@
   align-self: flex-end;
   background-color: var(--if-medium-colour);
   color: var(--if-paper-colour);
-  margin-bottom: 7px;
+  margin: 3px;
 }
 
 .ai-message { 
   align-self: flex-start;
   background-color: var(--if-light-colour);
   color: var(--if-dark-colour);
-  margin-bottom: 7px;
+  margin: 3px;
 }
 
 .message {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px;
-  margin: 5px;
+  padding: 7px;
 }
 
 .prompt-input { 
   min-width: 90%;
   min-height: 50px;
-  margin: 0 auto;
-  padding: 10px;
+  margin: 7px;
+  padding: 7px;
   background-color: var(--if-paper-colour); 
 }

@@ -8,13 +8,12 @@
   height: 100%;
 }
 
-.code-gen-component, .chat-component {
+.code-gen-component {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   width: 100%;
-  overflow: hidden;
-  padding: 5px;
+  overflow: auto;
 }
 
 .split-container {

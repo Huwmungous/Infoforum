@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { IntelligenceComponent } from "./deepseek/intelligence.component";
 
 @Component({
   selector: 'app-root',
-  template: `<router-outlet></router-outlet>`,
+  template: `<app-intelligence></app-intelligence>`,
   standalone: true,
-  imports: [RouterModule]
+  imports: [RouterModule, IntelligenceComponent]
 })
 export class AppComponent {}
