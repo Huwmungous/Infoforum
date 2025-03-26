@@ -8,6 +8,12 @@
     <ng-template #aiMessage>
       <div class="ai-message">
         <div class="message">{{ message.text }}</div>
+        <div *ngIf="message.thinkContent">
+          <button (click)="message.showThinking = !message.showThinking">Toggle Think Section</button>
+          <div *ngIf="message.showThinking">
+            <p>{{ message.thinkContent }}</p>
+          </div>
+        </div>
       </div>
     </ng-template>
   </ng-container>

@@ -44,12 +44,12 @@
   width: 100%;
   margin: 10px auto;
   min-height: 50px;
-  max-height: 25vh;  
+  max-height: 60vh;  
   padding: 7px;
   background-color: var(--if-paper-colour);
   color: var(--if-dark-colour);
   resize: vertical; 
   overflow: auto;
   box-sizing: border-box;
-  @include bt-font;
+  cursor: text;
 }

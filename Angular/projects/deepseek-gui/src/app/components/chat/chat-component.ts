@@ -8,6 +8,8 @@ import { generateGUID } from '../code-gen/code-gen.component';
 interface Message {
   isUser: boolean;
   text: string;
+  thinkContent?: string;
+  showThinking: boolean;
 }
 
 @Component({
@@ -27,6 +29,7 @@ export class ChatComponent {
   conversationId: string = generateGUID();
 
   constructor(private ollamaService: OllamaService ) {}
+  
 
   sendMessage(event: Event, msg: string): void {
     event.preventDefault();
@@ -34,18 +37,27 @@ export class ChatComponent {
       this.error = 'Please ask a question first.';
       return;
     }
-
+  
     this.loading = true;
-    this.error = ''; 
-    
-    this.messages.push({ isUser: true, text: this.prompt });
-
-    const newResponse = { response: '' };
-
+    this.error = '';
+  
+    this.messages.push({ isUser: true, text: this.prompt, showThinking: false });
+  
     this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'chat')
       .subscribe({
         next: (chunk: string) => {
-          this.messages.push({ isUser: false, text: chunk }); 
+          // Parse for <think> and extract if present
+          const thinkMatch = chunk.match(/<think>(.*?)<\/think>/);
+          if (thinkMatch) {
+            this.messages.push({
+              isUser: false,
+              text: chunk.replace(/<think>(.*?)<\/think>/, '').trim(), 
+              thinkContent: thinkMatch[1].trim(),
+              showThinking: false 
+            });
+          } else {
+            this.messages.push({ isUser: false, text: chunk, showThinking: false });
+          }
         },
         error: (err) => {
           console.error('Error:', err);
@@ -59,4 +71,5 @@ export class ChatComponent {
       });
     this.prompt = '';
   }
+
 }
