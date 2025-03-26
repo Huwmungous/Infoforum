@@ -9,9 +9,9 @@
 .chat-component {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
   width: 100%;
-  overflow: auto;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
 }
 
 .user-message, .ai-message, .prompt-input {
@@ -21,23 +21,21 @@
   @include card-style;
 }
 
-.user-message {
-  align-self: flex-end;
-  background-color: var(--if-medium-colour);
+.user-message, .ai-message {
   color: var(--if-paper-colour);
   margin: 3px;
-  text-align: right;
+  padding: 7px;
 }
+
+.user-message {
+  background-color: var(--if-medium-colour);
+  align-self: flex-end;
+  text-align: right;
+}  
 
 .ai-message { 
-  align-self: flex-start;
   background-color: var(--if-light-colour);
-  color: var(--if-dark-colour);
-  margin: 3px;
-}
-
-.message {
-  padding: 7px;
+  align-self: flex-start;
 }
 
 .prompt-input {
