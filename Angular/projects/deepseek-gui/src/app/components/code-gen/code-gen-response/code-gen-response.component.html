@@ -21,14 +21,22 @@
         </div>
       </div>
 
-      <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">
+      <!-- <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">
         <mat-expansion-panel-header class="expansion-panel-header">
           <mat-panel-title>
             <mat-icon class="panel-icon">lightbulb</mat-icon>
           </mat-panel-title>
         </mat-expansion-panel-header>
         <p [innerHTML]="section.content"></p>
-      </mat-expansion-panel>
+      </mat-expansion-panel> -->
+
+      <div *ngIf="section.type === 'think'" class="response-reasoning">
+        <button class="show-think-button" (click)="section.showThinking = !section.showThinking">
+          <img src="/ai-thinking.png" alt="Think Icon" class="think-icon" />
+          {{ section.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
+        </button>
+        <div *ngIf="section.showThinking" class="thinking-content" [innerHTML]="section.content"></div>
+      </div>
       
     </div>
   </mat-card-content>

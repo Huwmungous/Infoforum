@@ -7,7 +7,7 @@
   flex: 1 1 auto;
 }
 
-.response-card-header, .response-prompt-panel, .response-reasoning-panel {
+.response-card-header, .response-prompt-panel {
   @include card-style;
 }
 
@@ -81,4 +81,8 @@
   margin-top:10px;
   font-family: Tahoma, sans-serif;
   white-space: pre-wrap;
+}
+
+.show-think-button {
+  @include show-thinking-button-style;
 }

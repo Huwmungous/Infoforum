@@ -23,7 +23,7 @@ declare const hljs: any;
 export class CodeGenResponseComponent {
   @Output() delete = new EventEmitter<void>();
   
-  sections: { type: string, content: string, language?: string }[] = [];
+  sections: { type: string, content: string, language?: string, showThinking: boolean }[] = [];
 
   prompt: string = '';
   private partialChunk: string = '';
@@ -46,18 +46,18 @@ export class CodeGenResponseComponent {
         const firstLineEnd = content.indexOf('\n');
         const language = content.slice(0, firstLineEnd).trim();
         const code = content.slice(firstLineEnd + 1).trim();
-        return { type: 'code', content: code, language: mapDeepseekToHighlight(language) };
+        return { type: 'code', content: code, language: mapDeepseekToHighlight(language), showThinking: false };
       } else if (partIsThink && isComplete) {
         const content = part.slice(7, -8).trim();
-        return { type: 'think', content: content };
+        return { type: 'think', content: content, showThinking: false  };
       } else if ((partIsCode || partIsThink) && !isComplete) {
-        this.partialChunk = part; // save for next iteration
+        this.partialChunk = part; 
         return null;
       } else {
         const formattedContent = part.trim()
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold text
-        .replace(/###(.*?)(\n|$)/g, '<em>$1</em>$2'); // Italicize text starting with ###
-        return { type: 'text', content: formattedContent };
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+        .replace(/###(.*?)(\n|$)/g, '<em>$1</em>$2'); 
+        return { type: 'text', content: formattedContent, showThinking: false  };
       }
     }).filter(section => section !== null);
 
