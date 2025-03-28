@@ -1,41 +1,8 @@
 {
-  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "$schema": "../../node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "ifauth-lib": {
-      "projectType": "library",
-      "root": "projects/ifauth-lib",
-      "sourceRoot": "projects/ifauth-lib/src",
-      "prefix": "lib",
-      "architect": {
-        "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
-          "options": {
-            "project": "projects/ifauth-lib/ng-package.json"
-          },
-          "configurations": {
-            "production": {
-              "tsConfig": "projects/ifauth-lib/tsconfig.lib.prod.json"
-            },
-            "development": {
-              "tsConfig": "projects/ifauth-lib/tsconfig.lib.json"
-            }
-          },
-          "defaultConfiguration": "production"
-        },
-        "test": {
-          "builder": "@angular-devkit/build-angular:karma",
-          "options": {
-            "tsConfig": "projects/ifauth-lib/tsconfig.spec.json",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ]
-          }
-        }
-      }
-    },
     "deepseek-gui": {
       "projectType": "application",
       "schematics": {
@@ -43,30 +10,30 @@
           "style": "scss"
         }
       },
-      "root": "projects/deepseek-gui",
-      "sourceRoot": "projects/deepseek-gui/src",
+      "root": ".",
+      "sourceRoot": "src",
       "prefix": "app",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": { 
-            "outputPath": "dist/deepseek-gui",
-            "index": "projects/deepseek-gui/src/index.html",
-            "browser": "projects/deepseek-gui/src/main.ts",
- 
+            "outputPath": "../../dist/deepseek-gui",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
             ],
-            "tsConfig": "projects/deepseek-gui/tsconfig.app.json",
+            "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/deepseek-gui/public"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
-              "projects/deepseek-gui/src/styles.scss"
+              "src/styles.scss"
             ],
             "scripts": []
           },
@@ -74,8 +41,8 @@
             "production": {
               "fileReplacements": [
                 {
-                  "replace": "projects/deepseek-gui/src/environments/environment.ts",
-                  "with": "projects/deepseek-gui/src/environments/environment.prod.ts"
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
                 }
               ],
               "budgets": [
@@ -122,16 +89,17 @@
               "zone.js",
               "zone.js/testing"
             ],
-            "tsConfig": "projects/deepseek-gui/tsconfig.spec.json",
+            "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
               {
                 "glob": "**/*",
-                "input": "projects/deepseek-gui/public"
+                "input": "public",
+                "output": "/"
               }
             ],
             "styles": [
-              "projects/deepseek-gui/src/styles.scss"
+              "src/styles.scss"
             ],
             "scripts": []
           }
