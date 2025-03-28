@@ -38,6 +38,20 @@
   align-self: flex-start;
 }
 
+.show-think-button {
+  display: flex;
+  justify-content: center;
+  margin:5px;
+  border-radius: 15px;
+  padding: 5px;
+  background-color: var(--if-dark-colour);
+  color: var(--if-paper-colour)
+
+  think-icon{
+    margin: 10px;
+  }
+}
+
 .prompt-input {
   width: 100%;
   margin: 10px auto;

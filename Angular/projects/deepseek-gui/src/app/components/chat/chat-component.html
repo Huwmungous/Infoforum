@@ -7,18 +7,27 @@
     </ng-container>
     <ng-template #aiMessage>
       <div class="ai-message">
-        <div class="message">{{ message.text }}</div>
-        <div *ngIf="message.thinkContent">
-          <button (click)="message.showThinking = !message.showThinking">Toggle Think Section</button>
+        <ng-container *ngIf="message.thinkContent">
+          <button class="show-think-button" (click)="message.showThinking = !message.showThinking">
+            <img src="assets/icons/think-icon.png" alt="Think Icon" class="think-icon" />
+            {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
+          </button>
           <div *ngIf="message.showThinking">
             <p>{{ message.thinkContent }}</p>
           </div>
-        </div>
+        </ng-container>
+        <div class="message">{{ message.text }}</div>
       </div>
     </ng-template>
   </ng-container>
 
   <form (submit)="sendMessage($event, prompt)">
-    <textarea class="prompt-input" name="prompt" [(ngModel)]="prompt" (keydown.enter)="sendMessage($event, prompt)" required></textarea>
+    <textarea
+      class="prompt-input"
+      name="prompt"
+      [(ngModel)]="prompt"
+      (keydown.enter)="sendMessage($event, prompt)"
+      required
+    ></textarea>
   </form>
 </div>

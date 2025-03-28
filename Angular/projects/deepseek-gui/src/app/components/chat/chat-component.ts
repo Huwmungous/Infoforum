@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
-import hljs from 'highlight.js';
 
 interface Message {
   isUser: boolean;
@@ -45,31 +43,34 @@ export class ChatComponent {
     this.messages.push({ isUser: true, text: this.prompt, showThinking: false });
   
     this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'chat')
-      .subscribe({
-        next: (chunk: string) => {
-          // Parse for <think> and extract if present
-          const thinkMatch = chunk.match(/<think>(.*?)<\/think>/);
-          if (thinkMatch) {
-            this.messages.push({
-              isUser: false,
-              text: chunk.replace(/<think>(.*?)<\/think>/, '').trim(), 
-              thinkContent: thinkMatch[1].trim(),
-              showThinking: false 
-            });
-          } else {
-            this.messages.push({ isUser: false, text: chunk, showThinking: false });
-          }
-        },
-        error: (err) => {
-          console.error('Error:', err);
-          this.error = 'An error occurred while processing your request.';
-          this.loading = false;
-        },
-        complete: () => {
-          this.loading = false;
-          this.prompt = '';
+    .subscribe({
+      next: (chunk: string) => {
+        console.log('Received chunk:', chunk); // Log response for verification
+        const thinkMatch = chunk.match(/<think>([\s\S]*?)<\/think>/);
+        console.log('thinkMatch:', thinkMatch); // Verify if we correctly extract the think content
+        
+        if (thinkMatch) {
+          this.messages.push({
+            isUser: false,
+            text: chunk.replace(/<think>[\s\S]*?<\/think>/, '').trim(), // Remove think section from text
+            thinkContent: thinkMatch[1].trim(),  // Capture the content within <think>
+            showThinking: false
+          });
+        } else {
+          this.messages.push({ isUser: false, text: chunk, showThinking: false });
         }
-      });
+      },
+      error: (err) => {
+        console.error('Error:', err);
+        this.error = 'An error occurred while processing your request.';
+        this.loading = false;
+      },
+      complete: () => {
+        this.loading = false;
+        this.prompt = '';
+      }
+    });
+    
     this.prompt = '';
   }
 
