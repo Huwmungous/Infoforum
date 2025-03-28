@@ -32,7 +32,7 @@
 
       <div *ngIf="section.type === 'think'" class="response-reasoning">
         <button class="show-think-button" (click)="section.showThinking = !section.showThinking">
-          <img src="/assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
+          <img src="assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
           {{ section.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
         </button>
         <div *ngIf="section.showThinking" class="thinking-content" [innerHTML]="section.content"></div>
