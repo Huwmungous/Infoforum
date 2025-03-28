@@ -40,6 +40,18 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     cursor: pointer
 }
 
+@mixin show-thinking-button-style {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 5px;
+    border-radius: 15px;
+    padding: 5px 10px;
+    background-color: var(--if-dark-colour);
+    color: var(--if-paper-colour);
+    cursor: pointer;
+}
+
 @mixin card-style {
     font-size: 14px;
     font-weight: 400;

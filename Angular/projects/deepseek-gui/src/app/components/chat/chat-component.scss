@@ -43,17 +43,14 @@
   width:25px;
 }
 
+.thinking-content{
+  font-style: italic;
+  padding: 20px; 
+  transition: height 0.5s ease-in-out;
+}
+
 .show-think-button {
-  display: flex;
-  justify-content: center;
-  align-items: center; /* Vertically center the text */
-  margin: 5px;
-  border-radius: 15px;
-  padding: 5px;
-  padding-left: 10px;
-  padding-right: 10px;
-  background-color: var(--if-dark-colour);
-  color: var(--if-paper-colour);
+  @include show-thinking-button-style;
 }
 
 .prompt-input {
