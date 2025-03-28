@@ -31,7 +31,7 @@
               {
                 "glob": "**/*",
                 "input": "projects/deepseek-gui/public",
-                "output": "/"
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -97,7 +97,7 @@
               {
                 "glob": "**/*",
                 "input": "projects/deepseek-gui/public",
-                "output": "/"
+                "output": "/assets"
               }
             ],
             "styles": [
