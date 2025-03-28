@@ -13,13 +13,24 @@
           "builder": "@angular-devkit/build-angular:application",
           "options": {
             "configExtension": "projects/deepseek-gui/angular.json"
-          }
+          },
+          "configurations": {
+            "production": {},
+            "development": {}
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "configExtension": "projects/deepseek-gui/angular.json"
-          }
+          "configurations": {
+            "production": {
+              "buildTarget": "deepseek-gui:build:production"
+            },
+            "development": {
+              "buildTarget": "deepseek-gui:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
