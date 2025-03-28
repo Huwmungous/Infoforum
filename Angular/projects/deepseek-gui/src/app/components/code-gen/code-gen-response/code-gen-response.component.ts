@@ -28,9 +28,10 @@ export class CodeGenResponseComponent {
   prompt: string = '';
   private partialChunk: string = '';
 
-  ngAfterViewChecked(): void {
+  ngAfterViewInit(): void {
+    hljs.configure({ ignoreUnescapedHTML: true });
     this.highlightCode();
-  } 
+  }
 
   processChunk(chunk: string) { 
     this.partialChunk += chunk; 

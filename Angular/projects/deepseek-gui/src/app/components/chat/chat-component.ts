@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
+import hljs from 'highlight.js';
 
 interface Message {
   isUser: boolean;
