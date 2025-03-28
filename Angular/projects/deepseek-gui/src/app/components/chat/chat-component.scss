@@ -38,18 +38,22 @@
   align-self: flex-start;
 }
 
+.think-icon{
+  height:25px;
+  width:25px;
+}
+
 .show-think-button {
   display: flex;
   justify-content: center;
-  margin:5px;
+  align-items: center; /* Vertically center the text */
+  margin: 5px;
   border-radius: 15px;
   padding: 5px;
+  padding-left: 10px;
+  padding-right: 10px;
   background-color: var(--if-dark-colour);
-  color: var(--if-paper-colour)
-
-  think-icon{
-    margin: 10px;
-  }
+  color: var(--if-paper-colour);
 }
 
 .prompt-input {

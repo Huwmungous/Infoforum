@@ -9,7 +9,7 @@
       <div class="ai-message">
         <ng-container *ngIf="message.thinkContent">
           <button class="show-think-button" (click)="message.showThinking = !message.showThinking">
-            <img src="assets/icons/think-icon.png" alt="Think Icon" class="think-icon" />
+            <img src="/ai-thinking.png" alt="Think Icon" class="think-icon" />
             {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
           </button>
           <div *ngIf="message.showThinking">
