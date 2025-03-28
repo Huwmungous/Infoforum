@@ -13,7 +13,7 @@
             {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
           </button>
           <div *ngIf="message.showThinking">
-            <p>{{ message.thinkContent }}</p>
+            <p class="thinking-content">{{ message.thinkContent }}</p>
           </div>
         </ng-container>
         <div class="message">{{ message.text }}</div>
