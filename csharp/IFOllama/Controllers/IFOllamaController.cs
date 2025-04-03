@@ -113,7 +113,7 @@ namespace IFOllama.Controllers
 
         private string SelectModel(string dest)
         {
-            // DeepSeek-R1:8b deepseek-coder:33b incept5/llama3.1-claude
+            // DeepSeek-R1:8b deepseek-coder:33b DeepSeek-R1:32b incept5/llama3.1-claude
             return dest == "code" ?
                 _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel is not configured.") :
                 dest == "chat" ?

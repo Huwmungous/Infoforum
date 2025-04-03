@@ -7,16 +7,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   standalone: true,
   imports: [CommonModule, MatProgressSpinnerModule],
   template: `
-    <div *ngIf="loading" class="spinner-overlay">
+    <div *ngIf="active" class="spinner-overlay">
       <mat-progress-spinner
         class="progress-spinner"
         mode="indeterminate"
-        diameter="50">
+        diameter="50" >
       </mat-progress-spinner>
     </div>
   `,
   styleUrls: ['./loading-spinner.component.scss']
 })
 export class LoadingSpinnerComponent {
-  @Input() loading: boolean = false;
+  @Input() active: boolean = false;
 }

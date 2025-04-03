@@ -1,4 +1,5 @@
 <div class="chat-component">
+  <app-loading-spinner [active]="(thinking$ | async) ?? false"></app-loading-spinner>
   <ng-container *ngFor="let message of messages">
     <ng-container *ngIf="message.isUser; else aiMessage">
       <div class="user-message">
