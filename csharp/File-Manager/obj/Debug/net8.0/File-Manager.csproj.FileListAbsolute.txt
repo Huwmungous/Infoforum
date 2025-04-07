@@ -48,3 +48,8 @@ D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net8.0\refint\File-Manager.dll
 D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net8.0\File-Manager.pdb
 D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net8.0\File-Manager.genruntimeconfig.cache
 D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net8.0\ref\File-Manager.dll
+D:\repos\Infoforum\csharp\File-Manager\bin\Debug\net8.0\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+D:\repos\Infoforum\csharp\File-Manager\bin\Debug\net8.0\Microsoft.Extensions.Logging.Abstractions.dll
+D:\repos\Infoforum\csharp\File-Manager\bin\Debug\net8.0\System.Diagnostics.DiagnosticSource.dll
+D:\repos\Infoforum\csharp\File-Manager\bin\Debug\net8.0\IFGlobal.dll
+D:\repos\Infoforum\csharp\File-Manager\bin\Debug\net8.0\IFGlobal.pdb

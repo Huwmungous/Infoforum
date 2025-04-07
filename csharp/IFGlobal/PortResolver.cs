@@ -22,6 +22,7 @@ namespace IFGlobal
                 case "KeyCloak_Reserved_1": return 5006;
                 case "KeyCloak_Reserved_2": return 5007;
                 case "IFOllama": return 5008;
+                case "File-Manager": return 5009;
 
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";

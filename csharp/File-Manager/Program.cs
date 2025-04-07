@@ -1,9 +1,18 @@
 using FileManager.Api.Services;
+using IFGlobal;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
+int port = PortResolver.GetPort("File-Manager");
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(port);
+});
+
 var configuration = builder.Configuration;
 
 // Configure CORS policy for Angular application
