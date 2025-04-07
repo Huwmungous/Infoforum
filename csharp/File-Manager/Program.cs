@@ -15,16 +15,20 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 var configuration = builder.Configuration;
 
-// Configure CORS policy for Angular application
+// Add CORS services with a specific policy.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy", policyBuilder =>
-    {
-        policyBuilder.WithOrigins(configuration["AllowedOrigins"].Split(','))
-                     .AllowAnyMethod()
-                     .AllowAnyHeader()
-                     .AllowCredentials();
-    });
+    options.AddPolicy("AllowSpecificOrigins",
+        policyBuilder => policyBuilder
+            .WithOrigins(
+              "https://longmanrd.net",
+             $"http://localhost:{port}",
+             $"http://thehybrid:{port}",
+             $"http://gambit:{port}",
+              "http://localhost:4200")
+            .SetIsOriginAllowedToAllowWildcardSubdomains()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
 });
 
 // Configure JWT Authentication
@@ -35,19 +39,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.Audience = configuration["Authentication:Audience"];
         options.RequireHttpsMetadata = bool.Parse(configuration["Authentication:RequireHttps"]);
         options.SaveToken = true;
-
-        // If using a self-signed cert for development
-        if (bool.Parse(configuration["Authentication:ValidateIssuerSigningKey"]))
-        {
-            var signingKey = new SymmetricSecurityKey(
-                Encoding.ASCII.GetBytes(configuration["Authentication:SigningKey"]));
-
-            options.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = signingKey
-            };
-        }
     });
 
 // Register application services
@@ -69,10 +60,11 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+//app.UseHttpsRedirection();
+//app.UseStaticFiles();
 
-app.UseCors("CorsPolicy");
+// Enable CORS before authentication and authorization.
+app.UseCors("AllowSpecificOrigins");
 
 app.UseRouting();
 
