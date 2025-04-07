@@ -11,6 +11,8 @@ import { CodeGenResponseComponent } from '../code-gen-response/code-gen-response
 import { ThinkingProgressComponent } from '../../thinking-progress/thinking-progress.component';
 import { DEFAULT_QUOTATION, QuotationService } from '../../../quotation.service';
 import { OllamaService } from '../../../ollama.service';
+import { BehaviorSubject } from 'rxjs';
+import { generateGUID } from '../code-gen.component';
 
 @Component({
   selector: 'app-code-gen',
@@ -24,21 +26,20 @@ import { OllamaService } from '../../../ollama.service';
     MatInputModule,
     MatIconModule,
     MatExpansionModule,
-    CodeGenResponseComponent,
-    ThinkingProgressComponent
+    CodeGenResponseComponent
   ],
   templateUrl: './code-gen.component.html',
   styleUrls: ['./code-gen.component.scss']
 })
 export class CodeGenComponent implements AfterViewInit, OnInit {
-  
   @ViewChildren(CodeGenResponseComponent) codeGenResponses!: QueryList<CodeGenResponseComponent>;
 
   prompt: string = '';
   responses: { response: string }[] = [];
-  thinking: boolean = false;
+  thinking$ = new BehaviorSubject<boolean>(false); 
   error: string = '';
-  conversationId: string = generateGUID(); // Generate a GUID for the conversationId
+  conversationId: string = generateGUID();  
+  isThinking: boolean;
 
   get quoteOfTheDay(): string {
     return localStorage.getItem('quoteOfTheDay') || DEFAULT_QUOTATION;
@@ -51,8 +52,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
 
   ngAfterViewInit() {
-    this.codeGenResponses.changes.subscribe(() => {
-    });
+    this.codeGenResponses.changes.subscribe(() => {});
   }
 
   ngOnInit() {
@@ -72,8 +72,10 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
       return;
     }
 
-    this.thinking = true;
+    this.thinking$.next(true);
     this.error = '';
+
+    debugger;
 
     const newResponse = { response: '' };
     this.responses.unshift(newResponse);
@@ -85,17 +87,17 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
           const firstResponseComponent = this.codeGenResponses.first;
           if (firstResponseComponent) {
             firstResponseComponent.processChunk(chunk);
-            firstResponseComponent.prompt = this.prompt; 
+            firstResponseComponent.prompt = this.prompt;
           }
           this.prompt = '';
         },
         error: (err) => {
           console.error('Error:', err);
           this.error = 'An error occurred while processing your request.';
-          this.thinking = false;
+          this.thinking$.next(false); 
         },
         complete: () => {
-          this.thinking = false; 
+          this.thinking$.next(false); 
           this.codeGenResponses.forEach(response => response.highlightCode());
         }
       });
@@ -104,12 +106,4 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   removeResponse(index: number) {
     this.responses.splice(index, 1);
   }
-}
-
-export function generateGUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
 }

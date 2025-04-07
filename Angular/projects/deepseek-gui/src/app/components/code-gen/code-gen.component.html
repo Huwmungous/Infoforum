@@ -1,4 +1,5 @@
 <div class="code-gen-component">
+  <app-thinking-progress [active]="(thinking$ | async) ?? false"></app-thinking-progress>
   <div class="split-container">
     <div class="left-pane">
       <mat-card class="request-card">
@@ -27,8 +28,8 @@
                 class="send-button"
                 color="primary"
                 type="submit"
-                [disabled]="loading">
-                {{ loading ? 'Processing...' : 'Send' }}
+                [disabled]="thinking$ ">
+                {{ thinking$ ? 'Processing...' : 'Send' }}
               </button>
             </div>
           </form>
@@ -47,5 +48,4 @@
       </div>
     </div>
   </div>
-  <app-thinking-progress *ngIf="loading"></app-thinking-progress>
 </div>

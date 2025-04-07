@@ -18,8 +18,8 @@
             class="send-button"
             color="primary"
             type="submit"
-            [disabled]="thinking">
-            {{ thinking ? 'Processing...' : 'Send' }}
+            [disabled]="thinking$">
+            {{ (thinking$ | async) ? 'Processing...' : 'Send' }}
           </button>
       </form>
       <div *ngIf="error" class="alert alert-danger mt-3">
@@ -32,8 +32,6 @@
     <div *ngFor="let responseObj of responses" class="mt-4">
       <app-code-gen-response></app-code-gen-response>
     </div>
-  </div>
-
-  <app-thinking-progress [active]="thinking"></app-thinking-progress>
+  </div> 
 
 </div>

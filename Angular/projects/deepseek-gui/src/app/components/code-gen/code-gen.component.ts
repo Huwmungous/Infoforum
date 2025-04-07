@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { BehaviorSubject } from 'rxjs';
 import { OllamaService } from '../../ollama.service';
 import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
 import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
@@ -37,7 +38,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
   prompt: string = '';
   responses: { response: string }[] = [];
-  loading: boolean = false;
+  thinking$ = new BehaviorSubject<boolean>(false); // Observable for thinking state
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
   placeholderText: string = 'Ask away!'; // Placeholder text
@@ -97,7 +98,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
       return;
     }
 
-    this.loading = true;
+    this.thinking$.next(true); // Set thinking to true
     this.error = '';
 
     const newResponse = { response: '' };
@@ -118,11 +119,11 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
         error: (err) => {
           console.error('Error:', err);
           this.error = 'An error occurred while processing your request.';
-          this.loading = false;
+          this.thinking$.next(false); // Set thinking to false
           this.inputArea.nativeElement.focus(); // Set focus back to the textarea in case of error
         },
         complete: () => {
-          this.loading = false;
+          this.thinking$.next(false); // Set thinking to false
         }
       });
   }
