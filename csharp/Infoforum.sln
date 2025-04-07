@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFOllama", "IFOllama\IFOlla
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BTTranslate", "BTTranslate\BTTranslate.csproj", "{0E0DB840-5326-4A7A-BF1E-14DA152E5761}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "File-Manager", "File-Manager\File-Manager.csproj", "{B8F9996D-A801-4461-AAAE-92DA05399D1C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{0E0DB840-5326-4A7A-BF1E-14DA152E5761}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E0DB840-5326-4A7A-BF1E-14DA152E5761}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E0DB840-5326-4A7A-BF1E-14DA152E5761}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
