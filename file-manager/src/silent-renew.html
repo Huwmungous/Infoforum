@@ -1,0 +1,26 @@
+<!-- src/silent-renew.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Silent Renew</title>
+</head>
+<body>
+  <script>
+    window.onload = function() {
+      /* This page is loaded in an iframe by the OIDC client library
+         to silently renew tokens without disrupting the user experience */
+      try {
+        const message = { 
+          type: 'authorization_response'
+        };
+        window.opener ? window.opener.postMessage(message, window.location.origin)
+          : window.parent.postMessage(message, window.location.origin);
+      }
+      catch (e) {
+        console.error('Error during silent renew:', e);
+      }
+    };
+  </script>
+</body>
+</html>

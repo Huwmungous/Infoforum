@@ -28,7 +28,8 @@
                 class="send-button"
                 color="primary"
                 type="submit"
-                [disabled]="thinking$ ">
+                [disabled]="thinking$"
+                (click)="onSubmit()">
                 {{ (thinking$ | async) ? 'Processing...' : 'Send' }}
               </button>
             </div>

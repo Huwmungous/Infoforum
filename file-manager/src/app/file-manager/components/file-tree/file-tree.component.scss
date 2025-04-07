@@ -1,0 +1,72 @@
+/* src/app/file-manager/components/file-tree/file-tree.component.scss */
+.file-tree-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    overflow: auto;
+  }
+  
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .file-tree {
+    width: 100%;
+  }
+  
+  .mat-tree-node {
+    min-height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  
+    .node-name {
+      margin-left: 8px;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  
+  .folder-node {
+    &.expanded {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+    
+    &.drag-over {
+      background-color: rgba(63, 81, 181, 0.1);
+      border: 1px dashed #3f51b5;
+    }
+  }
+  
+  .nested-tree-node {
+    padding-left: 40px;
+    
+    &.hidden {
+      display: none;
+    }
+  }
+  
+  .node-loading {
+    margin-left: 8px;
+  }
+  
+  .file-node {
+    mat-icon {
+      color: #777;
+    }
+  }
