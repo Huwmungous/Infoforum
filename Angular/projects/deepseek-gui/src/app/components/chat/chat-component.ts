@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
 import { BehaviorSubject } from 'rxjs';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
+import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
 
 interface Message {
   isUser: boolean;
@@ -18,7 +18,7 @@ interface Message {
   templateUrl: './chat-component.html',
   styleUrls: ['./chat-component.scss'],
   standalone: true, // <-- Use standalone components for Angular 14+
-  imports:[CommonModule, FormsModule, LoadingSpinnerComponent]
+  imports:[CommonModule, FormsModule, ThinkingProgressComponent]
 })
 export class ChatComponent {
   messages: Message[] = [];

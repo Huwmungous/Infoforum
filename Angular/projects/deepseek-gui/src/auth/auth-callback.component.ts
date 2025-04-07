@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AuthModule, OidcSecurityService } from 'angular-auth-oidc-client';
 import { environment } from '../environments/environment';
 import { CommonModule } from '@angular/common';
-import { LoadingSpinnerComponent } from '../app/components/loading-spinner/loading-spinner.component';
+import { ThinkingProgressComponent } from '../app/components/thinking-progress/thinking-progress.component';
 import { delay } from 'rxjs';
 
 @Component({
@@ -11,11 +11,11 @@ import { delay } from 'rxjs';
   template: `
   <div *ngIf="loading" class="spinner-container">
     <p class="msg">{{ message }}</p>
-    <app-loading-spinner></app-loading-spinner> 
+    <app-thinking-progress></app-thinking-progress> 
   </div>`,
   styleUrls: ['./auth-callback.component.scss'],
   standalone: true,
-  imports: [CommonModule, AuthModule, LoadingSpinnerComponent]
+  imports: [CommonModule, AuthModule, ThinkingProgressComponent]
 })
 export class AuthCallbackComponent implements OnInit {
   debugMode = !environment.production;

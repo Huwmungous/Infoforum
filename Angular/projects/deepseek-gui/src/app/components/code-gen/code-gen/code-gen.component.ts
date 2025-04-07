@@ -7,10 +7,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { OllamaService } from '../../ollama.service';
-import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
-import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
+import { CodeGenResponseComponent } from '../code-gen-response/code-gen-response.component';
+import { ThinkingProgressComponent } from '../../thinking-progress/thinking-progress.component';
+import { DEFAULT_QUOTATION, QuotationService } from '../../../quotation.service';
+import { OllamaService } from '../../../ollama.service';
 
 @Component({
   selector: 'app-code-gen',
@@ -25,7 +25,7 @@ import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
     MatIconModule,
     MatExpansionModule,
     CodeGenResponseComponent,
-    LoadingSpinnerComponent
+    ThinkingProgressComponent
   ],
   templateUrl: './code-gen.component.html',
   styleUrls: ['./code-gen.component.scss']
@@ -36,7 +36,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
   prompt: string = '';
   responses: { response: string }[] = [];
-  loading: boolean = false;
+  thinking: boolean = false;
   error: string = '';
   conversationId: string = generateGUID(); // Generate a GUID for the conversationId
 
@@ -72,7 +72,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
       return;
     }
 
-    this.loading = true;
+    this.thinking = true;
     this.error = '';
 
     const newResponse = { response: '' };
@@ -92,10 +92,10 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
         error: (err) => {
           console.error('Error:', err);
           this.error = 'An error occurred while processing your request.';
-          this.loading = false;
+          this.thinking = false;
         },
         complete: () => {
-          this.loading = false; 
+          this.thinking = false; 
           this.codeGenResponses.forEach(response => response.highlightCode());
         }
       });

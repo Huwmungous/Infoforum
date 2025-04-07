@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { OllamaService } from '../../ollama.service';
 import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
-import { LoadingSpinnerComponent } from '../loading-spinner/loading-spinner.component';
+import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
 import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
 
 @Component({
@@ -25,7 +25,7 @@ import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
     MatIconModule,
     MatExpansionModule,
     CodeGenResponseComponent,
-    LoadingSpinnerComponent
+    ThinkingProgressComponent
   ],
   templateUrl: './code-gen.component.html',
   styleUrls: ['./code-gen.component.scss']
