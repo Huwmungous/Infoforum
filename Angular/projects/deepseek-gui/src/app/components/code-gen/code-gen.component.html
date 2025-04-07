@@ -29,7 +29,7 @@
                 color="primary"
                 type="submit"
                 [disabled]="thinking$ ">
-                {{ thinking$ ? 'Processing...' : 'Send' }}
+                {{ (thinking$ | async) ? 'Processing...' : 'Send' }}
               </button>
             </div>
           </form>
