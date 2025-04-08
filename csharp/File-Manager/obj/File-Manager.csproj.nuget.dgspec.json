@@ -61,11 +61,11 @@
             },
             "Microsoft.IdentityModel.Tokens": {
               "target": "Package",
-              "version": "[8.7.0, )"
+              "version": "[8.8.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[6.6.2, )"
+              "version": "[8.1.0, )"
             },
             "System.DirectoryServices.Protocols": {
               "target": "Package",
