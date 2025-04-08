@@ -9,16 +9,18 @@
     </ng-container>
     <ng-template #aiMessage>
       <div class="ai-message">
-        <ng-container *ngIf="message.thinkContent">
-          <button class="show-think-button" (click)="message.showThinking = !message.showThinking">
-            <img src="assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
-            {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
-          </button> 
-          <div *ngIf="message.showThinking">
-            <p class="thinking-content">{{ message.thinkContent }}</p>
-          </div>
-        </ng-container>
-        <mat-icon class="copy-icon panel-icon copy-ai-message" (click)="copyToClipboard(message)">content_copy</mat-icon>
+        <div class="ai-message-header">
+          <ng-container *ngIf="message.thinkContent">
+            <button class="show-think-button" (click)="message.showThinking = !message.showThinking">
+              <img src="assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
+              {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
+            </button> 
+          </ng-container>
+          <mat-icon class="copy-icon panel-icon copy-ai-message" (click)="copyToClipboard(message)">content_copy</mat-icon>
+        </div>
+        <div *ngIf="message.showThinking">
+          <p class="thinking-content">{{ message.thinkContent }}</p>
+        </div>
         <div class="message">{{ message.text }}</div>
       </div>
     </ng-template>

@@ -78,3 +78,21 @@
   flex: 1; 
   text-align: left; 
 }
+
+.ai-message-header {
+  display: flex;
+  justify-content: space-between; /* Space out the elements */
+  align-items: center; /* Vertically align the elements */
+  padding: 5px 0;
+}
+
+.show-think-button {
+  display: flex;
+  align-items: center; /* Vertically center the button content */
+  @include show-thinking-button-style;
+}
+
+.copy-ai-message {
+  margin-left: auto; /* Push the icon to the far right */
+  cursor: pointer;
+}
