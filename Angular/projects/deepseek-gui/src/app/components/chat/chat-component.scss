@@ -65,13 +65,10 @@
   overflow: auto;
   box-sizing: border-box;
   cursor: text;
-}
-
-.copy-ai-message {
-  color : var(--if-paper-colour);
-}
+} 
 
 .copy-icon {
+  color : var(--if-paper-colour);
   align-self: flex-end;  
   cursor: pointer;
   margin-left: auto; 
