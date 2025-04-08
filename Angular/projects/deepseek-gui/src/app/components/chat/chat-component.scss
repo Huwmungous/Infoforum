@@ -66,3 +66,18 @@
   box-sizing: border-box;
   cursor: text;
 }
+
+.copy-ai-message {
+  color : var(--if-paper-colour);
+}
+
+.copy-icon {
+  align-self: flex-end;  
+  cursor: pointer;
+  margin-left: auto; 
+}
+
+.message {
+  flex: 1; 
+  text-align: left; 
+}

@@ -5,6 +5,8 @@ import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
 import { BehaviorSubject } from 'rxjs';
 import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
+import { Clipboard } from '@angular/cdk/clipboard';
+import { MatIconModule } from '@angular/material/icon';
 
 interface Message {
   isUser: boolean;
@@ -18,7 +20,7 @@ interface Message {
   templateUrl: './chat-component.html',
   styleUrls: ['./chat-component.scss'],
   standalone: true, // <-- Use standalone components for Angular 14+
-  imports:[CommonModule, FormsModule, ThinkingProgressComponent]
+  imports:[CommonModule, FormsModule, ThinkingProgressComponent, MatIconModule]
 })
 export class ChatComponent {
   messages: Message[] = [];
@@ -28,7 +30,7 @@ export class ChatComponent {
   
   thinking$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private ollamaService: OllamaService) {}
+  constructor(private ollamaService: OllamaService, private _clipboard: Clipboard) {}
 
   sendMessage(event: Event, msg: string): void {
     event.preventDefault();
@@ -70,5 +72,17 @@ export class ChatComponent {
           this.prompt = '';
         }
       });
+  }
+
+  copyToClipboard(message: Message): void {
+    if (message.isUser) {
+      this._clipboard.copy(message.text);
+    } else {
+      if (message.showThinking && message.thinkContent) {
+        this._clipboard.copy(message.thinkContent);
+      } else {
+        this._clipboard.copy(message.text);
+      }
+    }
   }
 }
