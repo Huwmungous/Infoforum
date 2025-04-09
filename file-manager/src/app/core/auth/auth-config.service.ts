@@ -69,7 +69,7 @@ export class AuthConfigService {
     
     AuthConfigService.config = cfg;
 
-    console.log('AuthConfigService.buildConfig() called', cfg);
+    // console.log('AuthConfigService.buildConfig() called', cfg);
     
     return cfg;
   }
