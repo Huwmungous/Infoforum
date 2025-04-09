@@ -7,15 +7,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { FileTreeComponent } from './file-manager/components/file-tree/file-tree.component'; 
-import { Observable } from 'rxjs';
-import { AuthService } from './core/auth/auth.service';
+import { AuthClientService } from './core/auth/auth-client.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     CommonModule,
-    RouterOutlet,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -27,12 +25,8 @@ import { AuthService } from './core/auth/auth.service';
 })
 export class AppComponent implements OnInit {
   title = 'File Manager';
-  isAuthenticated$: Observable<boolean>;
-  username$: Observable<string>;
   
-  constructor(private authService: AuthService) {
-    this.isAuthenticated$ = this.authService.isAuthenticated$;
-    this.username$ = this.authService.username$;
+  constructor(private authService: AuthClientService) {
   }
   
   ngOnInit(): void {

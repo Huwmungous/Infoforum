@@ -7,23 +7,16 @@
     <span>{{ title }}</span>
     <span class="spacer"></span>
     
-    <ng-container *ngIf="isAuthenticated$ | async; else loginButton">
+    <!-- <ng-container *ngIf="isAuthenticated$ | async; else loginButton">
       <span class="username">{{ username$ | async }}</span>
       <button mat-button (click)="logout()">Logout</button>
-    </ng-container>
+    </ng-container> -->
     
     <ng-template #loginButton>
       <button mat-button (click)="login()">Login</button>
     </ng-template>
   </mat-toolbar>
-  
-  <mat-sidenav-container class="sidenav-container">
-    <mat-sidenav mode="side" opened class="sidenav" fixedInViewport>
-      <app-file-tree></app-file-tree>
-    </mat-sidenav>
-    
-    <mat-sidenav-content class="content">
-      <router-outlet></router-outlet>
-    </mat-sidenav-content>
-  </mat-sidenav-container>
+ 
+  <app-file-tree></app-file-tree>
+ 
 </div>

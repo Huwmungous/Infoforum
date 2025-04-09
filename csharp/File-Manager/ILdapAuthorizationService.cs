@@ -1,7 +1,7 @@
 ﻿// ILdapAuthorizationService.cs
 using System.Threading.Tasks;
 
-namespace FileManager.Api.Services
+namespace File_Manager
 {
     public enum AccessLevel
     {

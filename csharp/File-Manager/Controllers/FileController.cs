@@ -2,23 +2,17 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using FileManager.Api.Services;
+using File_Manager;
 
-namespace FileManager.Api.Controllers
+namespace File_Manager.Controllers
 {
     [ApiController]
     [Route("api/files")]
     [Authorize]
-    public class FileController : ControllerBase
+    public class FileController(IFileService fileService, ILdapAuthorizationService ldapAuth) : ControllerBase
     {
-        private readonly IFileService _fileService;
-        private readonly ILdapAuthorizationService _ldapAuth;
-
-        public FileController(IFileService fileService, ILdapAuthorizationService ldapAuth)
-        {
-            _fileService = fileService;
-            _ldapAuth = ldapAuth;
-        }
+        private readonly IFileService _fileService = fileService;
+        private readonly ILdapAuthorizationService _ldapAuth = ldapAuth;
 
         [HttpGet("root")]
         public async Task<IActionResult> GetRootNodes()

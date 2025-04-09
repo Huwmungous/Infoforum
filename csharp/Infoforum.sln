@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFOllama", "IFOllama\IFOlla
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BTTranslate", "BTTranslate\BTTranslate.csproj", "{0E0DB840-5326-4A7A-BF1E-14DA152E5761}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "File-Manager", "File-Manager\File-Manager.csproj", "{B8F9996D-A801-4461-AAAE-92DA05399D1C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManager", "File-Manager\FileManager.csproj", "{B8F9996D-A801-4461-AAAE-92DA05399D1C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

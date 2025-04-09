@@ -4,7 +4,7 @@
 using System.DirectoryServices.Protocols;
 using System.Net;
 
-namespace FileManager.Api.Services
+namespace File_Manager
 {
     public class LdapAuthorizationService : ILdapAuthorizationService
     {
@@ -16,9 +16,7 @@ namespace FileManager.Api.Services
         private readonly string _bindPassword;
         private readonly string _baseDn;
 
-        public LdapAuthorizationService(
-            IConfiguration configuration,
-            ILogger<LdapAuthorizationService> logger)
+        public LdapAuthorizationService( IConfiguration configuration, ILogger<LdapAuthorizationService> logger)
         {
             _configuration = configuration;
             _logger = logger;
@@ -30,6 +28,7 @@ namespace FileManager.Api.Services
             _baseDn = _configuration["Ldap:BaseDn"];
         }
 
+        // Updated logging to use constant message templates to fix CA2254 diagnostic code.
         public async Task<bool> HasAccessAsync(string username, string path, AccessLevel level = AccessLevel.Read)
         {
             try
@@ -43,55 +42,53 @@ namespace FileManager.Api.Services
                 path = NormalizePath(path);
 
                 // Connect to LDAP
-                using (var connection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, _ldapPort)))
+                using var connection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, _ldapPort));
+                connection.Bind(new NetworkCredential(_bindDn, _bindPassword));
+
+                // Find the user
+                var userFilter = $"(&(objectClass=person)(uid={username}))";
+                var userSearchRequest = new SearchRequest(
+                    _baseDn,
+                    userFilter,
+                    SearchScope.Subtree
+                );
+                var userSearchResponse = (SearchResponse)connection.SendRequest(userSearchRequest);
+
+                if (userSearchResponse.Entries.Count == 0)
                 {
-                    connection.Bind(new NetworkCredential(_bindDn, _bindPassword));
-
-                    // Find the user
-                    var userFilter = $"(&(objectClass=person)(uid={username}))";
-                    var userSearchRequest = new SearchRequest(
-                        _baseDn,
-                        userFilter,
-                        SearchScope.Subtree
-                    );
-                    var userSearchResponse = (SearchResponse)connection.SendRequest(userSearchRequest);
-
-                    if (userSearchResponse.Entries.Count == 0)
-                    {
-                        _logger.LogWarning($"User not found in LDAP: {username}");
-                        return false;
-                    }
-
-                    var userEntry = userSearchResponse.Entries[0];
-
-                    // Get user's groups
-                    var groupFilter = $"(&(objectClass=groupOfNames)(member={userEntry.DistinguishedName}))";
-                    var groupSearchRequest = new SearchRequest(
-                        _baseDn,
-                        groupFilter,
-                        SearchScope.Subtree
-                    );
-                    var groupSearchResponse = (SearchResponse)connection.SendRequest(groupSearchRequest);
-
-                    var userGroups = new List<string>();
-                    foreach (SearchResultEntry entry in groupSearchResponse.Entries)
-                    {
-                        userGroups.Add(entry.Attributes["cn"][0].ToString());
-                    }
-
-                    // Check if user has required permissions based on path and groups
-                    return CheckPermissions(userGroups, path, level);
+                    _logger.LogWarning("User not found in LDAP: {Username}", username); 
+                    return false;
                 }
+
+                var userEntry = userSearchResponse.Entries[0];
+
+                // Get user's groups
+                var groupFilter = $"(&(objectClass=groupOfNames)(member={userEntry.DistinguishedName}))";
+                var groupSearchRequest = new SearchRequest(
+                    _baseDn,
+                    groupFilter,
+                    SearchScope.Subtree
+                );
+                var groupSearchResponse = (SearchResponse)connection.SendRequest(groupSearchRequest);
+
+                var userGroups = new List<string>();
+                foreach (SearchResultEntry entry in groupSearchResponse.Entries)
+                {
+                    userGroups.Add(entry.Attributes["cn"][0].ToString());
+                }
+
+                // Check if user has required permissions based on path and groups
+                return CheckPermissions(userGroups, path, level);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error checking LDAP authorization for user: {username}, path: {path}");
+                _logger.LogError(ex, "Error checking LDAP authorization for user: {Username}, path: {Path}", username, path); // Fixed CA2254
                 // Fall back to a secure default
                 return false;
             }
         }
 
-        private bool CheckPermissions(List<string> userGroups, string path, AccessLevel level)
+        private static bool CheckPermissions(List<string> userGroups, string path, AccessLevel level)
         {
             // This is a simplified example - in real implementation, you might want to use a more 
             // sophisticated approach like path hierarchies, ACLs, etc.
@@ -152,21 +149,13 @@ namespace FileManager.Api.Services
             return false;
         }
 
-        private string NormalizePath(string path)
+        private static string NormalizePath(string path)
         {
-            // Ensure path starts with a slash
-            if (!path.StartsWith("/"))
-            {
-                path = "/" + path;
-            }
+            // Ensure path starts with a slash 
+            path = !path.StartsWith('/') ? '/' + path : path;
 
-            // Remove trailing slash except for root
-            if (path.Length > 1 && path.EndsWith("/"))
-            {
-                path = path.TrimEnd('/');
-            }
-
-            return path;
+            // Remove trailing slash except for root 
+            return path.Length > 1 && path.EndsWith('/') ? path.TrimEnd('/') : path; 
         }
     }
 }

@@ -9,11 +9,11 @@ import { FileSystemNode, FolderNode } from '../core/models/file.model';
   providedIn: 'root',
 })
 export class FileService {
-  private apiUrl = 'https://your-api-url.com/api/files'; // Adjust to your C# Web API URL
+  private apiUrl = 'http://localhost:5009/api/files'; // Adjust to your C# Web API URL
 
   constructor(private http: HttpClient) {}
 
-  getRootNodes(): Observable<FileSystemNode[]> {
+  getRootNodes(): Observable<FileSystemNode[]> { 
     return this.http.get<FileSystemNode[]>(`${this.apiUrl}/root`)
       .pipe(
         catchError(error => {

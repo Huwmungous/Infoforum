@@ -1,14 +1,5 @@
 ﻿// FileService.cs
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace FileManager.Api.Services
+namespace File_Manager
 {
     public class FileService : IFileService
     {
@@ -31,29 +22,24 @@ namespace FileManager.Api.Services
         {
             var result = new List<FileSystemNode>();
 
-            // This could be configurable based on your requirements
-            var rootFolders = new[] { "Documents", "Images", "Videos" };
-
-            foreach (var folder in rootFolders)
+            // Add the PUBLIC root node
+            result.Add(new FolderNode
             {
-                var folderPath = Path.Combine(_basePath, folder);
+                Id = Guid.NewGuid().ToString(),
+                Name = "PUBLIC",
+                Path = @"\\slave\public",
+                LastModified = DateTime.Now // You can replace this with the actual last modified time if needed
+            });
 
-                // Create folder if it doesn't exist
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                }
-
-                var dirInfo = new DirectoryInfo(folderPath);
-
-                result.Add(new FolderNode
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = folder,
-                    Path = $"/{folder}",
-                    LastModified = dirInfo.LastWriteTime
-                });
-            }
+            // Add the HOME root node
+            var username = Environment.UserName; // Get the current username
+            result.Add(new FolderNode
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "HOME",
+                Path = $@"\\slave\{username}",
+                LastModified = DateTime.Now // You can replace this with the actual last modified time if needed
+            });
 
             return await Task.FromResult(result);
         }
@@ -107,7 +93,7 @@ namespace FileManager.Api.Services
             {
                 var fullPath = GetFullPath(path);
 
-                if (!System.IO.File.Exists(fullPath))
+                if (!File.Exists(fullPath))
                 {
                     result = null;
                 }
@@ -129,7 +115,7 @@ namespace FileManager.Api.Services
 
                 var fullPath = GetFullPath(path);
 
-                if (!System.IO.File.Exists(fullPath))
+                if (!File.Exists(fullPath))
                 {
                     throw new FileNotFoundException($"File not found: {path}");
                 }
@@ -173,9 +159,9 @@ namespace FileManager.Api.Services
         {
             var fullPath = GetFullPath(path);
 
-            if (System.IO.File.Exists(fullPath))
+            if (File.Exists(fullPath))
             {
-                System.IO.File.Delete(fullPath);
+                File.Delete(fullPath);
             }
             else if (Directory.Exists(fullPath))
             {
@@ -218,26 +204,20 @@ namespace FileManager.Api.Services
 
         private string GetFullPath(string virtualPath)
         {
-            // Remove leading slash if present
-            if (virtualPath.StartsWith("/"))
-            {
-                virtualPath = virtualPath.Substring(1);
-            }
+            // Remove leading slash if present 
+            virtualPath = virtualPath.StartsWith('/') ? virtualPath[1..] : virtualPath;
 
             return Path.Combine(_basePath, virtualPath);
         }
 
-        private string CombineVirtualPath(string path1, string path2)
+        private static string CombineVirtualPath(string path1, string path2)
         {
-            if (!path1.EndsWith("/"))
-            {
-                path1 = path1 + "/";
-            }
+            path1 = !path1.EndsWith('/') ? path1 + "/" : path1;
 
             return path1 + path2;
         }
 
-        private string GetMimeType(string extension)
+        private static string GetMimeType(string extension)
         {
             // Simple mapping, could be expanded or use a proper MIME type library
             var mimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)

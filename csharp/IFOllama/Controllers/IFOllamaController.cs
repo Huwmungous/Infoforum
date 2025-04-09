@@ -8,18 +8,11 @@ namespace IFOllama.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class IFOllamaController : ControllerBase
+    public class IFOllamaController(IConfiguration configuration, HttpClient httpClient, IConversationContextManager contextManager) : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private readonly HttpClient _httpClient;
-        private readonly IConversationContextManager _contextManager;
-
-        public IFOllamaController(IConfiguration configuration, HttpClient httpClient, IConversationContextManager contextManager)
-        {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
-        }
+        private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+        private readonly IConversationContextManager _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
 
         [HttpPost]
         [Authorize(Policy = "MustBeIntelligenceUser")]

@@ -1,18 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using IFGlobal;
+using Newtonsoft.Json;
 using Npgsql;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Text.RegularExpressions;
+using System.Text; 
 
 namespace BTTranslate
 {
     class Program
     {
-        private static readonly int READ_BUF_SIZE = 1024;
         private static string accessToken = "";
         private static readonly string ifollamaApiUrl = "https://longmanrd.net/aiapi";
         private static string connectionString = "";
@@ -30,7 +25,7 @@ namespace BTTranslate
             Console.WriteLine("BTTranslate started.");
             try
             {
-                AcquireToken();
+                accessToken = AccessToken.AcquireToken();
                 BuildConnStr();
 
                 using (var reader = UpdatableEntriesReader())
@@ -132,17 +127,15 @@ namespace BTTranslate
             {
                 try
                 {
-                    using (var response = httpClient.PostAsync(sendPromptUrl, requestContent).GetAwaiter().GetResult())
-                    {
-                        response.EnsureSuccessStatusCode();
+                    using var response = httpClient.PostAsync(sendPromptUrl, requestContent).GetAwaiter().GetResult();
+                    response.EnsureSuccessStatusCode();
 
-                        using var responseStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
-                        using var stream = new StreamReader(responseStream);
-                        var responseContent = stream.ReadToEnd();
+                    using var responseStream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult();
+                    using var stream = new StreamReader(responseStream);
+                    var responseContent = stream.ReadToEnd();
 
-                        result = ExtractTranslationFromResponse(responseContent, language);
-                        retries = 0;
-                    }
+                    result = ExtractTranslationFromResponse(responseContent);
+                    retries = 0;
                 }
                 catch (Exception ex)
                 {
@@ -193,7 +186,7 @@ namespace BTTranslate
             }
         }
 
-        private static string ExtractTranslationFromResponse(string responseContent, string langcode)
+        private static string ExtractTranslationFromResponse(string responseContent)
         {
             // Remove the think section if present
             string cleanedResponseContent;
@@ -245,29 +238,7 @@ namespace BTTranslate
             return result;
         }
 
-        private static void AcquireToken()
-        {
-            // Read token endpoint and service account credentials from environment variables
-            string? tokenEndpoint = Environment.GetEnvironmentVariable("LR_TOKEN_ENDPOINT");
-            string? clientId = Environment.GetEnvironmentVariable("LR_SVC_CLIENTID");
-            string? clientSecret = Environment.GetEnvironmentVariable("LR_SVC_SECRET");
 
-            // Throw an error if any environment variable is not found
-            if (string.IsNullOrEmpty(tokenEndpoint))
-                throw new Exception("No LR_TOKEN_ENDPOINT.");
-
-            if (string.IsNullOrEmpty(clientId))
-                throw new Exception("No LR_SVC_CLIENTID.");
-
-            if (string.IsNullOrEmpty(clientSecret))
-                throw new Exception("No LR_SVC_SECRET.");
-
-            string scope = "openid";
-
-            accessToken = GetAccessToken(tokenEndpoint, clientId, clientSecret, scope);
-            if (string.IsNullOrEmpty(accessToken))
-                throw new Exception("Failed to obtain access token.");
-        }
 
         private static void BuildConnStr()
         {
@@ -290,38 +261,7 @@ namespace BTTranslate
             connectionString = $"Host={host};Username=languagemanager;Password={password};Database=RozeBowl";
         }
 
-        private static string GetAccessToken(string tokenEndpoint, string clientId, string clientSecret, string scope)
-        {
-            using var httpClient = new HttpClient();
-            // Prepare the POST parameters for the token request
-            var parameters = new Dictionary<string, string>
-            {
-                { "client_id", clientId },
-                { "client_secret", clientSecret },
-                { "grant_type", "client_credentials" },
-                { "scope", scope }
-            };
-
-            var content = new FormUrlEncodedContent(parameters);
-            var response = httpClient.PostAsync(tokenEndpoint, content).GetAwaiter().GetResult();
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine("Token request failed: " + response.StatusCode);
-                return "";
-            }
-
-            string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
-            return tokenResponse?.access_token ?? "";
-        }
     }
 
-    // Class for deserializing the token response JSON.
-    public class TokenResponse
-    {
-        public string? access_token { get; set; }
-        public int expires_in { get; set; }
-        public string? token_type { get; set; }
-    }
 }
 

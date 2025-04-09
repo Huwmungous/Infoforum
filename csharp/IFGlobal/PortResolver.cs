@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 
 namespace IFGlobal
 {
@@ -36,8 +35,12 @@ namespace IFGlobal
         {
             get
             {
-                _appName ??= Assembly.GetEntryAssembly()?.GetName().Name;
-                return _appName!;
+                if (string.IsNullOrEmpty(_appName))
+                {
+                    var entryAssembly = Assembly.GetEntryAssembly() ?? throw new InvalidOperationException("Entry assembly is null. Unable to determine application name.");
+                    _appName = entryAssembly.GetName().Name ?? throw new InvalidOperationException("Application name is null.");
+                }
+                return _appName;
             }
         }
     }
