@@ -2,5 +2,7 @@ export const environment = {
     production: true,
     apiUrl: 'https://longmanrd.net/aiapi',
     consoleLog: true,
-    appName: '/intelligence/'
+    appName: '/intelligence/',
+    realm: 'LongmanRd', 
+    clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7'
   };

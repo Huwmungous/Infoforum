@@ -8,6 +8,7 @@ import { AuthCallbackComponent } from './auth/auth-callback.component';
 import { IntelligenceComponent } from './app/deepseek/intelligence.component';
 import { AuthGuard } from './auth/auth.guard';
 import { SilentRenewComponent } from './auth/silent-renew.component';
+import { AuthConfigService } from './auth/auth-config.service';
 
 const routes: Routes = [
   { path: 'auth-callback', component: AuthCallbackComponent },
@@ -15,11 +16,11 @@ const routes: Routes = [
   { path: 'home', component: IntelligenceComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: '**', redirectTo: '/home' }
-];
+]; 
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom(IFAuthModule.forRoot()),
+    importProvidersFrom(IFAuthModule),
     provideHttpClient(),
     provideRouter(routes)
   ]

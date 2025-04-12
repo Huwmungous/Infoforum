@@ -6,8 +6,8 @@ import {
   HttpInterceptor,
 } from '@angular/common/http';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -19,8 +19,17 @@ export class IFTokenInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     return this.oidc.getAccessToken().pipe(
       switchMap((token: string) => {
-        const clone = request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }); 
-        return next.handle(clone);
+        if (token) {
+          const clone = request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }); 
+          return next.handle(clone);
+        } else {
+          console.warn('No access token available');
+          return next.handle(request);
+        }
+      }),
+      catchError((error) => {
+        console.error('Error in token interceptor:', error);
+        return of(error);
       })
     );
   }

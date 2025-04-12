@@ -27,6 +27,8 @@ export class AuthGuard implements CanActivate, CanActivateChild {
         if (!response.isAuthenticated && !this.isAuthProcessInProgress) {
           this.isAuthProcessInProgress = true;          
           this.oidc.authorize(this.configService.configId);
+        } else {
+          this.isAuthProcessInProgress = false; // Reset the flag after the process completes
         }
       }),
       map((response: { isAuthenticated: boolean }) => response.isAuthenticated)
