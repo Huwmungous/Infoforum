@@ -33,81 +33,91 @@ namespace IFOllama.Controllers
 
                 if (dest == "image")
                 {
-                    // Record the user prompt in the conversation history.
-                    _contextManager.AppendMessage(conversationId, "User", prompt);
-
-                    // Create an image generation request that includes conversationId.
-                    var imageRequest = new ImageGenerationRequest
-                    {
-                        Model = SelectModel(dest),
-                        Prompt = prompt,
-                        ConversationId = conversationId
-                    };
-
-                    // Serialize and send the image generation request to the proper API.
-                    var content = new StringContent(
-                        JsonConvert.SerializeObject(imageRequest),
-                        Encoding.UTF8,
-                        "application/json"
-                    );
-
-                    // Use the API URL for image generation.
-                    var imageApiUrl = _configuration["ImageApiUrl"] ?? throw new InvalidOperationException("ImageApiUrl is not configured.");
-                    var imageResponse = await _httpClient.PostAsync(imageApiUrl, content);
-
-                    if (!imageResponse.IsSuccessStatusCode)
-                        return StatusCode((int)imageResponse.StatusCode, "Image generation request failed.");
-
-                    // Read the binary image data.
-                    var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
-
-                    // Log a placeholder message in the conversation history for the image response.
-                    // You might choose to log a textual URL or description instead.
-                    _contextManager.AppendMessage(conversationId, "Assistant", "[Image Generated]");
-
-                    // Return the image bytes with a proper MIME type.
-                    return new FileContentResult(imageBytes, "image/png");
+                    return await HandleImagePrompt(conversationId, prompt, dest);
                 }
                 else
                 {
-                    // For text-generation (chat, code) combine conversation context with prompt.
-                    var combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
-
-                    // Create request payload.
-                    var content = new StringContent(
-                        JsonConvert.SerializeObject(new OllamaRequest
-                        {
-                            Model = SelectModel(dest),
-                            Prompt = combinedPrompt
-                        }),
-                        Encoding.UTF8,
-                        "application/json"
-                    );
-
-                    // Use text-generation API URL.
-                    var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
-
-                    if (!response.IsSuccessStatusCode)
-                        return StatusCode((int)response.StatusCode, "Request failed");
-
-                    MemoryStream responseStreamWriter = await HandleResponse(response);
-                    responseStreamWriter.Seek(0, SeekOrigin.Begin);
-
-                    // Read the text response.
-                    var responseText = await new StreamReader(responseStreamWriter).ReadToEndAsync();
-
-                    // Append both the user prompt and the assistant's response to the conversation.
-                    _contextManager.AppendMessage(conversationId, "User", prompt);
-                    _contextManager.AppendMessage(conversationId, "Assistant", responseText);
-
-                    // Return the text response.
-                    return new FileStreamResult(new MemoryStream(Encoding.UTF8.GetBytes(responseText)), "text/plain");
+                    return await HandleCodeOrChatPrompt(conversationId, prompt, dest, conversationContext);
                 }
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
+        }
+
+        private async Task<IActionResult> HandleCodeOrChatPrompt(string conversationId, string prompt, string dest, string conversationContext)
+        {
+            // For text-generation (chat, code) combine conversation context with prompt.
+            var combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+
+            // Create request payload.
+            var content = new StringContent(
+                JsonConvert.SerializeObject(new OllamaRequest
+                {
+                    Model = SelectModel(dest),
+                    Prompt = combinedPrompt
+                }),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Use text-generation API URL.
+            var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
+
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, "Request failed");
+
+            MemoryStream responseStreamWriter = await HandleResponse(response);
+            responseStreamWriter.Seek(0, SeekOrigin.Begin);
+
+            // Read the text response.
+            var responseText = await new StreamReader(responseStreamWriter).ReadToEndAsync();
+
+            // Append both the user prompt and the assistant's response to the conversation.
+            _contextManager.AppendMessage(conversationId, "User", prompt);
+            _contextManager.AppendMessage(conversationId, "Assistant", responseText);
+
+            // Return the text response.
+            return new FileStreamResult(new MemoryStream(Encoding.UTF8.GetBytes(responseText)), "text/plain");
+        }
+
+        private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt, string dest)
+        {
+            // Record the user prompt in the conversation history.
+            _contextManager.AppendMessage(conversationId, "User", prompt);
+
+            // Create an image generation request that includes conversationId.
+            var imageRequest = new ImageGenerationRequest
+            {
+                Model = SelectModel(dest),
+                Prompt = prompt,
+                ConversationId = conversationId
+            };
+
+            // Serialize and send the image generation request to the proper API.
+            var content = new StringContent(
+                JsonConvert.SerializeObject(imageRequest),
+                Encoding.UTF8,
+                "application/json"
+            );
+
+            // Use the API URL for image generation.
+            var imageApiUrl = SelectAPIUrl();
+            var imageResponse = await _httpClient.PostAsync(imageApiUrl, content);
+
+            if (!imageResponse.IsSuccessStatusCode)
+                return StatusCode((int)imageResponse.StatusCode, "Image generation request failed.");
+
+            // Read the binary image data.
+            var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
+
+            // Log a placeholder message in the conversation history for the image response.
+            // You might choose to log a textual URL or description instead.
+            _contextManager.AppendMessage(conversationId, "Assistant", "[Image Generated]");
+
+            // Return the image bytes with a proper MIME type.
+            return new FileContentResult(imageBytes, "image/png");
         }
 
         [HttpGet("query")]
