@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
@@ -7,11 +7,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
 import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface ImageMessage {
   isUser: boolean;
   text: string;
-  imageData?: string; // Base64 string that can be used as image src
+  objectUrl?: string; // The object URL for the image blob
+  imageData?: SafeResourceUrl; // A blob: URL wrapped in an Angular SafeUrl 
 }
 
 @Component({
@@ -30,7 +32,8 @@ export class ImageGenComponent {
   // Manages the "thinking" progress indicator
   thinking$ = new BehaviorSubject<boolean>(false);
 
-  constructor(private ollamaService: OllamaService, private _clipboard: Clipboard) {}
+
+  constructor(private sanitizer: DomSanitizer, private ollamaService: OllamaService, private _clipboard: Clipboard) {}
 
   sendImage(event: Event, prompt: string): void {
     event.preventDefault();
@@ -49,19 +52,25 @@ export class ImageGenComponent {
     // Call the service with dest "image" (the conversationId may not be needed here so we use an empty string)
     this.ollamaService.sendPrompt(this.conversationId, prompt, 'image')
       .subscribe({
-        next: (blob: Blob) => {
-          // Convert the Blob to a base64 data URL to be used as an <img> src
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.messages.push({ isUser: false, text: '', imageData: reader.result as string });
-          };
-          reader.readAsDataURL(blob);
+
+        next: blob => {
+          console.log('🔍 blob:', blob, 'size=', blob.size, 'type=', blob.type);
+          const objectUrl = URL.createObjectURL(blob);
+          const safeUrl   = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+          this.messages.push({
+            isUser: false,
+            text: '',
+            objectUrl: objectUrl,
+            imageData: safeUrl
+          }); 
         },
+
         error: (err) => {
           console.error('Error generating image:', err);
           this.error = 'An error occurred while generating the image.';
           this.thinking$.next(false);
         },
+
         complete: () => {
           this.thinking$.next(false);
           this.prompt = '';
@@ -69,12 +78,22 @@ export class ImageGenComponent {
       });
   }
 
+  revokeObjectURL(msg: ImageMessage) {
+    if (msg.objectUrl) {
+      URL.revokeObjectURL(msg.objectUrl);
+      delete msg.objectUrl;
+    }
+  }
+
   copyToClipboard(message: ImageMessage): void {
     // Copy text for user messages or, if available, the base64 string for image messages.
     if (message.isUser) {
       this._clipboard.copy(message.text);
     } else if (message.imageData) {
-      this._clipboard.copy(message.imageData);
+      const imageDataString = message.imageData ? this.sanitizer.sanitize(SecurityContext.URL, message.imageData) : '';
+      if (imageDataString) {
+        this._clipboard.copy(imageDataString);
+      }
     }
   }
 }

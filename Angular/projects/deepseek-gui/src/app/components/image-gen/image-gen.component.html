@@ -16,7 +16,7 @@
           </div>
           <div class="message">
             <!-- Render image from generated base64 URL -->
-            <img [src]="message.imageData" alt="Generated Image" *ngIf="message.imageData; else noImage">
+            <img *ngIf="message.imageData; else noImage" (load)="revokeObjectURL(message)" [src]="message.imageData" alt="Generated Image">
             <ng-template #noImage>
               <span>No image available.</span>
             </ng-template>
