@@ -15,9 +15,10 @@ export class OllamaService {
     const url = `${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
 
-    // For image generation, set responseType to 'blob' so that binary data is handled correctly.
+    // For image generation, we now expect JSON response with base64 data
+    // For code/chat, we still want text response
     const options = dest === 'image'
-      ? { headers, responseType: 'blob' as 'json' } // Type assertion workaround for TypeScript
+      ? { headers } // Default responseType is 'json'
       : { headers, responseType: 'text' as 'json' };
 
     return this.http.post(url, JSON.stringify(prompt), options);

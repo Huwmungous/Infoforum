@@ -112,12 +112,17 @@ namespace IFOllama.Controllers
             // Read the binary image data.
             var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
 
-            // Log a placeholder message in the conversation history for the image response.
-            // You might choose to log a textual URL or description instead.
-            _contextManager.AppendMessage(conversationId, "Assistant", "[Image Generated]");
+            // Convert image bytes to base64 string
+            var base64Image = Convert.ToBase64String(imageBytes);
 
-            // Return the image bytes with a proper MIME type.
-            return new FileContentResult(imageBytes, "image/png");
+            // Create response object with base64 image
+            var response = new
+            {
+                image = base64Image
+            };
+
+            // Return JSON response
+            return Ok(response);
         }
 
         [HttpGet("query")]
