@@ -32,7 +32,7 @@ export class AuthCallbackComponent implements OnInit {
     this.loading = true;    
     this.oidc.checkAuth().subscribe({
       next: (authResult) => {
-        console.log('Auth Callback - Auth Result:', authResult);
+        // console.log('Auth Callback - Auth Result:', authResult);
         this.loading = false;
       },
       error: (err) => {

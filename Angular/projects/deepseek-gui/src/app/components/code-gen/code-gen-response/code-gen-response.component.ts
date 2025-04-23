@@ -71,8 +71,7 @@ export class CodeGenResponseComponent {
   }
 
   copyToClipboard(content: string) {
-    navigator.clipboard.writeText(content).then(() => {
-      console.log('Copied to clipboard');
+    navigator.clipboard.writeText(content).then(() => { 
     }).catch(err => {
       console.error('Could not copy text: ', err);
     });

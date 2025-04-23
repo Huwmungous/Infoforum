@@ -1,1 +1,58 @@
-<p>image-gen works!</p>
+<div class="image-gen-component">
+    <app-thinking-progress [active]="(thinking$ | async) ?? false"></app-thinking-progress>
+    
+    <!-- Render previous messages -->
+    <ng-container *ngFor="let message of messages">
+      <ng-container *ngIf="message.isUser; else aiMessage">
+        <div class="user-message">
+          <mat-icon class="copy-icon panel-icon"
+                    (click)="copyToClipboard(message)">content_copy</mat-icon>
+          <div class="message">{{ message.text }}</div>
+        </div>
+      </ng-container>
+      <ng-template #aiMessage>
+        <div class="ai-message">
+          <div class="ai-message-header">
+            <mat-icon class="copy-icon panel-icon copy-ai-message"
+                      (click)="copyToClipboard(message)">content_copy</mat-icon>
+          </div>
+          <div class="message">
+            <img *ngIf="message.imageData; else noImage"
+                 [src]="message.imageData"
+                 alt="Generated Image">
+            <ng-template #noImage>
+              <span>No image available.</span>
+            </ng-template>
+          </div>
+
+          <div style="border:2px solid blue; padding:4px; margin-top:8px;">
+            <p>Inline data‑URI test:</p>
+            <img
+              src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4
+              //8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg=="
+              alt="dataURI test"
+              style="display:block; max-width:150px; height:auto;"
+            >
+          </div>
+          
+
+        </div>
+      </ng-template>
+    </ng-container>
+  
+    <!-- Form to send an image generation request -->
+    <form (submit)="requestImage($event, prompt)">
+      <textarea
+        class="prompt-input"
+        name="prompt"
+        [(ngModel)]="prompt"
+        (keydown.enter)="requestImage($event, prompt)"
+        required
+        placeholder="Enter image description..."
+      ></textarea>
+      <button type="submit">Generate Image</button>
+    </form>
+    
+    <div *ngIf="error" class="error">{{ error }}</div>
+  </div>
+  

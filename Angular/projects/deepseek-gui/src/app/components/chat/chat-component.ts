@@ -47,9 +47,7 @@ export class ChatComponent {
   
     this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'chat')
       .subscribe({
-        next: (chunk: string) => {
-          console.log('Received chunk:', chunk); 
-          
+        next: (chunk: string) => { 
           const thinkMatch = chunk.match(/<think>([\s\S]*?)<\/think>/);
           if (thinkMatch) {
             this.messages.push({

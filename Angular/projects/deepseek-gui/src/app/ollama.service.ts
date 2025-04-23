@@ -14,6 +14,13 @@ export class OllamaService {
   sendPrompt(conversationId: string, prompt: string, dest: string = 'code'): Observable<any> {
     const url = `${this.apiUrl}?conversationId=${conversationId}&dest=${dest}`;
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    return this.http.post(url, JSON.stringify(prompt), { headers, responseType: 'text' });
+
+    // For image generation, we now expect JSON response with base64 data
+    // For code/chat, we still want text response
+    const options = dest === 'image'
+      ? { headers } // Default responseType is 'json'
+      : { headers, responseType: 'text' as 'json' };
+
+    return this.http.post(url, JSON.stringify(prompt), options);
   }
 }
