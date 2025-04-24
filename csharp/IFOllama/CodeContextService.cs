@@ -35,7 +35,7 @@ namespace IFOllama
                 throw new DirectoryNotFoundException($"RootPath does not exist: {codesetPath}");
             }
 
-            _logger.LogInformation("CodesetPath is {CodesetPath}", codesetPath);
+            _logger.LogInformation($"CodesetPath is {codesetPath}");
 
             // Load extensions from appsettings.json
             var extensionsFromConfig = configuration.GetSection("Extensions").Get<List<string>>();
@@ -43,7 +43,7 @@ namespace IFOllama
                 ? new HashSet<string>(extensionsFromConfig, StringComparer.OrdinalIgnoreCase)
                 : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            _logger.LogInformation("Extensions are {Extensions}", extensionsFromConfig);
+            _logger.LogInformation($"Extensions are {extensionsFromConfig}", extensionsFromConfig);
 
             // Set up a single watcher for all files, then filter by extension
             _watcher = new FileSystemWatcher(codesetPath, "*.*")
@@ -65,7 +65,7 @@ namespace IFOllama
             {
                 foreach (var file in Directory.EnumerateFiles(codesetPath, $"*{ext}", SearchOption.AllDirectories))
                 {
-                    _logger.LogInformation("Indexing file: {File}", file);
+                    _logger.LogInformation($"Indexing file: {file}" );
                     IndexFile(file).GetAwaiter().GetResult();
                 }
             }
@@ -75,7 +75,7 @@ namespace IFOllama
         {
             if (!_extensions.Contains(Path.GetExtension(e.FullPath))) return;
 
-            _logger.LogInformation("File changed: {FilePath}", e.FullPath);
+            _logger.LogInformation($"File changed: {e.FullPath}");
 
             // Remove old entries (if any)
             if (_fileToIds.TryGetValue(e.FullPath, out var oldIds))
@@ -92,7 +92,7 @@ namespace IFOllama
         {
             if (!_extensions.Contains(Path.GetExtension(e.FullPath))) return;
 
-            _logger.LogInformation("File deleted: {FilePath}", e.FullPath);
+            _logger.LogInformation($"File deleted: {e.FullPath}");
 
             if (_fileToIds.TryGetValue(e.FullPath, out var oldIds))
             {
@@ -103,7 +103,7 @@ namespace IFOllama
 
         private async void OnFileRenamed(object sender, RenamedEventArgs e)
         {
-            _logger.LogInformation("File renamed from {OldPath} to {NewPath}", e.OldFullPath, e.FullPath);
+            _logger.LogInformation($"File renamed from {e.OldFullPath} to {e.FullPath}");
 
             await Task.Run(() =>
             {
@@ -119,7 +119,7 @@ namespace IFOllama
             // Double-check extension
             if (!_extensions.Contains(Path.GetExtension(path))) return;
 
-            _logger.LogInformation("Indexing file: {FilePath}", path);
+            _logger.LogInformation($"Indexing file: {path}");
 
             var text = await File.ReadAllTextAsync(path);
             var chunks = ChunkText(text, maxChars: 2000).ToList();
