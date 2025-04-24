@@ -15,10 +15,13 @@ builder.Configuration
 // Listen on configured port
 builder.WebHost.ConfigureKestrel(opts => opts.ListenAnyIP(port));
 
-// Conversation context manager
+// Fix for CS1729, CS0119, CS1525, CS1003, CS0103
+
+// Corrected the instantiation of ConversationContextManager by ensuring the logger is properly resolved from the service provider
 builder.Services.AddSingleton<IConversationContextManager>(sp =>
 {
-    var cm = new ConversationContextManager();
+    var logger = sp.GetRequiredService<ILogger<ConversationContextManager>>(); // Correctly resolve the logger
+    var cm = new ConversationContextManager(logger); // Pass the logger to the constructor
     cm.Initialize();
     return cm;
 });

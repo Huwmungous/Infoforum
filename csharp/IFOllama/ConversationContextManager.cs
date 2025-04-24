@@ -1,19 +1,27 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace IFOllama
 {
     public partial class ConversationContextManager : IConversationContextManager
     {
-
         private readonly string _conversationFolder = Path.Combine(Directory.GetCurrentDirectory(), "Conversations");
+        private readonly IDictionary<string, List<string>> _conversationHistories = new Dictionary<string, List<string>>();
+        private readonly ILogger<ConversationContextManager> _logger;
+
+        public ConversationContextManager(ILogger<ConversationContextManager> logger)
+        {
+            _logger = logger;
+        }
 
         public void Initialize()
         {
             if (!Directory.Exists(_conversationFolder))
+            {
                 Directory.CreateDirectory(_conversationFolder);
+                _logger.LogInformation($"Created conversation folder at {_conversationFolder}");
+            }
         }
-
-        private readonly IDictionary<string, List<string>> _conversationHistories = new Dictionary<string, List<string>>();
 
         public void AppendMessage(string conversationId, string role, string message)
         {
@@ -23,8 +31,9 @@ namespace IFOllama
             AppendIndividualMessage(conversationId, role, message);
 
             existingMessages.Add($"{role}: {message}");
-
             _conversationHistories[conversationId] = existingMessages;
+
+            _logger.LogInformation($"Appended message to conversation {conversationId}: {role}: {message}");
         }
 
         private void AppendIndividualMessage(string conversationId, string role, string message)
@@ -38,23 +47,23 @@ namespace IFOllama
             using (StreamWriter writer = File.CreateText(responsePath))
             {
                 var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
-                JsonConvert.SerializeObject(responseData, Formatting.Indented);
+                writer.Write(JsonConvert.SerializeObject(responseData, Formatting.Indented));
             }
 
             _conversationHistories[conversationId].Add($"{role}: {message}");
+            _logger.LogInformation($"Saved individual message for conversation {conversationId} at {responsePath}");
         }
 
         public string GetContext(string conversationId)
         {
             if (!_conversationHistories.ContainsKey(conversationId))
             {
-                // Create a new conversation history for this conversationId
                 _conversationHistories[conversationId] = new List<string>();
+                _logger.LogInformation($"Created new conversation history for {conversationId}");
             }
-            // Optionally, perform summarization/truncation here
+
             return string.Join("\n", _conversationHistories[conversationId]);
         }
-
 
         public void SaveResponse(string conversationId, string response)
         {
@@ -66,6 +75,8 @@ namespace IFOllama
 
             // Save individual response to disk
             AppendIndividualMessage(conversationId, "User", response);
+
+            _logger.LogInformation($"Saved response for conversation {conversationId}: {response}");
         }
 
         private void SaveConversation(string conversationId, List<string> messages)
@@ -83,27 +94,19 @@ namespace IFOllama
 
             using (StreamWriter writer = File.CreateText(jsonPath))
             {
-                JsonConvert.SerializeObject(conversationData, Formatting.Indented);
+                writer.Write(JsonConvert.SerializeObject(conversationData, Formatting.Indented));
             }
 
-            foreach (var message in messages)
-            {
-                string responseId = Guid.NewGuid().ToString();
-                var responsePath = Path.Combine(folderPath, $"{responseId}.json");
-                using StreamWriter writer = File.CreateText(responsePath);
-                var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
-                JsonConvert.SerializeObject(responseData, Formatting.Indented);
-            }
-
-            _conversationHistories[conversationId] = messages;
+            _logger.LogInformation($"Saved conversation {conversationId} to {jsonPath}");
         }
 
         public List<string>? GetConversation(string conversationId)
         {
             if (_conversationHistories.TryGetValue(conversationId, out List<string>? value))
                 return value;
-            else
-                return null;
+
+            _logger.LogWarning($"No conversation found for {conversationId}");
+            return null;
         }
 
         public List<string> LoadConversation(string conversationId)
@@ -113,10 +116,12 @@ namespace IFOllama
             {
                 using StreamReader reader = File.OpenText(jsonPath);
                 var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
-                return conversationData?.Messages ?? [];
+                _logger.LogInformation($"Loaded conversation {conversationId} from {jsonPath}" );
+                return conversationData?.Messages ?? new List<string>();
             }
-            else
-                return [];
+
+            _logger.LogWarning($"No conversation file found for {conversationId} at {jsonPath}");
+            return new List<string>();
         }
 
         public List<List<string>> LoadAllConversations()
@@ -135,6 +140,7 @@ namespace IFOllama
                     if (conversationData?.Messages != null)
                     {
                         allConversations.Add(conversationData.Messages);
+                        _logger.LogInformation($"Loaded conversation from {jsonPath}" );
                     }
                 }
             }
@@ -147,14 +153,19 @@ namespace IFOllama
             string folderPath = Path.Combine(_conversationFolder, conversationId);
 
             if (Directory.Exists(folderPath))
+            {
                 Directory.Delete(folderPath, true);
+                _logger.LogInformation($"Deleted conversation {conversationId} at {folderPath}", conversationId, folderPath);
+            }
+            else
+            {
+                _logger.LogWarning($"Attempted to delete non-existent conversation {conversationId}", conversationId);
+            }
         }
 
         public void GradeResponse(string conversationId, double grade)
         {
-            // For now, just log the grade
-            Console.WriteLine($"Graded response for conversation {conversationId} with grade {grade}");
+            _logger.LogInformation($"Graded response for conversation {conversationId} with grade {grade}", conversationId, grade);
         }
     }
-
 }
