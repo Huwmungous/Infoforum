@@ -2,9 +2,6 @@
 using IFOllama;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.ML;
-using Microsoft.ML.OnnxRuntime;
-using Microsoft.ML.Transforms.Text;
 
 int port = PortResolver.GetPort("IFOllama");
 var builder = WebApplication.CreateBuilder(args); 
@@ -31,6 +28,13 @@ builder.Services.AddSingleton<IEmbeddingService, TextEmbeddingService>();
 
 // RAG service using local embeddings
 builder.Services.AddScoped<IRagService, RagService>();
+
+builder.Services.AddSingleton<CodeContextService>(sp =>
+    new CodeContextService(
+        sp.GetRequiredService<IEmbeddingService>(),
+        builder.Configuration
+    )
+);
 
 // HTTP for Ollama and Context7 fetch
 builder.Services.AddHttpClient();
