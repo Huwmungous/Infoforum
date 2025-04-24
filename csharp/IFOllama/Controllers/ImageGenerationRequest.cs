@@ -3,10 +3,8 @@
 
     public class ImageGenerationRequest
     {
-        public string Model { get; set; }
-        public string Prompt { get; set; }
-        public string ConversationId { get; set; }
-
-        public bool Strem = false;
+        public required string Model { get; set; }
+        public required string Prompt { get; set; }
+        public required string ConversationId { get; set; }
     }
 }

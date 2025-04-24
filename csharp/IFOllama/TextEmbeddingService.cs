@@ -40,6 +40,9 @@ namespace IFOllama
             public string Text { get; set; } = string.Empty; 
         }
 
+        // Fix: Remove the `required` modifier from the `Embedding` property in the `TransformedEmbedding` class.
+        // This ensures that the `TransformedEmbedding` class satisfies the `new()` constraint required by `PredictionEngine`.
+
         private class TransformedEmbedding
         {
             [VectorType]
