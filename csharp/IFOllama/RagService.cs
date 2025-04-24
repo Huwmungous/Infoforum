@@ -49,5 +49,7 @@ namespace IFOllama
                 .Where(i => i >= 0 && i < _chunks.Count)
                 .Select(i => _chunks[(int)i])];
         }
+
+        public IEmbeddingService GetEmbeddingService() => _embedder;
     }
 }
