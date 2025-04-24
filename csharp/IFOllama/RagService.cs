@@ -18,6 +18,7 @@ namespace IFOllama
 
             // Read ChunksFile path from appsettings.json
             _chunksFile = configuration["ChunksFile"] ?? throw new InvalidOperationException("ChunksFile path is not configured.");
+            Console.WriteLine("Chunks File is ", _chunksFile);
 
             if (!File.Exists(_chunksFile))
                 throw new InvalidOperationException($"Missing chunks metadata: {_chunksFile}");

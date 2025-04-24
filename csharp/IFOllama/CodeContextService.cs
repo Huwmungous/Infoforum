@@ -22,12 +22,14 @@ namespace IFOllama
             var codesetPath = configuration.GetValue<string>("CodeSet");
             if (string.IsNullOrEmpty(codesetPath)) throw new ArgumentException("RootPath must be specified in the configuration.");
             if (!Directory.Exists(codesetPath)) throw new DirectoryNotFoundException($"RootPath does not exist: {codesetPath}");
+            Console.WriteLine("codesetPath is ", codesetPath);
 
             // Load extensions from appsettings.json
             var extensionsFromConfig = configuration.GetSection("Extensions").Get<List<string>>();
             _extensions = extensionsFromConfig != null
                 ? new HashSet<string>(extensionsFromConfig, StringComparer.OrdinalIgnoreCase)
                 : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            Console.WriteLine("extensions are ", extensionsFromConfig);
 
             // Set up a single watcher for all files, then filter by extension
             _watcher = new FileSystemWatcher(codesetPath, "*.*")
