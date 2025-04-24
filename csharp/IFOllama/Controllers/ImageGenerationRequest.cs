@@ -1,6 +1,5 @@
 ﻿namespace IFOllama.Controllers
 {
-
     public class ImageGenerationRequest
     {
         public required string Model { get; set; }
