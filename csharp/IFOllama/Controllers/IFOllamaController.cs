@@ -13,24 +13,29 @@ namespace IFOllama.Controllers
         private readonly IConfiguration _configuration;
         private readonly HttpClient _httpClient;
         private readonly IConversationContextManager _contextManager;
-        private readonly CodeContextService _codeContextService;
-        private readonly IRagService _ragService;
+        private readonly CodeContextService? _codeContextService;
+        private readonly IRagService? _ragService;
         private readonly ILogger<IFOllamaController> _logger;
 
         public IFOllamaController(
             IConfiguration configuration,
             HttpClient httpClient,
             IConversationContextManager contextManager,
-            CodeContextService codeContextService,
-            IRagService ragService,
-            ILogger<IFOllamaController> logger)
+            ILogger<IFOllamaController> logger,
+            CodeContextService? codeContextService = null,
+            IRagService? ragService = null)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
-            _codeContextService = codeContextService ?? throw new ArgumentNullException(nameof(codeContextService));
-            _ragService = ragService ?? throw new ArgumentNullException(nameof(ragService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _codeContextService = codeContextService; // May be null
+            _ragService = ragService; // May be null
+
+            if (_codeContextService == null || _ragService == null)
+            {
+                _logger.LogWarning("CodeContextService or RagService is unavailable. Enhanced code context features will be disabled.");
+            }
         }
 
         [HttpPost]
@@ -66,51 +71,55 @@ namespace IFOllama.Controllers
         {
             string combinedPrompt;
 
-            // Only enhance with code context and RAG for "code" destination
-            if (dest == "code")
+            // Only enhance with code context and RAG for "code" destination AND if services are available
+            if (dest == "code" && _codeContextService != null && _ragService != null)
             {
-                _logger.LogInformation("Enhancing code prompt with context");
-
-                // Get code context (via embeddings)
-                var queryEmbedding = await _ragService.GetEmbeddingService().EmbedAsync(prompt);
-                var (distances, codeContextIds) = _codeContextService.Search(queryEmbedding, 3);
-
-                // Get RAG chunks for additional context
-                var relevantChunks = await _ragService.GetTopChunksAsync(prompt, 3);
-
-                // Build enhanced prompt with context
-                var promptWithContext = new StringBuilder();
-                promptWithContext.AppendLine("## Code Context:");
-
-                // You'll need to implement a method to retrieve the actual code chunks 
-                // based on the IDs returned from the search
-                // This is a placeholder - modify according to your actual implementation
-                if (codeContextIds.Length > 0 && codeContextIds[0].Length > 0)
+                try
                 {
-                    foreach (var id in codeContextIds[0])
+                    _logger.LogInformation("Enhancing code prompt with context");
+
+                    // Get code context (via embeddings)
+                    var queryEmbedding = await _ragService.GetEmbeddingService().EmbedAsync(prompt);
+                    var (distances, codeContextIds) = _codeContextService.Search(queryEmbedding, 3);
+
+                    // Get RAG chunks for additional context
+                    var relevantChunks = await _ragService.GetTopChunksAsync(prompt, 3);
+
+                    // Build enhanced prompt with context
+                    var promptWithContext = new StringBuilder();
+                    promptWithContext.AppendLine("## Code Context:");
+
+                    // Add code context if available
+                    if (codeContextIds.Length > 0 && codeContextIds[0].Length > 0)
                     {
-                        // This is where you'd add code to fetch the actual content by ID
-                        // For example: promptWithContext.AppendLine(_codeContextService.GetChunkById(id));
-                        _logger.LogInformation($"Adding code context ID: {id}");
+                        foreach (var id in codeContextIds[0])
+                        {
+                            _logger.LogInformation($"Adding code context ID: {id}");
+                        }
                     }
-                }
 
-                promptWithContext.AppendLine("\n## Documentation Context:");
-                foreach (var chunk in relevantChunks)
+                    promptWithContext.AppendLine("\n## Documentation Context:");
+                    foreach (var chunk in relevantChunks)
+                    {
+                        promptWithContext.AppendLine(chunk);
+                    }
+
+                    promptWithContext.AppendLine("\n## User Query:");
+                    promptWithContext.AppendLine(prompt);
+
+                    // Combine with conversation context
+                    combinedPrompt = $"{conversationContext}\nUser: {promptWithContext}\nAssistant:";
+                    _logger.LogInformation("Enhanced prompt with code context and documentation");
+                }
+                catch (Exception ex)
                 {
-                    promptWithContext.AppendLine(chunk);
+                    _logger.LogError(ex, "Failed to enhance prompt with context. Using regular prompt.");
+                    combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
                 }
-
-                promptWithContext.AppendLine("\n## User Query:");
-                promptWithContext.AppendLine(prompt);
-
-                // Combine with conversation context
-                combinedPrompt = $"{conversationContext}\nUser: {promptWithContext}\nAssistant:";
-                _logger.LogInformation("Enhanced prompt with code context and documentation");
             }
             else
             {
-                // For chat, just use the regular conversation context and prompt
+                // For chat or when services aren't available, just use the regular conversation context and prompt
                 combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
             }
 
@@ -125,7 +134,7 @@ namespace IFOllama.Controllers
                 "application/json"
             );
 
-            // Use text-generation API URL
+            // Rest of the method remains unchanged
             var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
 
             if (!response.IsSuccessStatusCode)
