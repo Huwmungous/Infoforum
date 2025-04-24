@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BTTranslate", "BTTranslate\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileManager", "File-Manager\FileManager.csproj", "{B8F9996D-A801-4461-AAAE-92DA05399D1C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RagIndexer", "RagIndexer\RagIndexer.csproj", "{D9D881FB-0887-41BC-B889-CDB3D7E14157}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8F9996D-A801-4461-AAAE-92DA05399D1C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9D881FB-0887-41BC-B889-CDB3D7E14157}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9D881FB-0887-41BC-B889-CDB3D7E14157}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9D881FB-0887-41BC-B889-CDB3D7E14157}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9D881FB-0887-41BC-B889-CDB3D7E14157}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,32 +1,53 @@
-using IFGlobal;
+﻿using IFGlobal;
 using IFOllama;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 int port = PortResolver.GetPort("IFOllama");
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
+// Listen on configured port
+builder.WebHost.ConfigureKestrel(options =>
 {
-    serverOptions.ListenAnyIP(port);
+    options.ListenAnyIP(port);
 });
 
-builder.Services.AddSingleton<IConversationContextManager>(serviceProvider =>
+// Conversation context manager
+builder.Services.AddSingleton<IConversationContextManager>(sp =>
 {
-    var conversationManager = new ConversationContextManager();
-    conversationManager.Initialize();
-    return conversationManager;
+    var cm = new ConversationContextManager();
+    cm.Initialize();
+    return cm;
 });
 
+// MVC
 builder.Services.AddControllers();
+
+// Default HTTP client (for Ollama, Context7 retrieval, etc.)
 builder.Services.AddHttpClient();
+
+// OpenAI client for embeddings (RAG)
+builder.Services.AddHttpClient("OpenAI", client =>
+{
+    client.BaseAddress = new Uri("https://api.openai.com");
+    client.DefaultRequestHeaders.Authorization =
+        new AuthenticationHeaderValue("Bearer", builder.Configuration["OpenAI:ApiKey"]);
+});
+
+// Register RAG service
+builder.Services.AddSingleton<IRagService, RagService>();
+
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" });
 });
+
+// Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -37,64 +58,55 @@ builder.Services.AddAuthentication(options =>
     options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
     options.Audience = "account";
     options.RequireHttpsMetadata = true;
-
-    options.Events = new JwtBearerEvents
+    options.Events.OnAuthenticationFailed = context =>
     {
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine("Authentication failed: " + context.Exception.Message);
-            return Task.CompletedTask;
-        }
+        Console.WriteLine("Authentication failed: " + context.Exception.Message);
+        return Task.CompletedTask;
     };
 });
 
-
-// Configure authorization policies.
-builder.Services.AddAuthorization(options =>
+// Authorization
+builder.Services.AddAuthorization(opts =>
 {
-    options.AddPolicy("MustBeIntelligenceUser", policy =>
-    {
-        policy.RequireClaim("kc_groups", "IntelligenceUsers");
-    });
+    opts.AddPolicy("MustBeIntelligenceUser", policy =>
+        policy.RequireClaim("kc_groups", "IntelligenceUsers")
+    );
 });
 
-// Add CORS services with a specific policy.
-builder.Services.AddCors(options =>
+// CORS
+builder.Services.AddCors(opts =>
 {
-    options.AddPolicy("AllowSpecificOrigins",
-        policyBuilder => policyBuilder
-            .WithOrigins(
-              "https://longmanrd.net",
-             $"http://localhost:{port}",
-             $"http://thehybrid:{port}",
-             $"http://gambit:{port}",
-              "http://localhost:4200")
-            .SetIsOriginAllowedToAllowWildcardSubdomains()
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+    opts.AddPolicy("AllowSpecificOrigins", policy =>
+        policy.WithOrigins(
+            "https://longmanrd.net",
+            $"http://localhost:{port}",
+            $"http://thehybrid:{port}",
+            $"http://gambit:{port}",
+            "http://localhost:4200"
+        )
+        .SetIsOriginAllowedToAllowWildcardSubdomains()
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+    );
 });
 
 var app = builder.Build();
 
 app.UseStaticFiles();
-
 app.UseRouting();
 
-// Enable CORS before authentication and authorization.
+// CORS → Auth
 app.UseCors("AllowSpecificOrigins");
-
-// Add authentication and authorization middleware.
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Enable middleware to serve generated Swagger as a JSON endpoint.
+// Swagger UI
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "IFOllama API V1");
-    c.RoutePrefix = "swagger"; // Swagger UI available at /swagger
+    c.RoutePrefix = "swagger";
 });
 
 app.MapControllers();
-
 app.Run();

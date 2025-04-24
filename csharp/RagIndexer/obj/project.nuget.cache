@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "FkW27EuFyKI=",
+  "success": true,
+  "projectFilePath": "D:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hugh\\.nuget\\packages\\app.metrics.abstractions\\4.3.0\\app.metrics.abstractions.4.3.0.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\faissnet\\1.1.0\\faissnet.1.1.0.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.0.0\\microsoft.bcl.asyncinterfaces.1.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}
