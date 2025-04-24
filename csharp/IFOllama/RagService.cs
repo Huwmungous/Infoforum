@@ -1,46 +1,48 @@
 ﻿// RagService.cs 
 using System.Text.Json; 
 using FaissNet;
-using FaissIndex = FaissNet.Index; 
+using FaissIndex = FaissNet.Index;
 
-public class RagService : IRagService
+namespace IFOllama
 {
-    private readonly string _chunksFile;
-    private readonly FaissIndex _faiss;
-    private readonly List<string> _chunks;
-    private readonly IEmbeddingService _embedder;
-
-    public RagService(IEmbeddingService embedder, IConfiguration configuration)
+    public class RagService : IRagService
     {
-        _embedder = embedder;
+        private readonly string _chunksFile;
+        private readonly FaissIndex _faiss;
+        private readonly List<string> _chunks;
+        private readonly IEmbeddingService _embedder;
 
-        // Read ChunksFile path from appsettings.json
-        _chunksFile = configuration["ChunksFile"] ?? throw new InvalidOperationException("ChunksFile path is not configured.");
+        public RagService(IEmbeddingService embedder, IConfiguration configuration)
+        {
+            _embedder = embedder;
 
-        if (!File.Exists(_chunksFile))
-            throw new InvalidOperationException($"Missing chunks metadata: {_chunksFile}");
+            // Read ChunksFile path from appsettings.json
+            _chunksFile = configuration["ChunksFile"] ?? throw new InvalidOperationException("ChunksFile path is not configured.");
 
-        _chunks = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_chunksFile))
-            ?? throw new InvalidOperationException("Failed to read chunks.json");
+            if (!File.Exists(_chunksFile))
+                throw new InvalidOperationException($"Missing chunks metadata: {_chunksFile}");
 
-        // Build FAISS index locally
-        _faiss = FaissIndex.CreateDefault(768, MetricType.METRIC_INNER_PRODUCT);
-        var embeddings = new List<float[]>();
-        foreach (var text in _chunks)
-            embeddings.Add(_embedder.EmbedAsync(text).GetAwaiter().GetResult());
+            _chunks = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_chunksFile))
+                ?? throw new InvalidOperationException("Failed to read chunks.json");
 
-        var ids = Enumerable.Range(0, embeddings.Count).Select(i => (long)i).ToArray();
-        _faiss.AddWithIds(embeddings.ToArray(), ids);
+            // Build FAISS index locally
+            _faiss = FaissIndex.CreateDefault(768, MetricType.METRIC_INNER_PRODUCT);
+            var embeddings = new List<float[]>();
+            foreach (var text in _chunks)
+                embeddings.Add(_embedder.EmbedAsync(text).GetAwaiter().GetResult());
+
+            var ids = Enumerable.Range(0, embeddings.Count).Select(i => (long)i).ToArray();
+            _faiss.AddWithIds([.. embeddings], ids);
+        }
+
+        public async Task<List<string>> GetTopChunksAsync(string query, int k = 3)
+        {
+            var vec = await _embedder.EmbedAsync(query);
+            var (dists, inds) = _faiss.Search([vec], k);
+            return [.. inds[0]
+                .Where(i => i >= 0 && i < _chunks.Count)
+                .Select(i => _chunks[(int)i])];
+        }
     }
 
-    public async Task<List<string>> GetTopChunksAsync(string query, int k = 3)
-    {
-        var vec = await _embedder.EmbedAsync(query);
-        var (dists, inds) = _faiss.Search(new[] { vec }, k);
-        return inds[0]
-            .Where(i => i >= 0 && i < _chunks.Count)
-            .Select(i => _chunks[(int)i])
-            .ToList();
-    }
 }
-

@@ -20,16 +20,17 @@ namespace File_Manager
 
         public async Task<IEnumerable<FileSystemNode>> GetRootNodesAsync()
         {
-            var result = new List<FileSystemNode>();
-
-            // Add the PUBLIC root node
-            result.Add(new FolderNode
+            var result = new List<FileSystemNode>
             {
-                Id = Guid.NewGuid().ToString(),
-                Name = "PUBLIC",
-                Path = @"\\slave\public",
-                LastModified = DateTime.Now // You can replace this with the actual last modified time if needed
-            });
+                // Add the PUBLIC root node
+                new FolderNode
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = "PUBLIC",
+                    Path = @"\\slave\public",
+                    LastModified = DateTime.Now // You can replace this with the actual last modified time if needed
+                }
+            };
 
             // Add the HOME root node
             var username = Environment.UserName; // Get the current username

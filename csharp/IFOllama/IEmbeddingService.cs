@@ -1,5 +1,8 @@
 ﻿// IEmbeddingService.cs
-public interface IEmbeddingService
+namespace IFOllama
 {
-    Task<float[]> EmbedAsync(string text);
+    public interface IEmbeddingService
+    {
+        Task<float[]> EmbedAsync(string text);
+    }
 }

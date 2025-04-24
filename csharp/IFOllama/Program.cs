@@ -50,9 +50,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         opts.Audience = "account";
         opts.RequireHttpsMetadata = true;
     });
-builder.Services.AddAuthorization(opts =>
-    opts.AddPolicy("MustBeIntelligenceUser", p => p.RequireClaim("kc_groups", "IntelligenceUsers"))
-);
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("MustBeIntelligenceUser", p => p.RequireClaim("kc_groups", "IntelligenceUsers"));
 
 // CORS
 builder.Services.AddCors(opts =>
