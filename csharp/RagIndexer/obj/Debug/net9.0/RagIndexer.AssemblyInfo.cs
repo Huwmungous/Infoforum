@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RagIndexer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ecb31dd4c4f0577b8d880333150286854b6af3c6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fea06817f86d430b4749443e3aad1d24a9bac56e")]
 [assembly: System.Reflection.AssemblyProductAttribute("RagIndexer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RagIndexer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

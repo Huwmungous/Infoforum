@@ -1,5 +1,5 @@
-﻿// RagService.cs 
-using System.Text.Json; 
+﻿using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using FaissNet;
 using FaissIndex = FaissNet.Index;
 
@@ -11,17 +11,22 @@ namespace IFOllama
         private readonly FaissIndex _faiss;
         private readonly List<string> _chunks;
         private readonly IEmbeddingService _embedder;
+        private readonly ILogger<RagService> _logger;
 
-        public RagService(IEmbeddingService embedder, IConfiguration configuration)
+        public RagService(IEmbeddingService embedder, IConfiguration configuration, ILogger<RagService> logger)
         {
             _embedder = embedder;
+            _logger = logger;
 
             // Read ChunksFile path from appsettings.json
             _chunksFile = configuration["ChunksFile"] ?? throw new InvalidOperationException("ChunksFile path is not configured.");
-            Console.WriteLine("Chunks File is ", _chunksFile);
+            _logger.LogInformation("Chunks File is {ChunksFile}", _chunksFile);
 
             if (!File.Exists(_chunksFile))
+            {
+                _logger.LogError("Missing chunks metadata: {ChunksFile}", _chunksFile);
                 throw new InvalidOperationException($"Missing chunks metadata: {_chunksFile}");
+            }
 
             _chunks = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_chunksFile))
                 ?? throw new InvalidOperationException("Failed to read chunks.json");
@@ -45,5 +50,4 @@ namespace IFOllama
                 .Select(i => _chunks[(int)i])];
         }
     }
-
 }

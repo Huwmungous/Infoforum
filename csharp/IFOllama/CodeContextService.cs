@@ -1,5 +1,6 @@
 ﻿using FaissNet;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using FaissIndex = FaissNet.Index;
 
 namespace IFOllama
@@ -12,24 +13,37 @@ namespace IFOllama
         private readonly IEmbeddingService _embedder;
         private readonly FaissIndex _faissIndex;
         private readonly Dictionary<string, List<long>> _fileToIds = new();
+        private readonly ILogger<CodeContextService> _logger;
         private long _nextId = 1;
 
-        public CodeContextService(IEmbeddingService embedder, IConfiguration configuration)
+        public CodeContextService(IEmbeddingService embedder, IConfiguration configuration, ILogger<CodeContextService> logger)
         {
             _embedder = embedder;
+            _logger = logger;
             _faissIndex = FaissIndex.CreateDefault(EmbeddingDim, MetricType.METRIC_INNER_PRODUCT);
 
             var codesetPath = configuration.GetValue<string>("CodeSet");
-            if (string.IsNullOrEmpty(codesetPath)) throw new ArgumentException("RootPath must be specified in the configuration.");
-            if (!Directory.Exists(codesetPath)) throw new DirectoryNotFoundException($"RootPath does not exist: {codesetPath}");
-            Console.WriteLine("codesetPath is ", codesetPath);
+            if (string.IsNullOrEmpty(codesetPath))
+            {
+                _logger.LogError("RootPath must be specified in the configuration.");
+                throw new ArgumentException("RootPath must be specified in the configuration.");
+            }
+
+            if (!Directory.Exists(codesetPath))
+            {
+                _logger.LogError("RootPath does not exist: {CodesetPath}", codesetPath);
+                throw new DirectoryNotFoundException($"RootPath does not exist: {codesetPath}");
+            }
+
+            _logger.LogInformation("CodesetPath is {CodesetPath}", codesetPath);
 
             // Load extensions from appsettings.json
             var extensionsFromConfig = configuration.GetSection("Extensions").Get<List<string>>();
             _extensions = extensionsFromConfig != null
                 ? new HashSet<string>(extensionsFromConfig, StringComparer.OrdinalIgnoreCase)
                 : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            Console.WriteLine("extensions are ", extensionsFromConfig);
+
+            _logger.LogInformation("Extensions are {Extensions}", extensionsFromConfig);
 
             // Set up a single watcher for all files, then filter by extension
             _watcher = new FileSystemWatcher(codesetPath, "*.*")
@@ -51,6 +65,7 @@ namespace IFOllama
             {
                 foreach (var file in Directory.EnumerateFiles(codesetPath, $"*{ext}", SearchOption.AllDirectories))
                 {
+                    _logger.LogInformation("Indexing file: {File}", file);
                     IndexFile(file).GetAwaiter().GetResult();
                 }
             }
@@ -59,6 +74,8 @@ namespace IFOllama
         private async void OnFileChanged(object sender, FileSystemEventArgs e)
         {
             if (!_extensions.Contains(Path.GetExtension(e.FullPath))) return;
+
+            _logger.LogInformation("File changed: {FilePath}", e.FullPath);
 
             // Remove old entries (if any)
             if (_fileToIds.TryGetValue(e.FullPath, out var oldIds))
@@ -75,6 +92,8 @@ namespace IFOllama
         {
             if (!_extensions.Contains(Path.GetExtension(e.FullPath))) return;
 
+            _logger.LogInformation("File deleted: {FilePath}", e.FullPath);
+
             if (_fileToIds.TryGetValue(e.FullPath, out var oldIds))
             {
                 _faissIndex.RemoveIds(oldIds.ToArray());
@@ -84,6 +103,8 @@ namespace IFOllama
 
         private async void OnFileRenamed(object sender, RenamedEventArgs e)
         {
+            _logger.LogInformation("File renamed from {OldPath} to {NewPath}", e.OldFullPath, e.FullPath);
+
             await Task.Run(() =>
             {
                 OnFileDeleted(sender, new FileSystemEventArgs(
@@ -97,6 +118,8 @@ namespace IFOllama
         {
             // Double-check extension
             if (!_extensions.Contains(Path.GetExtension(path))) return;
+
+            _logger.LogInformation("Indexing file: {FilePath}", path);
 
             var text = await File.ReadAllTextAsync(path);
             var chunks = ChunkText(text, maxChars: 2000).ToList();
@@ -126,12 +149,13 @@ namespace IFOllama
         /// </summary>
         public (float[][] distances, long[][] ids) Search(float[] queryVec, int k)
         {
-            var result = _faissIndex.Search([queryVec], k);
+            var result = _faissIndex.Search(new[] { queryVec }, k);
             return (result.Item1, result.Item2);
         }
 
         public void Dispose()
         {
+            _logger.LogInformation("Disposing CodeContextService.");
             _watcher.Dispose();
             GC.SuppressFinalize(this);
         }

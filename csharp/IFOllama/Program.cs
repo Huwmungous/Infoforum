@@ -32,7 +32,8 @@ builder.Services.AddScoped<IRagService, RagService>();
 builder.Services.AddSingleton<CodeContextService>(sp =>
     new CodeContextService(
         sp.GetRequiredService<IEmbeddingService>(),
-        builder.Configuration
+        builder.Configuration,
+        sp.GetRequiredService<ILogger<CodeContextService>>() // Added the required logger argument
     )
 );
 
