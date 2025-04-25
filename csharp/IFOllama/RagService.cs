@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
-using HNSW.Net;                            // ← HNSW.NET API
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿ 
+using System.Text.Json; 
+using HNSW.Net;       
 
 namespace IFOllama
 {

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using HNSW.Net;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿ 
+using HNSW.Net; 
 
 namespace IFOllama
 {
@@ -20,7 +15,7 @@ namespace IFOllama
         private readonly IProvideRandomValues _rng = DefaultRandomGenerator.Instance;
 
         // Keep chunks for ID→text if you need it
-        private List<string> _allChunks = new();
+        private List<string> _allChunks = [];
 
         public CodeContextService(
             IEmbeddingService embedder,
@@ -36,7 +31,7 @@ namespace IFOllama
             if (!Directory.Exists(root))
                 throw new DirectoryNotFoundException($"CodeSet not found: {root}");
 
-            var exts = configuration.GetSection("Extensions").Get<List<string>>() ?? new();
+            var exts = configuration.GetSection("Extensions").Get<List<string>>() ?? [];
             _extensions = new HashSet<string>(exts, StringComparer.OrdinalIgnoreCase);
 
             // 2) HNSW parameters + constructor (four­-arg)
@@ -79,8 +74,20 @@ namespace IFOllama
             var chunks = new List<string>();
             foreach (var ext in _extensions)
             {
-                foreach (var file in Directory.EnumerateFiles(rootPath, $"*{ext}", SearchOption.AllDirectories))
+                var files = Directory.EnumerateFiles(rootPath, $"*{ext}", SearchOption.AllDirectories)
+                    .Where(file =>
+                    {
+                        var normalizedPath = Path.GetFullPath(file);
+                        return !normalizedPath.Contains("\\node_modules\\", StringComparison.OrdinalIgnoreCase) &&
+                               !normalizedPath.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase) &&
+                               !normalizedPath.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase);
+                    });
+
+                foreach (var file in files)
+                {
                     chunks.AddRange(ChunkText(File.ReadAllText(file), MaxChunkSize));
+                    _logger.LogInformation("CodeContext Indexed {File}", file);
+                }
             }
 
             // 2) Embed every chunk
