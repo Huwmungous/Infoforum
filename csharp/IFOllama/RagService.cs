@@ -1,53 +1,71 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
-using FaissNet;
-using FaissIndex = FaissNet.Index;
+using System.Threading.Tasks;
+using HNSW.Net;                            // ← HNSW.NET API
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace IFOllama
 {
     public class RagService : IRagService
     {
-        private readonly string _chunksFile;
-        private readonly FaissIndex _faiss;
+        private readonly SmallWorld<float[], float> _hnsw;
         private readonly List<string> _chunks;
         private readonly IEmbeddingService _embedder;
-        private readonly ILogger<RagService> _logger;
 
-        public RagService(IEmbeddingService embedder, IConfiguration configuration, ILogger<RagService> logger)
+        // optional if you want to reuse the same RNG
+        private readonly IProvideRandomValues _rng = DefaultRandomGenerator.Instance;
+
+        public RagService(
+            IEmbeddingService embedder,
+            IConfiguration configuration,
+            ILogger<RagService> logger)
         {
             _embedder = embedder;
-            _logger = logger;
 
-            // Read ChunksFile path from appsettings.json
-            _chunksFile = configuration["ChunksFile"] ?? throw new InvalidOperationException("ChunksFile path is not configured.");
-            _logger.LogInformation("Chunks File is {ChunksFile}", _chunksFile);
+            // 1) load your pre‐split chunks
+            var path = configuration["ChunksFile"]
+                       ?? throw new InvalidOperationException("ChunksFile must be configured.");
+            if (!File.Exists(path))
+                throw new FileNotFoundException("Chunks file not found", path);
 
-            if (!File.Exists(_chunksFile))
+            _chunks = JsonSerializer
+                .Deserialize<List<string>>(File.ReadAllText(path))
+                ?? throw new InvalidOperationException("Failed to parse chunks.json");
+
+            // 2) set up HNSW parameters
+            var parameters = new SmallWorld<float[], float>.Parameters
             {
-                _logger.LogError("Missing chunks metadata: {ChunksFile}", _chunksFile);
-                throw new InvalidOperationException($"Missing chunks metadata: {_chunksFile}");
-            }
+                M = 16,
+                LevelLambda = 1.0 / Math.Log(16)
+            };
 
-            _chunks = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(_chunksFile))
-                ?? throw new InvalidOperationException("Failed to read chunks.json");
+            // 3) instantiate the graph (distance, RNG, params)
+            _hnsw = new SmallWorld<float[], float>(
+                CosineDistance.NonOptimized,
+                _rng,
+                parameters
+            );
 
-            // Build FAISS index locally
-            _faiss = FaissIndex.CreateDefault(768, MetricType.METRIC_INNER_PRODUCT);
-            var embeddings = new List<float[]>();
-            foreach (var text in _chunks)
-                embeddings.Add(_embedder.EmbedAsync(text).GetAwaiter().GetResult());
-
-            var ids = Enumerable.Range(0, embeddings.Count).Select(i => (long)i).ToArray();
-            _faiss.AddWithIds([.. embeddings], ids);
+            // 4) embed all chunks and add in bulk
+            var vectors = _chunks
+                .Select(text => _embedder.EmbedAsync(text).GetAwaiter().GetResult())
+                .ToArray();
+            _hnsw.AddItems(vectors);
         }
 
         public async Task<List<string>> GetTopChunksAsync(string query, int k = 3)
         {
-            var vec = await _embedder.EmbedAsync(query);
-            var (dists, inds) = _faiss.Search([vec], k);
-            return [.. inds[0]
-                .Where(i => i >= 0 && i < _chunks.Count)
-                .Select(i => _chunks[(int)i])];
+            var qvec = await _embedder.EmbedAsync(query);
+            var neighbors = _hnsw.KNNSearch(qvec, k);
+
+            return neighbors
+                .Where(r => r.Id >= 0 && r.Id < _chunks.Count)
+                .Select(r => _chunks[r.Id])
+                .ToList();
         }
 
         public IEmbeddingService GetEmbeddingService() => _embedder;

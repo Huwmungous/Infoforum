@@ -6,7 +6,7 @@ partial class RagIndexer
 {
     static readonly List<Uri> Uris =
     [
-        new("https://context7.com/angular/angular"),
+       new("https://context7.com/angular/angular"),
        new("https://context7.com/angular/components"),
        new("https://context7.com/postgres/postgres"),
        new("https://context7.com/dotnet/csharplang"),

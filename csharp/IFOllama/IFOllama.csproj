@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,14 +15,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FaissNet" Version="1.1.0" />
+    <PackageReference Include="HNSW" Version="25.3.56901" />
+    <PackageReference Include="MessagePack" Version="3.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
     <PackageReference Include="Microsoft.ML" Version="4.0.2" />
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="4.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	<PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
-	<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.8.0" />
+	<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.9.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -14,7 +14,7 @@ namespace IFOllama.Controllers
         private readonly HttpClient _httpClient;
         private readonly IConversationContextManager _contextManager;
         private readonly CodeContextService? _codeContextService;
-        private readonly IRagService? _ragService;
+        private readonly IRagService _ragService;
         private readonly ILogger<IFOllamaController> _logger;
 
         public IFOllamaController(
@@ -22,19 +22,19 @@ namespace IFOllama.Controllers
             HttpClient httpClient,
             IConversationContextManager contextManager,
             ILogger<IFOllamaController> logger,
-            CodeContextService? codeContextService = null,
-            IRagService? ragService = null)
+            IRagService ragService,
+            CodeContextService? codeContextService = null)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _codeContextService = codeContextService; // May be null
-            _ragService = ragService; // May be null
+            _ragService = ragService;
 
-            if (_codeContextService == null || _ragService == null)
+            if (_codeContextService == null)
             {
-                _logger.LogWarning("CodeContextService or RagService is unavailable. Enhanced code context features will be disabled.");
+                _logger.LogWarning("CodeContextService is unavailable. Enhanced code context features will be disabled.");
             }
         }
 

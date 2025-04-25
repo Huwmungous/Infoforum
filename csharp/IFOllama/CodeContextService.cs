@@ -1,163 +1,159 @@
-﻿using FaissNet;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using HNSW.Net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using FaissIndex = FaissNet.Index;
 
 namespace IFOllama
 {
     public class CodeContextService : IDisposable
     {
-        private const int EmbeddingDim = 1536; // matches your embedder output size
+        private const int MaxChunkSize = 2000;
+        private readonly IEmbeddingService _embedder;
+        private readonly ILogger<CodeContextService> _logger;
         private readonly HashSet<string> _extensions;
         private readonly FileSystemWatcher _watcher;
-        private readonly IEmbeddingService _embedder;
-        private readonly FaissIndex _faissIndex;
-        private readonly Dictionary<string, List<long>> _fileToIds = new();
-        private readonly ILogger<CodeContextService> _logger;
-        private long _nextId = 1;
+        private SmallWorld<float[], float> _hnswIndex;
+        private readonly SmallWorld<float[], float>.Parameters _parameters;
+        private readonly IProvideRandomValues _rng = DefaultRandomGenerator.Instance;
 
-        public CodeContextService(IEmbeddingService embedder, IConfiguration configuration, ILogger<CodeContextService> logger)
+        // Keep chunks for ID→text if you need it
+        private List<string> _allChunks = new();
+
+        public CodeContextService(
+            IEmbeddingService embedder,
+            IConfiguration configuration,
+            ILogger<CodeContextService> logger)
         {
             _embedder = embedder;
             _logger = logger;
-            _faissIndex = FaissIndex.CreateDefault(EmbeddingDim, MetricType.METRIC_INNER_PRODUCT);
 
-            var codesetPath = configuration.GetValue<string>("CodeSet");
-            if (string.IsNullOrEmpty(codesetPath))
+            // 1) Load code­set path & extensions
+            var root = configuration["CodeSet"]
+                       ?? throw new ArgumentException("CodeSet must be specified");
+            if (!Directory.Exists(root))
+                throw new DirectoryNotFoundException($"CodeSet not found: {root}");
+
+            var exts = configuration.GetSection("Extensions").Get<List<string>>() ?? new();
+            _extensions = new HashSet<string>(exts, StringComparer.OrdinalIgnoreCase);
+
+            // 2) HNSW parameters + constructor (four­-arg)
+            _parameters = new SmallWorld<float[], float>.Parameters
             {
-                _logger.LogError("RootPath must be specified in the configuration.");
-                throw new ArgumentException("RootPath must be specified in the configuration.");
-            }
+                M = 32,
+                LevelLambda = 1.0 / Math.Log(32)
+            };
+            _hnswIndex = new SmallWorld<float[], float>(
+                CosineDistance.NonOptimized,
+                _rng,
+                _parameters
+            );
 
-            if (!Directory.Exists(codesetPath))
-            {
-                _logger.LogError("RootPath does not exist: {CodesetPath}", codesetPath);
-                throw new DirectoryNotFoundException($"RootPath does not exist: {codesetPath}");
-            }
+            // 3) Initial index
+            RebuildIndex(root);
 
-            _logger.LogInformation($"CodesetPath is {codesetPath}");
-
-            // Load extensions from appsettings.json
-            var extensionsFromConfig = configuration.GetSection("Extensions").Get<List<string>>();
-            _extensions = extensionsFromConfig != null
-                ? new HashSet<string>(extensionsFromConfig, StringComparer.OrdinalIgnoreCase)
-                : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            _logger.LogInformation($"Extensions are {extensionsFromConfig}", extensionsFromConfig);
-
-            // Set up a single watcher for all files, then filter by extension
-            _watcher = new FileSystemWatcher(codesetPath, "*.*")
+            // 4) Watch & rebuild on any file change
+            _watcher = new FileSystemWatcher(root, "*.*")
             {
                 IncludeSubdirectories = true,
                 NotifyFilter = NotifyFilters.LastWrite
-                             | NotifyFilters.FileName
-                             | NotifyFilters.DirectoryName,
+                                      | NotifyFilters.FileName
+                                      | NotifyFilters.DirectoryName,
                 EnableRaisingEvents = true
             };
+            _watcher.Changed += (_, e) => RebuildIndex(root);
+            _watcher.Created += (_, e) => RebuildIndex(root);
+            _watcher.Deleted += (_, e) => RebuildIndex(root);
+            _watcher.Renamed += (_, e) => RebuildIndex(root);
+        }
 
-            _watcher.Changed += OnFileChanged;
-            _watcher.Created += OnFileChanged;
-            _watcher.Deleted += OnFileDeleted;
-            _watcher.Renamed += OnFileRenamed;
+        private readonly object _lock = new();
 
-            // Initial bulk index for extensions
+        private void RebuildIndex(string rootPath)
+        {
+            _logger.LogInformation("Rebuilding HNSW index...");
+
+            // 1) Gather & chunk all source files
+            var chunks = new List<string>();
             foreach (var ext in _extensions)
             {
-                foreach (var file in Directory.EnumerateFiles(codesetPath, $"*{ext}", SearchOption.AllDirectories))
-                {
-                    _logger.LogInformation($"Indexing file: {file}" );
-                    IndexFile(file).GetAwaiter().GetResult();
-                }
+                foreach (var file in Directory.EnumerateFiles(rootPath, $"*{ext}", SearchOption.AllDirectories))
+                    chunks.AddRange(ChunkText(File.ReadAllText(file), MaxChunkSize));
+            }
+
+            // 2) Embed every chunk
+            var vectors = chunks
+                .Select(txt => _embedder.EmbedAsync(txt).GetAwaiter().GetResult())
+                .ToArray();
+
+            // 3) Instantiate a fresh graph
+            var newGraph = new SmallWorld<float[], float>(
+                CosineDistance.NonOptimized,
+                _rng,
+                _parameters
+            );
+
+            // 4) Bulk‐insert all vectors
+            newGraph.AddItems(vectors);
+
+            // 5) Swap in under lock, update chunk mapping
+            lock (_lock)
+            {
+                _hnswIndex = newGraph;
+                _allChunks = chunks;
             }
         }
 
-        private async void OnFileChanged(object sender, FileSystemEventArgs e)
+
+        private static IEnumerable<string> ChunkText(string txt, int maxLen)
         {
-            if (!_extensions.Contains(Path.GetExtension(e.FullPath))) return;
-
-            _logger.LogInformation($"File changed: {e.FullPath}");
-
-            // Remove old entries (if any)
-            if (_fileToIds.TryGetValue(e.FullPath, out var oldIds))
-            {
-                _faissIndex.RemoveIds(oldIds.ToArray());
-                _fileToIds.Remove(e.FullPath);
-            }
-
-            // Re-index the changed file
-            await IndexFile(e.FullPath);
-        }
-
-        private void OnFileDeleted(object sender, FileSystemEventArgs e)
-        {
-            if (!_extensions.Contains(Path.GetExtension(e.FullPath))) return;
-
-            _logger.LogInformation($"File deleted: {e.FullPath}");
-
-            if (_fileToIds.TryGetValue(e.FullPath, out var oldIds))
-            {
-                _faissIndex.RemoveIds(oldIds.ToArray());
-                _fileToIds.Remove(e.FullPath);
-            }
-        }
-
-        private async void OnFileRenamed(object sender, RenamedEventArgs e)
-        {
-            _logger.LogInformation($"File renamed from {e.OldFullPath} to {e.FullPath}");
-
-            await Task.Run(() =>
-            {
-                OnFileDeleted(sender, new FileSystemEventArgs(
-                    WatcherChangeTypes.Deleted, Path.GetDirectoryName(e.OldFullPath)!, Path.GetFileName(e.OldFullPath)));
-                OnFileChanged(sender, new FileSystemEventArgs(
-                    WatcherChangeTypes.Created, Path.GetDirectoryName(e.FullPath)!, Path.GetFileName(e.FullPath)));
-            });
-        }
-
-        private async Task IndexFile(string path)
-        {
-            // Double-check extension
-            if (!_extensions.Contains(Path.GetExtension(path))) return;
-
-            _logger.LogInformation($"Indexing file: {path}");
-
-            var text = await File.ReadAllTextAsync(path);
-            var chunks = ChunkText(text, maxChars: 2000).ToList();
-
-            var ids = new List<long>();
-            var embeds = new List<float[]>();
-
-            foreach (var chunk in chunks)
-            {
-                var vec = await _embedder.EmbedAsync(chunk);
-                embeds.Add(vec);
-                ids.Add(_nextId++);
-            }
-
-            _faissIndex.AddWithIds(embeds.ToArray(), ids.ToArray());
-            _fileToIds[path] = ids;
-        }
-
-        private static IEnumerable<string> ChunkText(string txt, int maxChars)
-        {
-            for (int i = 0; i < txt.Length; i += maxChars)
-                yield return txt.Substring(i, Math.Min(maxChars, txt.Length - i));
+            for (int i = 0; i < txt.Length; i += maxLen)
+                yield return txt.Substring(i, Math.Min(maxLen, txt.Length - i));
         }
 
         /// <summary>
-        /// Runs a FAISS search on the single query vector; returns (distances, ids).
+        /// Thread-safe K-NN search returning (distances, ids).
         /// </summary>
         public (float[][] distances, long[][] ids) Search(float[] queryVec, int k)
         {
-            var result = _faissIndex.Search(new[] { queryVec }, k);
-            return (result.Item1, result.Item2);
+            lock (_lock)
+            {
+                var results = _hnswIndex.KNNSearch(queryVec, k);
+                var distances = results.Select(r => r.Distance).ToArray();
+                var ids = results.Select(r => (long)r.Id).ToArray();
+                return (new[] { distances }, new[] { ids });
+            }
         }
 
         public void Dispose()
         {
-            _logger.LogInformation("Disposing CodeContextService.");
             _watcher.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// Embed a text query, run K-NN, and return the top code snippets.
+        /// </summary>
+        public async Task<List<string>> GetTopChunksAsync(string query, int k = 3)
+        {
+            // 1) Embed
+            var qvec = await _embedder.EmbedAsync(query);
+
+            // 2) Search
+            (var distsArr, var idsArr) = Search(qvec, k);
+            var ids = idsArr[0];
+
+            // 3) Map IDs → chunk text (guarding bounds)
+            var results = new List<string>();
+            foreach (var id in ids)
+            {
+                if (id >= 0 && id < _allChunks.Count)
+                    results.Add(_allChunks[(int)id]);
+            }
+            return results;
+        }
+
     }
 }

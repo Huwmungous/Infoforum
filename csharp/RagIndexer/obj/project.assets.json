@@ -18,35 +18,55 @@
           }
         }
       },
-      "FaissNet/1.1.0": {
+      "HNSW/25.3.56901": {
         "type": "package",
+        "dependencies": {
+          "MessagePack": "2.5.172",
+          "System.Memory": "4.5.5",
+          "System.Numerics.Vectors": "4.5.0"
+        },
         "compile": {
-          "lib/net6.0/FaissNet.dll": {
+          "lib/net8.0/HNSW.Net.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/HNSW.Net.dll": {}
+        }
+      },
+      "MessagePack/3.1.3": {
+        "type": "package",
+        "dependencies": {
+          "MessagePack.Annotations": "3.1.3",
+          "MessagePackAnalyzer": "3.1.3",
+          "Microsoft.NET.StringTools": "17.11.4"
+        },
+        "compile": {
+          "lib/net9.0/MessagePack.dll": {
             "related": ".xml"
           }
         },
         "runtime": {
-          "lib/net6.0/FaissNet.dll": {
+          "lib/net9.0/MessagePack.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MessagePack.Annotations/3.1.3": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/MessagePack.Annotations.dll": {
             "related": ".xml"
           }
         },
-        "runtimeTargets": {
-          "runtimes/win-x64/native/FaissNetNative.dll": {
-            "assetType": "native",
-            "rid": "win-x64"
-          },
-          "runtimes/win-x64/native/libiomp5md.dll": {
-            "assetType": "native",
-            "rid": "win-x64"
-          },
-          "runtimes/win-x64/native/mkl_core.2.dll": {
-            "assetType": "native",
-            "rid": "win-x64"
-          },
-          "runtimes/win-x64/native/mkl_intel_thread.2.dll": {
-            "assetType": "native",
-            "rid": "win-x64"
+        "runtime": {
+          "lib/netstandard2.0/MessagePack.Annotations.dll": {
+            "related": ".xml"
           }
+        }
+      },
+      "MessagePackAnalyzer/3.1.3": {
+        "type": "package",
+        "build": {
+          "build/MessagePackAnalyzer.targets": {}
         }
       },
       "Microsoft.Bcl.AsyncInterfaces/1.0.0": {
@@ -58,6 +78,37 @@
           "lib/netstandard2.1/Microsoft.Bcl.AsyncInterfaces.dll": {
             "related": ".xml"
           }
+        }
+      },
+      "Microsoft.NET.StringTools/17.11.4": {
+        "type": "package",
+        "compile": {
+          "ref/net8.0/_._": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.NET.StringTools.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "System.Memory/4.5.5": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.1/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.1/_._": {}
+        }
+      },
+      "System.Numerics.Vectors/4.5.0": {
+        "type": "package",
+        "compile": {
+          "ref/netcoreapp2.0/_._": {}
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/_._": {}
         }
       }
     }
@@ -81,23 +132,67 @@
         "logo.png"
       ]
     },
-    "FaissNet/1.1.0": {
-      "sha512": "fabudNbJYpc0jeWGbtBDdqfvBGprbEXhqdjDa70oAkQPJaEm5kzOBiGI88RPHbv3cb2BSU0X+pzYgqPl5hQKJA==",
+    "HNSW/25.3.56901": {
+      "sha512": "qdGOlI7tnZIsfPmGNLSKKrb2s1G2+xKFv6nkEhsySvGaM6J9df09OrgL2mLJRu65ravCVBb3bTm+B/oHDWHGZw==",
       "type": "package",
-      "path": "faissnet/1.1.0",
+      "path": "hnsw/25.3.56901",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
-        "LICENSE.txt",
-        "faissnet.1.1.0.nupkg.sha512",
-        "faissnet.nuspec",
-        "lib/net6.0/FaissNet.dll",
-        "lib/net6.0/FaissNet.xml",
-        "readme.md",
-        "runtimes/win-x64/native/FaissNetNative.dll",
-        "runtimes/win-x64/native/libiomp5md.dll",
-        "runtimes/win-x64/native/mkl_core.2.dll",
-        "runtimes/win-x64/native/mkl_intel_thread.2.dll"
+        "hnsw.25.3.56901.nupkg.sha512",
+        "hnsw.nuspec",
+        "lib/net7.0/HNSW.Net.dll",
+        "lib/net8.0/HNSW.Net.dll",
+        "lib/netstandard2.0/HNSW.Net.dll",
+        "lib/netstandard2.1/HNSW.Net.dll"
+      ]
+    },
+    "MessagePack/3.1.3": {
+      "sha512": "UiNv3fknvPzh5W+S0VV96R17RBZQQU71qgmsMnjjRZU2rtQM/XcTnOB+klT2dA6T1mxjnNKYrEm164AoXvGmYg==",
+      "type": "package",
+      "path": "messagepack/3.1.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net472/MessagePack.dll",
+        "lib/net472/MessagePack.xml",
+        "lib/net8.0/MessagePack.dll",
+        "lib/net8.0/MessagePack.xml",
+        "lib/net9.0/MessagePack.dll",
+        "lib/net9.0/MessagePack.xml",
+        "lib/netstandard2.0/MessagePack.dll",
+        "lib/netstandard2.0/MessagePack.xml",
+        "lib/netstandard2.1/MessagePack.dll",
+        "lib/netstandard2.1/MessagePack.xml",
+        "messagepack.3.1.3.nupkg.sha512",
+        "messagepack.nuspec"
+      ]
+    },
+    "MessagePack.Annotations/3.1.3": {
+      "sha512": "XTy4njgTAf6UVBKFj7c7ad5R0WVKbvAgkbYZy4f00kplzX2T3VOQ34AUke/Vn/QgQZ7ETdd34/IDWS3KBInSGA==",
+      "type": "package",
+      "path": "messagepack.annotations/3.1.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/MessagePack.Annotations.dll",
+        "lib/netstandard2.0/MessagePack.Annotations.xml",
+        "messagepack.annotations.3.1.3.nupkg.sha512",
+        "messagepack.annotations.nuspec"
+      ]
+    },
+    "MessagePackAnalyzer/3.1.3": {
+      "sha512": "19u1oVNv2brCs5F/jma8O8CnsKMMpYwNqD0CAEDEzvqwDTAhqC9r7xHZP4stPb3APs/ryO/zVn7LvjoEHfvs7Q==",
+      "type": "package",
+      "path": "messagepackanalyzer/3.1.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "analyzers/roslyn4.3/cs/MessagePack.Analyzers.CodeFixes.dll",
+        "analyzers/roslyn4.3/cs/MessagePack.SourceGenerator.dll",
+        "build/MessagePackAnalyzer.targets",
+        "messagepackanalyzer.3.1.3.nupkg.sha512",
+        "messagepackanalyzer.nuspec"
       ]
     },
     "Microsoft.Bcl.AsyncInterfaces/1.0.0": {
@@ -123,12 +218,112 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "Microsoft.NET.StringTools/17.11.4": {
+      "sha512": "mudqUHhNpeqIdJoUx2YDWZO/I9uEDYVowan89R6wsomfnUJQk6HteoQTlNjZDixhT2B4IXMkMtgZtoceIjLRmA==",
+      "type": "package",
+      "path": "microsoft.net.stringtools/17.11.4",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "MSBuild-NuGet-Icon.png",
+        "README.md",
+        "lib/net472/Microsoft.NET.StringTools.dll",
+        "lib/net472/Microsoft.NET.StringTools.pdb",
+        "lib/net472/Microsoft.NET.StringTools.xml",
+        "lib/net8.0/Microsoft.NET.StringTools.dll",
+        "lib/net8.0/Microsoft.NET.StringTools.pdb",
+        "lib/net8.0/Microsoft.NET.StringTools.xml",
+        "lib/netstandard2.0/Microsoft.NET.StringTools.dll",
+        "lib/netstandard2.0/Microsoft.NET.StringTools.pdb",
+        "lib/netstandard2.0/Microsoft.NET.StringTools.xml",
+        "microsoft.net.stringtools.17.11.4.nupkg.sha512",
+        "microsoft.net.stringtools.nuspec",
+        "notices/THIRDPARTYNOTICES.txt",
+        "ref/net472/Microsoft.NET.StringTools.dll",
+        "ref/net472/Microsoft.NET.StringTools.xml",
+        "ref/net8.0/Microsoft.NET.StringTools.dll",
+        "ref/net8.0/Microsoft.NET.StringTools.xml",
+        "ref/netstandard2.0/Microsoft.NET.StringTools.dll",
+        "ref/netstandard2.0/Microsoft.NET.StringTools.xml"
+      ]
+    },
+    "System.Memory/4.5.5": {
+      "sha512": "XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw==",
+      "type": "package",
+      "path": "system.memory/4.5.5",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/net461/System.Memory.dll",
+        "lib/net461/System.Memory.xml",
+        "lib/netcoreapp2.1/_._",
+        "lib/netstandard1.1/System.Memory.dll",
+        "lib/netstandard1.1/System.Memory.xml",
+        "lib/netstandard2.0/System.Memory.dll",
+        "lib/netstandard2.0/System.Memory.xml",
+        "ref/netcoreapp2.1/_._",
+        "system.memory.4.5.5.nupkg.sha512",
+        "system.memory.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
+    },
+    "System.Numerics.Vectors/4.5.0": {
+      "sha512": "QQTlPTl06J/iiDbJCiepZ4H//BVraReU4O4EoRw1U02H5TLUIT7xn3GnDp9AXPSlJUDyFs4uWjWafNX6WrAojQ==",
+      "type": "package",
+      "path": "system.numerics.vectors/4.5.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "lib/MonoAndroid10/_._",
+        "lib/MonoTouch10/_._",
+        "lib/net46/System.Numerics.Vectors.dll",
+        "lib/net46/System.Numerics.Vectors.xml",
+        "lib/netcoreapp2.0/_._",
+        "lib/netstandard1.0/System.Numerics.Vectors.dll",
+        "lib/netstandard1.0/System.Numerics.Vectors.xml",
+        "lib/netstandard2.0/System.Numerics.Vectors.dll",
+        "lib/netstandard2.0/System.Numerics.Vectors.xml",
+        "lib/portable-net45+win8+wp8+wpa81/System.Numerics.Vectors.dll",
+        "lib/portable-net45+win8+wp8+wpa81/System.Numerics.Vectors.xml",
+        "lib/uap10.0.16299/_._",
+        "lib/xamarinios10/_._",
+        "lib/xamarinmac20/_._",
+        "lib/xamarintvos10/_._",
+        "lib/xamarinwatchos10/_._",
+        "ref/MonoAndroid10/_._",
+        "ref/MonoTouch10/_._",
+        "ref/net45/System.Numerics.Vectors.dll",
+        "ref/net45/System.Numerics.Vectors.xml",
+        "ref/net46/System.Numerics.Vectors.dll",
+        "ref/net46/System.Numerics.Vectors.xml",
+        "ref/netcoreapp2.0/_._",
+        "ref/netstandard1.0/System.Numerics.Vectors.dll",
+        "ref/netstandard1.0/System.Numerics.Vectors.xml",
+        "ref/netstandard2.0/System.Numerics.Vectors.dll",
+        "ref/netstandard2.0/System.Numerics.Vectors.xml",
+        "ref/uap10.0.16299/_._",
+        "ref/xamarinios10/_._",
+        "ref/xamarinmac20/_._",
+        "ref/xamarintvos10/_._",
+        "ref/xamarinwatchos10/_._",
+        "system.numerics.vectors.4.5.0.nupkg.sha512",
+        "system.numerics.vectors.nuspec",
+        "useSharedDesignerContext.txt",
+        "version.txt"
+      ]
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
       "App.Metrics.Abstractions >= 4.3.0",
-      "FaissNet >= 1.1.0"
+      "HNSW >= 25.3.56901",
+      "MessagePack >= 3.1.3"
     ]
   },
   "packageFolders": {
@@ -186,9 +381,13 @@
             "target": "Package",
             "version": "[4.3.0, )"
           },
-          "FaissNet": {
+          "HNSW": {
             "target": "Package",
-            "version": "[1.1.0, )"
+            "version": "[25.3.56901, )"
+          },
+          "MessagePack": {
+            "target": "Package",
+            "version": "[3.1.3, )"
           }
         },
         "imports": [
