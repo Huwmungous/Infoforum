@@ -26,15 +26,13 @@ namespace IFOllama
             _embedder = embedder;
             _logger = logger;
 
-            _exclusions = configuration.GetSection("CodeContext:Exclusions").Get<List<string>>() ?? new List<string>();
+            _exclusions = configuration.GetSection("Exclusions").Get<List<string>>() ?? new List<string>();
 
             // 1) Load code­set path & extensions
-            var root = configuration["CodeContext:CodeSet"]
-                       ?? throw new ArgumentException("CodeSet must be specified");
-            if (!Directory.Exists(root))
-                throw new DirectoryNotFoundException($"CodeSet not found: {root}");
+            var root = configuration["CodeSet"] ?? throw new ArgumentException("CodeSet must be specified");
+            if (!Directory.Exists(root)) throw new DirectoryNotFoundException($"CodeSet not found: {root}");
 
-            var exts = configuration.GetSection("CodeContext:Extensions").Get<List<string>>() ?? [];
+            var exts = configuration.GetSection("Extensions").Get<List<string>>() ?? [];
             _extensions = new HashSet<string>(exts, StringComparer.OrdinalIgnoreCase);
 
             // 2) HNSW parameters + constructor (four­-arg)
