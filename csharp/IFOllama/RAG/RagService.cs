@@ -1,8 +1,8 @@
-﻿ 
-using System.Text.Json; 
-using HNSW.Net;       
+﻿
+using System.Text.Json;
+using HNSW.Net;
 
-namespace IFOllama
+namespace IFOllama.RAG
 {
     public class RagService : IRagService
     {

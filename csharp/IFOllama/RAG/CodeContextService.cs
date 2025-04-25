@@ -1,7 +1,7 @@
-﻿ 
-using HNSW.Net; 
+﻿
+using HNSW.Net;
 
-namespace IFOllama
+namespace IFOllama.RAG
 {
     public class CodeContextService : IDisposable
     {

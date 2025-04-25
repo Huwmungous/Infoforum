@@ -1,4 +1,4 @@
-﻿using IFOllama;
+﻿using IFOllama.RAG;
 
 public interface IRagService
 {

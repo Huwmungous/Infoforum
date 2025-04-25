@@ -1,5 +1,5 @@
 ﻿// IEmbeddingService.cs
-namespace IFOllama
+namespace IFOllama.RAG
 {
     public interface IEmbeddingService
     {

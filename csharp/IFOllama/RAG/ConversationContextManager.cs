@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using IFOllama.RAG;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace IFOllama

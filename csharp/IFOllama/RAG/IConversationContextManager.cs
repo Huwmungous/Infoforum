@@ -1,5 +1,4 @@
-﻿
-namespace IFOllama
+﻿namespace IFOllama.RAG
 {
     public interface IConversationContextManager
     {
