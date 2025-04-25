@@ -1,6 +1,6 @@
 ﻿
-using System.Text.Json;
 using HNSW.Net;
+using System.Text.Json;
 
 namespace IFOllama.RAG
 {

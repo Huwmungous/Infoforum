@@ -1,7 +1,6 @@
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
 

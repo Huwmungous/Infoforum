@@ -1,8 +1,8 @@
 ﻿using IFGlobal;
 using IFOllama;
-using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using IFOllama.RAG;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 
 int port = PortResolver.GetPort("IFOllama");
 var builder = WebApplication.CreateBuilder(args);

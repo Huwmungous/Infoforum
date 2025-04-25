@@ -1,5 +1,4 @@
 ﻿using IFOllama.RAG;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace IFOllama
@@ -117,7 +116,7 @@ namespace IFOllama
             {
                 using StreamReader reader = File.OpenText(jsonPath);
                 var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
-                _logger.LogInformation($"Loaded conversation {conversationId} from {jsonPath}" );
+                _logger.LogInformation($"Loaded conversation {conversationId} from {jsonPath}");
                 return conversationData?.Messages ?? new List<string>();
             }
 
@@ -141,7 +140,7 @@ namespace IFOllama
                     if (conversationData?.Messages != null)
                     {
                         allConversations.Add(conversationData.Messages);
-                        _logger.LogInformation($"Loaded conversation from {jsonPath}" );
+                        _logger.LogInformation($"Loaded conversation from {jsonPath}");
                     }
                 }
             }

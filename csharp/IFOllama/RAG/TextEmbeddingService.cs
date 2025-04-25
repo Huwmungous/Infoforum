@@ -37,7 +37,7 @@ namespace IFOllama.RAG
 
         private class RawText
         {
-            public string Text { get; set; } = string.Empty; 
+            public string Text { get; set; } = string.Empty;
         }
 
         private class TransformedEmbedding

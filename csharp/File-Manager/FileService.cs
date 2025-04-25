@@ -111,7 +111,7 @@ namespace File_Manager
         {
             FileStream result = null;
 
-            await Task.Run(() => 
+            await Task.Run(() =>
             {
 
                 var fullPath = GetFullPath(path);

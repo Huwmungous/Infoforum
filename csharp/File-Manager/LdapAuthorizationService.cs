@@ -16,7 +16,7 @@ namespace File_Manager
         private readonly string _bindPassword;
         private readonly string _baseDn;
 
-        public LdapAuthorizationService( IConfiguration configuration, ILogger<LdapAuthorizationService> logger)
+        public LdapAuthorizationService(IConfiguration configuration, ILogger<LdapAuthorizationService> logger)
         {
             _configuration = configuration;
             _logger = logger;
@@ -56,7 +56,7 @@ namespace File_Manager
 
                 if (userSearchResponse.Entries.Count == 0)
                 {
-                    _logger.LogWarning("User not found in LDAP: {Username}", username); 
+                    _logger.LogWarning("User not found in LDAP: {Username}", username);
                     return false;
                 }
 
@@ -155,7 +155,7 @@ namespace File_Manager
             path = !path.StartsWith('/') ? '/' + path : path;
 
             // Remove trailing slash except for root 
-            return path.Length > 1 && path.EndsWith('/') ? path.TrimEnd('/') : path; 
+            return path.Length > 1 && path.EndsWith('/') ? path.TrimEnd('/') : path;
         }
     }
 }
