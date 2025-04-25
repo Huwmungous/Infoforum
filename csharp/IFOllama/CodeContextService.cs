@@ -13,6 +13,7 @@ namespace IFOllama
         private SmallWorld<float[], float> _hnswIndex;
         private readonly SmallWorld<float[], float>.Parameters _parameters;
         private readonly IProvideRandomValues _rng = DefaultRandomGenerator.Instance;
+        private readonly List<string> _exclusions;
 
         // Keep chunks for ID→text if you need it
         private List<string> _allChunks = [];
@@ -25,13 +26,15 @@ namespace IFOllama
             _embedder = embedder;
             _logger = logger;
 
+            _exclusions = configuration.GetSection("CodeContext:Exclusions").Get<List<string>>() ?? new List<string>();
+
             // 1) Load code­set path & extensions
-            var root = configuration["CodeSet"]
+            var root = configuration["CodeContext:CodeSet"]
                        ?? throw new ArgumentException("CodeSet must be specified");
             if (!Directory.Exists(root))
                 throw new DirectoryNotFoundException($"CodeSet not found: {root}");
 
-            var exts = configuration.GetSection("Extensions").Get<List<string>>() ?? [];
+            var exts = configuration.GetSection("CodeContext:Extensions").Get<List<string>>() ?? [];
             _extensions = new HashSet<string>(exts, StringComparer.OrdinalIgnoreCase);
 
             // 2) HNSW parameters + constructor (four­-arg)
@@ -78,9 +81,8 @@ namespace IFOllama
                     .Where(file =>
                     {
                         var normalizedPath = Path.GetFullPath(file);
-                        return !normalizedPath.Contains("\\node_modules\\", StringComparison.OrdinalIgnoreCase) &&
-                               !normalizedPath.Contains("\\bin\\", StringComparison.OrdinalIgnoreCase) &&
-                               !normalizedPath.Contains("\\obj\\", StringComparison.OrdinalIgnoreCase);
+                        return !_exclusions.Any(exclusion =>
+                            normalizedPath.Contains($"\\{exclusion}\\", StringComparison.OrdinalIgnoreCase));
                     });
 
                 foreach (var file in files)

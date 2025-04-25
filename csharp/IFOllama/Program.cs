@@ -4,13 +4,12 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 int port = PortResolver.GetPort("IFOllama");
-var builder = WebApplication.CreateBuilder(args); 
+var builder = WebApplication.CreateBuilder(args);
 
 // Add environment-specific configuration
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
-
 
 // Listen on configured port
 builder.WebHost.ConfigureKestrel(opts => opts.ListenAnyIP(port));
@@ -71,6 +70,14 @@ builder.Services.AddCors(opts =>
 );
 
 var app = builder.Build();
+
+// Trigger CodeContextService initialization
+using (var scope = app.Services.CreateScope())
+{
+    var codeContextService = scope.ServiceProvider.GetRequiredService<CodeContextService>();
+    // The constructor of CodeContextService already calls RebuildIndex
+}
+
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowSpecificOrigins");
