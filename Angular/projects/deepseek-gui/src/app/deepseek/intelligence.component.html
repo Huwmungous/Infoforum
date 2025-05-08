@@ -1,4 +1,6 @@
 <div class="intelligence-component">
+
+
   <div class="intelligence-header">
     <div style="display: flex; align-items: center;">
       <img src="assets/IF-Logo.png" alt="IF Logo" class="if-logo" />
@@ -9,16 +11,19 @@
     </button>
   </div>
  
-    <mat-tab-group class="tab-control">
+    <mat-tab-group class="tab-control"> 
+
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="panel-icon">code</mat-icon>
           <span>Code</span>
         </ng-template>
+
         <div class="code-tab-page">
           <app-code-gen></app-code-gen>
         </div>
       </mat-tab>
+
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="panel-icon">image</mat-icon>
@@ -28,12 +33,13 @@
           <app-images></app-images>
         </div>
       </mat-tab>
+      
       <mat-tab>
         <ng-template mat-tab-label>
           <mat-icon class="panel-icon">chat</mat-icon>
           <span>Chat</span>
         </ng-template>
-        <div class="chat-tab-page">
+        <div class="chat-tab-page"> 
           <app-chat></app-chat>
         </div>
       </mat-tab>

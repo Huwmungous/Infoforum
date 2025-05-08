@@ -1,4 +1,11 @@
 <div class="chat-component">
+
+  <div 
+    class="background-image" 
+    style="background-image: url('/assets/pcb.png')"
+    z-index="1000">
+  </div>
+
   <app-thinking-progress [active]="(thinking$ | async) ?? false"></app-thinking-progress>
   <ng-container *ngFor="let message of messages">
     <ng-container *ngIf="message.isUser; else aiMessage">
