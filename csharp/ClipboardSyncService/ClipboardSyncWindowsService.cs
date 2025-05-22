@@ -31,7 +31,7 @@ namespace ClipboardSyncService
             // Start gRPC server
             grpcServer = new Server
             {
-                Services = { ClipboardSyncService.BindService(new ClipboardSyncServiceImpl(logger, manager)) },
+                Services = { ClipboardSyncService.BindService(new ClipboardSyncServiceImpl(logger as ILogger<ClipboardSyncServiceImpl>, manager)) },
                 Ports = { new ServerPort("0.0.0.0", 50051, ServerCredentials.Insecure) }
             };
 

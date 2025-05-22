@@ -4,6 +4,7 @@ using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System;
+using static ClipboardSyncService.ClipboardSyncService;
 
 namespace ClipboardSyncService
 {
