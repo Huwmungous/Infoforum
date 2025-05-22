@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ClipboardSyncService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+57c2adf606a7d6cf0110ae78685b964bec4ca862")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5fcdb74ca16dad3098c7d15ab0cdd1a0d3bd94a9")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClipboardSyncService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClipboardSyncService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

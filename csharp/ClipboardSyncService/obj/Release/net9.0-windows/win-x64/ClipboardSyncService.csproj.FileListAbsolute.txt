@@ -863,3 +863,6 @@ C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Release\net9.0-windows\win-x6
 C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Release\net9.0-windows\win-x64\ClipboardSyncService.pdb
 C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Release\net9.0-windows\win-x64\ClipboardSyncService.genruntimeconfig.cache
 C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Release\net9.0-windows\win-x64\ref\ClipboardSyncService.dll
+C:\repos\Infoforum\csharp\ClipboardSyncService\bin\Release\net9.0-windows\win-x64\Newtonsoft.Json.dll
+C:\repos\Infoforum\csharp\ClipboardSyncService\bin\Release\net9.0-windows\win-x64\IFGlobal.dll
+C:\repos\Infoforum\csharp\ClipboardSyncService\bin\Release\net9.0-windows\win-x64\IFGlobal.pdb
