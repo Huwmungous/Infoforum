@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "juNjBelsWNg=",
+  "dgSpecHash": "DpwiDRrLfUQ=",
   "success": true,
   "projectFilePath": "D:\\repos\\Infoforum\\csharp\\ClipboardSyncService\\ClipboardSyncService.csproj",
   "expectedPackageFiles": [
@@ -56,16 +56,6 @@
     "C:\\Users\\hugh\\.nuget\\packages\\topshelf.serviceinstaller\\4.3.0\\topshelf.serviceinstaller.4.3.0.nupkg.sha512"
   ],
   "logs": [
-    {
-      "code": "NU1603",
-      "level": "Warning",
-      "warningLevel": 1,
-      "message": "ClipboardSyncService depends on System.Windows.Forms (>= 1.0.5) but System.Windows.Forms 1.0.5 was not found. System.Windows.Forms 4.0.0 was resolved instead.",
-      "libraryId": "System.Windows.Forms",
-      "targetGraphs": [
-        "net9.0-windows7.0"
-      ]
-    },
     {
       "code": "NU1701",
       "level": "Warning",

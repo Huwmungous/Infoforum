@@ -89,7 +89,7 @@
             },
             "System.Windows.Forms": {
               "target": "Package",
-              "version": "[1.0.5, )"
+              "version": "[4.0.0, )"
             },
             "TopShelf.ServiceInstaller": {
               "target": "Package",
