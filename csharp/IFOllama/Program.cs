@@ -1,100 +1,90 @@
-using IFGlobal;
+﻿using IFGlobal;
 using IFOllama;
-using Microsoft.OpenApi.Models;
+using IFOllama.RAG;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+using Microsoft.OpenApi.Models;
 
 int port = PortResolver.GetPort("IFOllama");
-
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
+// Add environment-specific configuration
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+
+// Listen on configured port
+builder.WebHost.ConfigureKestrel(opts => opts.ListenAnyIP(port));
+
+// Fix for CS1729, CS0119, CS1525, CS1003, CS0103
+
+// Corrected the instantiation of ConversationContextManager by ensuring the logger is properly resolved from the service provider
+builder.Services.AddSingleton<IConversationContextManager>(sp =>
 {
-    serverOptions.ListenAnyIP(port);
+    var logger = sp.GetRequiredService<ILogger<ConversationContextManager>>(); // Correctly resolve the logger
+    var cm = new ConversationContextManager(logger); // Pass the logger to the constructor
+    cm.Initialize();
+    return cm;
 });
 
-builder.Services.AddSingleton<IConversationContextManager>(serviceProvider =>
-{
-    var conversationManager = new ConversationContextManager();
-    conversationManager.Initialize();
-    return conversationManager;
-});
+// Fully-local embedding service (ONNX Sentence Transformer)
+builder.Services.AddSingleton<IEmbeddingService, TextEmbeddingService>();
 
-builder.Services.AddControllers();
+// RAG service using local embeddings
+builder.Services.AddScoped<IRagService, RagService>();
+
+builder.Services.AddSingleton<CodeContextService>(sp =>
+    new CodeContextService(
+        sp.GetRequiredService<IEmbeddingService>(),
+        builder.Configuration,
+        sp.GetRequiredService<ILogger<CodeContextService>>() // Added the required logger argument
+    )
+);
+
+// HTTP for Ollama and Context7 fetch
 builder.Services.AddHttpClient();
+
+// Controllers and Swagger
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" });
-});
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
-    options.Audience = "account";
-    options.RequireHttpsMetadata = true;
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" })
+);
 
-    options.Events = new JwtBearerEvents
+// JWT Authentication & Authorization
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opts =>
     {
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine("Authentication failed: " + context.Exception.Message);
-            return Task.CompletedTask;
-        }
-    };
-});
-
-
-// Configure authorization policies.
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("MustBeIntelligenceUser", policy =>
-    {
-        policy.RequireClaim("kc_groups", "IntelligenceUsers");
+        opts.Authority = "https://longmanrd.net/auth/realms/LongmanRd";
+        opts.Audience = "account";
+        opts.RequireHttpsMetadata = true;
     });
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("MustBeIntelligenceUser", p => p.RequireClaim("kc_groups", "IntelligenceUsers"));
 
-// Add CORS services with a specific policy.
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigins",
-        policyBuilder => policyBuilder
-            .WithOrigins(
-              "https://longmanrd.net",
-             $"http://localhost:{port}",
-             $"http://thehybrid:{port}",
-             $"http://gambit:{port}",
-              "http://localhost:4200")
-            .SetIsOriginAllowedToAllowWildcardSubdomains()
-            .AllowAnyHeader()
-            .AllowAnyMethod());
-});
+// CORS
+builder.Services.AddCors(opts =>
+    opts.AddPolicy("AllowSpecificOrigins", pb => pb
+        .WithOrigins("https://longmanrd.net", $"http://localhost:{port}",
+                     $"http://thehybrid:{port}", $"http://gambit:{port}", "http://localhost:4200")
+        .AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowedToAllowWildcardSubdomains()
+    )
+);
 
 var app = builder.Build();
 
+// Trigger CodeContextService initialization
+using (var scope = app.Services.CreateScope())
+{
+    var codeContextService = scope.ServiceProvider.GetRequiredService<CodeContextService>();
+    // The constructor of CodeContextService already calls RebuildIndex
+}
+
 app.UseStaticFiles();
-
 app.UseRouting();
-
-// Enable CORS before authentication and authorization.
 app.UseCors("AllowSpecificOrigins");
-
-// Add authentication and authorization middleware.
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Enable middleware to serve generated Swagger as a JSON endpoint.
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "IFOllama API V1");
-    c.RoutePrefix = "swagger"; // Swagger UI available at /swagger
-});
-
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "IFOllama API V1"));
 app.MapControllers();
-
 app.Run();

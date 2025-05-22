@@ -1,6 +1,6 @@
+using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -8,15 +8,35 @@ namespace IFOllama.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class IFOllamaController(
-        IConfiguration configuration,
-        HttpClient httpClient,
-        IConversationContextManager contextManager
-    ) : ControllerBase
+    public class IFOllamaController : ControllerBase
     {
-        private readonly IConfiguration _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-        private readonly HttpClient _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        private readonly IConversationContextManager _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
+        private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient;
+        private readonly IConversationContextManager _contextManager;
+        private readonly CodeContextService? _codeContextService;
+        private readonly IRagService _ragService;
+        private readonly ILogger<IFOllamaController> _logger;
+
+        public IFOllamaController(
+            IConfiguration configuration,
+            HttpClient httpClient,
+            IConversationContextManager contextManager,
+            ILogger<IFOllamaController> logger,
+            IRagService ragService,
+            CodeContextService? codeContextService = null)
+        {
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _codeContextService = codeContextService; // May be null
+            _ragService = ragService;
+
+            if (_codeContextService == null)
+            {
+                _logger.LogWarning("CodeContextService is unavailable. Enhanced code context features will be disabled.");
+            }
+        }
 
         [HttpPost]
         [Authorize(Policy = "MustBeIntelligenceUser")]
@@ -42,16 +62,68 @@ namespace IFOllama.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error processing prompt");
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
 
         private async Task<IActionResult> HandleCodeOrChatPrompt(string conversationId, string prompt, string dest, string conversationContext)
         {
-            // For text-generation (chat, code) combine conversation context with prompt.
-            var combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+            string combinedPrompt;
 
-            // Create request payload.
+            // Only enhance with code context and RAG for "code" destination AND if services are available
+            if (dest == "code" && _codeContextService != null && _ragService != null)
+            {
+                try
+                {
+                    _logger.LogInformation("Enhancing code prompt with context");
+
+                    // Get code context (via embeddings)
+                    var queryEmbedding = await _ragService.GetEmbeddingService().EmbedAsync(prompt);
+                    var (distances, codeContextIds) = _codeContextService.Search(queryEmbedding, 3);
+
+                    // Get RAG chunks for additional context
+                    var relevantChunks = await _ragService.GetTopChunksAsync(prompt, 3);
+
+                    // Build enhanced prompt with context
+                    var promptWithContext = new StringBuilder();
+                    promptWithContext.AppendLine("## Code Context:");
+
+                    // Add code context if available
+                    if (codeContextIds.Length > 0 && codeContextIds[0].Length > 0)
+                    {
+                        foreach (var id in codeContextIds[0])
+                        {
+                            _logger.LogInformation($"Adding code context ID: {id}");
+                        }
+                    }
+
+                    promptWithContext.AppendLine("\n## Documentation Context:");
+                    foreach (var chunk in relevantChunks)
+                    {
+                        promptWithContext.AppendLine(chunk);
+                    }
+
+                    promptWithContext.AppendLine("\n## User Query:");
+                    promptWithContext.AppendLine(prompt);
+
+                    // Combine with conversation context
+                    combinedPrompt = $"{conversationContext}\nUser: {promptWithContext}\nAssistant:";
+                    _logger.LogInformation("Enhanced prompt with code context and documentation");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to enhance prompt with context. Using regular prompt.");
+                    combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+                }
+            }
+            else
+            {
+                // For chat or when services aren't available, just use the regular conversation context and prompt
+                combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+            }
+
+            // Create request payload
             var content = new StringContent(
                 JsonConvert.SerializeObject(new OllamaRequest
                 {
@@ -62,7 +134,7 @@ namespace IFOllama.Controllers
                 "application/json"
             );
 
-            // Use text-generation API URL.
+            // Rest of the method remains unchanged
             var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
 
             if (!response.IsSuccessStatusCode)
@@ -71,19 +143,21 @@ namespace IFOllama.Controllers
             MemoryStream responseStreamWriter = await HandleResponse(response);
             responseStreamWriter.Seek(0, SeekOrigin.Begin);
 
-            // Read the text response.
+            // Read the text response
             var responseText = await new StreamReader(responseStreamWriter).ReadToEndAsync();
 
-            // Append both the user prompt and the assistant's response to the conversation.
+            // Append both the user prompt and the assistant's response to the conversation
             _contextManager.AppendMessage(conversationId, "User", prompt);
             _contextManager.AppendMessage(conversationId, "Assistant", responseText);
 
-            // Return the text response.
+            // Return the text response
             return new FileStreamResult(new MemoryStream(Encoding.UTF8.GetBytes(responseText)), "text/plain");
         }
 
+        // Rest of your controller methods remain unchanged
         private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt, string dest)
         {
+            // [Existing implementation unchanged]
             // Record the user prompt in the conversation history.
             _contextManager.AppendMessage(conversationId, "User", prompt);
 
@@ -187,5 +261,4 @@ namespace IFOllama.Controllers
             };
         }
     }
-
 }

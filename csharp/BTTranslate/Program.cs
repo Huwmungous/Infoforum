@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Npgsql;
 using System.Net.Http.Headers;
-using System.Text; 
+using System.Text;
 
 namespace BTTranslate
 {

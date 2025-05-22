@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "dgSpecHash": "bbR7pBSAzKw=",
+  "success": true,
+  "projectFilePath": "D:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hugh\\.nuget\\packages\\app.metrics.abstractions\\4.3.0\\app.metrics.abstractions.4.3.0.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\hnsw\\25.3.56901\\hnsw.25.3.56901.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\messagepack\\3.1.3\\messagepack.3.1.3.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\messagepack.annotations\\3.1.3\\messagepack.annotations.3.1.3.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\messagepackanalyzer\\3.1.3\\messagepackanalyzer.3.1.3.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.0.0\\microsoft.bcl.asyncinterfaces.1.0.0.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\microsoft.net.stringtools\\17.11.4\\microsoft.net.stringtools.17.11.4.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\system.memory\\4.5.5\\system.memory.4.5.5.nupkg.sha512",
+    "C:\\Users\\hugh\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512"
+  ],
+  "logs": []
+}
