@@ -128,3 +128,6 @@ C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\refint\C
 C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.pdb
 C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.genruntimeconfig.cache
 C:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ref\ClipboardSyncService.dll
+D:\repos\Infoforum\csharp\ClipboardSyncService\bin\Debug\net9.0-windows\Newtonsoft.Json.dll
+D:\repos\Infoforum\csharp\ClipboardSyncService\bin\Debug\net9.0-windows\IFGlobal.dll
+D:\repos\Infoforum\csharp\ClipboardSyncService\bin\Debug\net9.0-windows\IFGlobal.pdb
