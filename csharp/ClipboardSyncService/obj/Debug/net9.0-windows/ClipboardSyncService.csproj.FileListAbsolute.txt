@@ -1,0 +1,6 @@
+D:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.csproj.AssemblyReference.cache
+D:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.GeneratedMSBuildEditorConfig.editorconfig
+D:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.AssemblyInfoInputs.cache
+D:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.AssemblyInfo.cs
+D:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.csproj.CoreCompileInputs.cache
+D:\repos\Infoforum\csharp\ClipboardSyncService\obj\Debug\net9.0-windows\ClipboardSyncService.sourcelink.json
