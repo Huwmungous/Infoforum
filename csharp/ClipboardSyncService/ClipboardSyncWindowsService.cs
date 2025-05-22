@@ -11,6 +11,7 @@ using System.Threading;
 using System;
 using System.Linq;
 using Grpc.Core;
+using IFGlobal;
 
 namespace ClipboardSyncService
 {
@@ -26,17 +27,20 @@ namespace ClipboardSyncService
             this.manager = manager;
         }
 
+        private int _port;
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            _port = PortResolver.GetPort();
             // Start gRPC server
             grpcServer = new Server
             {
                 Services = { ClipboardSyncService.BindService(new ClipboardSyncServiceImpl(logger as ILogger<ClipboardSyncServiceImpl>, manager)) },
-                Ports = { new ServerPort("0.0.0.0", 50051, ServerCredentials.Insecure) }
+                Ports = { new ServerPort("0.0.0.0", _port, ServerCredentials.Insecure) }
             };
 
             grpcServer.Start();
-            logger.LogInformation("gRPC server started on port 50051");
+            logger.LogInformation("gRPC server started on port {Port}", _port);
 
             // Start clipboard monitoring
             manager.Start();
@@ -70,14 +74,15 @@ namespace ClipboardSyncService
         {
             try
             {
-                using var channel = GrpcChannel.ForAddress($"http://{ip}:50051");
+                var port = PortResolver.GetPort();
+                using var channel = GrpcChannel.ForAddress($"http://{ip}:{port}");
                 var client = new ClipboardSyncService.ClipboardSyncServiceClient(channel);
 
                 var nodeInfo = new NodeInfo
                 {
                     HostName = Environment.MachineName,
                     IpAddress = GetLocalIPAddress(),
-                    Port = 50051
+                    Port = port
                 };
 
                 await client.RegisterNodeAsync(nodeInfo);

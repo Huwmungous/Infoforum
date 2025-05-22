@@ -3,5 +3,4 @@ C:\Program Files\Infoforum\ClipboardSyncService\appsettings.json
 C:\Program Files\Infoforum\ClipboardSyncService\ClipboardSyncService.pdb
 C:\Program Files\Infoforum\ClipboardSyncService\aspnetcorev2_inprocess.dll
 C:\Program Files\Infoforum\ClipboardSyncService\grpc_csharp_ext.x64.dll
-C:\Program Files\Infoforum\ClipboardSyncService\IFGlobal.pdb
 C:\Program Files\Infoforum\ClipboardSyncService\ClipboardSyncService.exe
