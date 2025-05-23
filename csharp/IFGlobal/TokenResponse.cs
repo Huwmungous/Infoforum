@@ -1,16 +1,38 @@
-using Newtonsoft.Json;
-
 namespace IFGlobal
 {
-    public class TokenResponse
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+
+    public partial class TokenResponse
     {
-        [JsonProperty("access_token")]
-        public string? AccessToken { get; set; } // Maps to "access_token" in JSON
+        [JsonPropertyName("access_token")]
+        public string? AccessToken { get; set; }
 
-        [JsonProperty("expires_in")]
-        public int ExpiresIn { get; set; } // Maps to "expires_in" in JSON
+        [JsonPropertyName("expires_in")]
+        public int ExpiresIn { get; set; }
 
-        [JsonProperty("token_type")]
-        public string? TokenType { get; set; } // Maps to "token_type" in JSON
+        [JsonPropertyName("token_type")]
+        public string? TokenType { get; set; }
+    }
+
+    public partial class TokenResponse
+    {
+        internal static readonly JsonSerializerOptions _options = new()
+        {
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            PropertyNameCaseInsensitive = false
+        };
+
+        public static TokenResponse? FromJson(string json) =>
+            JsonSerializer.Deserialize<TokenResponse>(json, _options);
+
+        public string ToJson() =>
+            JsonSerializer.Serialize(this, _options);
+    }
+
+    public static class SerializeTokenResponse
+    {
+        public static string ToJson(this TokenResponse self) =>
+            JsonSerializer.Serialize(self, TokenResponse._options);
     }
 }

@@ -1,9 +1,21 @@
-﻿using Newtonsoft.Json;
-
-namespace IFGlobal
+﻿namespace IFGlobal
 {
+    using System;
+    using System.Net.Http;
+    using System.Collections.Generic;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+
     public class AccessToken
     {
+        // Optional: customize JsonSerializerOptions if your TokenResponse uses
+        // attributes or you need case-insensitivity, etc.
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
+        };
+
         public static string AcquireToken()
         {
             // Read token endpoint and service account credentials from environment variables
@@ -21,7 +33,7 @@ namespace IFGlobal
             if (string.IsNullOrEmpty(clientSecret))
                 throw new Exception("No LR_SVC_SECRET.");
 
-            string scope = "openid";
+            const string scope = "openid";
 
             string result = GetAccessToken(tokenEndpoint, clientId, clientSecret, scope);
             if (string.IsNullOrEmpty(result))
@@ -33,13 +45,14 @@ namespace IFGlobal
         private static string GetAccessToken(string tokenEndpoint, string clientId, string clientSecret, string scope)
         {
             using var httpClient = new HttpClient();
+
             // Prepare the POST parameters for the token request
             var parameters = new Dictionary<string, string>
             {
-                { "client_id", clientId },
-                { "client_secret", clientSecret },
-                { "grant_type", "client_credentials" },
-                { "scope", scope }
+                ["client_id"] = clientId,
+                ["client_secret"] = clientSecret,
+                ["grant_type"] = "client_credentials",
+                ["scope"] = scope
             };
 
             var content = new FormUrlEncodedContent(parameters);
@@ -47,12 +60,14 @@ namespace IFGlobal
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine("Token request failed: " + response.StatusCode);
-                return "";
+                return string.Empty;
             }
 
             string json = response.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-            var tokenResponse = JsonConvert.DeserializeObject<TokenResponse>(json);
-            return tokenResponse?.AccessToken ?? "";
+
+            // Use System.Text.Json instead of JsonConvert
+            var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(json, _jsonOptions);
+            return tokenResponse?.AccessToken ?? string.Empty;
         }
     }
 }
