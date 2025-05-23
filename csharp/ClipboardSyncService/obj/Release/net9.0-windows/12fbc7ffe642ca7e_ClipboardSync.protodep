@@ -1,2 +1,0 @@
-obj\Release\net9.0-windows\Protos/ClipboardSync.cs \
-obj\Release\net9.0-windows\Protos/ClipboardSyncGrpc.cs: Protos/ClipboardSync.proto
