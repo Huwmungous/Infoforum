@@ -37,10 +37,11 @@
 
         public void RegisterNode(NodeInfo nodeInfo)
         {
-            lock (lockObject)
+            lock(lockObject)
             {
                 activeNodes.RemoveAll(n => n.HostName == nodeInfo.HostName);
                 activeNodes.Add(nodeInfo);
+                logger.LogInformation("Registered Peer {IpAddress}:{Port} - {HostName}", nodeInfo.IpAddress, nodeInfo.Port, nodeInfo.HostName);
             }
         }
 
