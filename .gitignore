@@ -1,3 +1,5 @@
 /csharp/.vs
 /csharp/BTTranslate/obj
 /csharp/File-Manager/obj/Debug/net9.0/FileManager.GeneratedMSBuildEditorConfig.editorconfig
+/csharp/ClipboardSyncService/bin
+/csharp/ClipboardSyncService/obj
