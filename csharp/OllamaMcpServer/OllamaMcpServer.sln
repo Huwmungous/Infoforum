@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.36105.23 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OllamaMcpServer", "OllamaMcpServer.csproj", "{9E228E49-1F14-D40F-7008-058E804602D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9E228E49-1F14-D40F-7008-058E804602D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E228E49-1F14-D40F-7008-058E804602D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E228E49-1F14-D40F-7008-058E804602D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E228E49-1F14-D40F-7008-058E804602D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2850DA10-DBA5-4304-ACE9-C1D9EFB85337}
+	EndGlobalSection
+EndGlobal
