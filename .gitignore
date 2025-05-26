@@ -4,3 +4,6 @@
 /csharp/ClipboardSyncService/bin
 /csharp/ClipboardSyncService/obj
 *.user
+/csharp/OllamaMcpServer/.vs/OllamaMcpServer
+/csharp/OllamaMcpServer/bin/Debug/net9.0
+/csharp/OllamaMcpServer/obj
