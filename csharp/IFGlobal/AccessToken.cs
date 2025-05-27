@@ -41,7 +41,7 @@
             return result;
         }
 
-        private static string GetAccessToken(string tokenEndpoint, string clientId, string clientSecret, string scope)
+        public static string GetAccessToken(string tokenEndpoint, string clientId, string clientSecret, string scope)
         {
             using var httpClient = new HttpClient();
 
