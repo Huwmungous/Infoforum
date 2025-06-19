@@ -94,7 +94,7 @@ namespace IFOllama.Controllers
                     {
                         foreach (var id in codeContextIds[0])
                         {
-                            _logger.LogInformation($"Adding code context ID: {id}");
+                            _logger.LogInformation("Adding code context ID: {Id}", id);
                         }
                     }
 
