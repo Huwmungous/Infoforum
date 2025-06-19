@@ -8,3 +8,6 @@
 /csharp/OllamaMcpServer/bin/Debug/net9.0
 /csharp/OllamaMcpServer/obj
 /csharp/OllamaMcpServer/.vs/ProjectEvaluation
+/csharp/OllamaMcpServer/ZipAgent/.vs
+/csharp/OllamaMcpServer/ZipAgent/obj
+/csharp/OllamaMcpServer/ZipAgent/bin
