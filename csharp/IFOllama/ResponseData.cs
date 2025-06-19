@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace IFOllama
 {
@@ -6,10 +7,10 @@ namespace IFOllama
     {
         private class ResponseData
         {
-            [JsonProperty("message")]
+            [JsonPropertyName("message")]
             public string Message { get; set; } = string.Empty;
 
-            [JsonProperty("timestamp")]
+            [JsonPropertyName("timestamp")]
             public DateTime Timestamp { get; set; }
 
             public ResponseData() { }
@@ -20,16 +21,13 @@ namespace IFOllama
                 Timestamp = timestamp;
             }
 
-            public void Serialize(JsonWriter writer)
+            public void Serialize(Utf8JsonWriter writer)
             {
                 writer.WriteStartObject();
-                writer.WritePropertyName("Message");
-                writer.WriteValue(Message);
-                writer.WritePropertyName("Timestamp");
-                writer.WriteValue(Timestamp.ToString());
+                writer.WriteString("message", Message);
+                writer.WriteString("timestamp", Timestamp.ToString("o")); // ISO 8601 format
                 writer.WriteEndObject();
             }
         }
     }
-
 }

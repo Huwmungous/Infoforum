@@ -1,7 +1,9 @@
+using System.Text.Json.Serialization;
+using System.Text.Json;
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+
 using System.Text;
 
 namespace IFOllama.Controllers
@@ -125,7 +127,7 @@ namespace IFOllama.Controllers
 
             // Create request payload
             var content = new StringContent(
-                JsonConvert.SerializeObject(new OllamaRequest
+                JsonSerializer.Serialize(new OllamaRequest
                 {
                     Model = SelectModel(dest),
                     Prompt = combinedPrompt
@@ -171,7 +173,7 @@ namespace IFOllama.Controllers
 
             // Serialize and send the image generation request to the proper API.
             var content = new StringContent(
-                JsonConvert.SerializeObject(imageRequest),
+                JsonSerializer.Serialize(imageRequest),
                 Encoding.UTF8,
                 "application/json"
             );
@@ -221,29 +223,58 @@ namespace IFOllama.Controllers
         private static async Task<MemoryStream> HandleResponse(HttpResponseMessage response)
         {
             var tokenStream = await response.Content.ReadAsStreamAsync();
-            var tokenStreamReader = new StreamReader(tokenStream);
             var responseStreamWriter = new MemoryStream();
             var responseWriter = new StreamWriter(responseStreamWriter);
 
-            using (var jsonReader = new JsonTextReader(tokenStreamReader) { SupportMultipleContent = true })
-            {
-                var jsonSerializer = new JsonSerializer();
+            var buffer = new byte[8192];
+            int bytesRead;
+            var jsonBuffer = new List<byte>();
 
-                while (await jsonReader.ReadAsync())
+            var pendingResponses = new List<string>();
+
+            while ((bytesRead = await tokenStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                jsonBuffer.AddRange(buffer[..bytesRead]);
+
+                var reader = new Utf8JsonReader(jsonBuffer.ToArray(), isFinalBlock: false, state: default);
+
+                while (reader.Read())
                 {
-                    if (jsonReader.TokenType == JsonToken.StartObject)
+                    if (reader.TokenType == JsonTokenType.StartObject)
                     {
-                        var responseObject = jsonSerializer.Deserialize<OllamaResponse>(jsonReader);
-                        if (responseObject != null)
+                        try
                         {
-                            await responseWriter.WriteAsync(responseObject.Response);
-                            await responseWriter.FlushAsync();
+                            var jsonDoc = JsonDocument.ParseValue(ref reader);
+                            var root = jsonDoc.RootElement;
+
+                            if (root.TryGetProperty("response", out var responseProp) && responseProp.ValueKind == JsonValueKind.String)
+                            {
+                                var text = responseProp.GetString();
+                                if (!string.IsNullOrEmpty(text))
+                                {
+                                    pendingResponses.Add(text);
+                                }
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // Incomplete JSON, wait for more data
+                            break;
                         }
                     }
                 }
             }
+
+            // Now safely write to the stream after parsing
+            foreach (var text in pendingResponses)
+            {
+                await responseWriter.WriteAsync(text);
+                await responseWriter.FlushAsync();
+            }
+
             return responseStreamWriter;
         }
+
 
         private string SelectAPIUrl()
         {

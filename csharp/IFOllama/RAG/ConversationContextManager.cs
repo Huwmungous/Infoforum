@@ -1,5 +1,6 @@
-﻿using IFOllama.RAG;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using IFOllama.RAG;
 
 namespace IFOllama
 {
@@ -8,6 +9,11 @@ namespace IFOllama
         private readonly string _conversationFolder = Path.Combine(Directory.GetCurrentDirectory(), "Conversations");
         private readonly IDictionary<string, List<string>> _conversationHistories = new Dictionary<string, List<string>>();
         private readonly ILogger<ConversationContextManager> _logger;
+
+        private static readonly JsonSerializerOptions IndentedJson = new()
+        {
+            WriteIndented = true
+        };
 
         public ConversationContextManager(ILogger<ConversationContextManager> logger)
         {
@@ -47,7 +53,7 @@ namespace IFOllama
             using (StreamWriter writer = File.CreateText(responsePath))
             {
                 var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
-                writer.Write(JsonConvert.SerializeObject(responseData, Formatting.Indented));
+                writer.Write(JsonSerializer.Serialize(responseData, IndentedJson));
             }
 
             _conversationHistories[conversationId].Add($"{role}: {message}");
@@ -94,7 +100,7 @@ namespace IFOllama
 
             using (StreamWriter writer = File.CreateText(jsonPath))
             {
-                writer.Write(JsonConvert.SerializeObject(conversationData, Formatting.Indented));
+                writer.Write(JsonSerializer.Serialize(conversationData, IndentedJson));
             }
 
             _logger.LogInformation($"Saved conversation {conversationId} to {jsonPath}");
@@ -115,7 +121,7 @@ namespace IFOllama
             if (File.Exists(jsonPath))
             {
                 using StreamReader reader = File.OpenText(jsonPath);
-                var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
+                var conversationData = JsonSerializer.Deserialize<ConversationData>(reader.ReadToEnd());
                 _logger.LogInformation($"Loaded conversation {conversationId} from {jsonPath}");
                 return conversationData?.Messages ?? new List<string>();
             }
@@ -136,7 +142,7 @@ namespace IFOllama
                 if (File.Exists(jsonPath))
                 {
                     using StreamReader reader = File.OpenText(jsonPath);
-                    var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
+                    var conversationData = JsonSerializer.Deserialize<ConversationData>(reader.ReadToEnd());
                     if (conversationData?.Messages != null)
                     {
                         allConversations.Add(conversationData.Messages);
@@ -155,11 +161,11 @@ namespace IFOllama
             if (Directory.Exists(folderPath))
             {
                 Directory.Delete(folderPath, true);
-                _logger.LogInformation($"Deleted conversation {conversationId} at {folderPath}", conversationId, folderPath);
+                _logger.LogInformation("Deleted conversation {conversationId} at {folderPath}", conversationId, folderPath);
             }
             else
             {
-                _logger.LogWarning($"Attempted to delete non-existent conversation {conversationId}", conversationId);
+                _logger.LogWarning("Attempted to delete non-existent conversation {conversationId}", conversationId);
             }
         }
 

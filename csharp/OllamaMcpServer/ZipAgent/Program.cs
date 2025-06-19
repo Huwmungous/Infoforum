@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OllamaZipAgent
+namespace ZipAgent
 {
     public class Program
     {
@@ -58,14 +58,13 @@ namespace OllamaZipAgent
             if (!File.Exists(path))
             {
                 Console.Error.WriteLine($"Settings file '{path}' not found. Using default extensions.");
-                return new[] { ".cs", ".ts", ".html", ".scss", ".csproj", ".sln" };
+                return [".cs", ".ts", ".html", ".scss", ".csproj", ".sln"];
             }
 
-            return File.ReadAllLines(path)
+            return [.. File.ReadAllLines(path)
                 .Select(line => line.Trim())
-                .Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith("."))
-                .Distinct()
-                .ToArray();
+                .Where(line => !string.IsNullOrWhiteSpace(line) && line.StartsWith('.'))
+                .Distinct()];
         }
 
         static async Task<string> AskOllama(string prompt, string model = "deepseek-coder:33b")
@@ -87,7 +86,7 @@ namespace OllamaZipAgent
 
             using var contentStream = await response.Content.ReadAsStreamAsync();
             using var doc = await JsonDocument.ParseAsync(contentStream);
-            return doc.RootElement.GetProperty("response").GetString();
+            return doc.RootElement.GetProperty("response").GetString() ?? string.Empty;
         }
     }
 }
