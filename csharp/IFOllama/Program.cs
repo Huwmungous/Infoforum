@@ -2,6 +2,7 @@
 using IFOllama;
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 int port = PortResolver.GetPort("IFOllama");
@@ -17,11 +18,11 @@ builder.WebHost.ConfigureKestrel(opts => opts.ListenAnyIP(port));
 
 // Fix for CS1729, CS0119, CS1525, CS1003, CS0103
 
-// Corrected the instantiation of ConversationContextManager by ensuring the logger is properly resolved from the service provider
+// Corrected the instantiation of ConversationContextManager by ensuring the _logger is properly resolved from the service provider
 builder.Services.AddSingleton<IConversationContextManager>(sp =>
 {
-    var logger = sp.GetRequiredService<ILogger<ConversationContextManager>>(); // Correctly resolve the logger
-    var cm = new ConversationContextManager(logger); // Pass the logger to the constructor
+    var logger = sp.GetRequiredService<ILogger<ConversationContextManager>>(); // Correctly resolve the _logger
+    var cm = new ConversationContextManager(logger); // Pass the _logger to the constructor
     cm.Initialize();
     return cm;
 });
@@ -33,11 +34,11 @@ builder.Services.AddSingleton<IEmbeddingService, TextEmbeddingService>();
 builder.Services.AddScoped<IRagService, RagService>();
 
 builder.Services.AddSingleton<CodeContextService>(sp =>
-    new CodeContextService(
-        sp.GetRequiredService<IEmbeddingService>(),
-        builder.Configuration,
-        sp.GetRequiredService<ILogger<CodeContextService>>() // Added the required logger argument
-    )
+   new CodeContextService(
+       sp.GetRequiredService<ILogger<CodeContextService>>(),  
+       sp.GetRequiredService<IEmbeddingService>(),  
+       sp.GetRequiredService<IConversationContextManager>()  
+   )
 );
 
 // HTTP for Ollama and Context7 fetch
