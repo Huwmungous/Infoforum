@@ -1,36 +1,35 @@
 <div class="chat-component">
-
   <div 
     class="background-image" 
-    style="background-image: url('/assets/pcb.png')"
+    style="background-image: url('/assets/pcb.png');" 
     z-index="1000">
   </div>
 
-  <app-thinking-progress [active]="(thinking$ | async) ?? false"></app-thinking-progress>
+  <app-thinking-progress [active]="false"></app-thinking-progress>
+
   <ng-container *ngFor="let message of messages">
-    <ng-container *ngIf="message.isUser; else aiMessage">
-      <div class="user-message">
-        <mat-icon class="copy-icon panel-icon" (click)="copyToClipboard(message)">content_copy</mat-icon>
-        <div class="message">{{ message.text }}</div> 
+    <div *ngIf="message.isUser" class="user-message">
+      <mat-icon class="copy-icon panel-icon" (click)="copyToClipboard(message)">content_copy</mat-icon>
+      <div class="message">{{ message.text }}</div>
+    </div>
+
+    <div *ngIf="!message.isUser" class="ai-message">
+      <div class="ai-message-header">
+        <ng-container *ngIf="message.thinkContent">
+          <button class="show-think-button" (click)="message.showThinking = !message.showThinking">
+            <img src="assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
+            {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
+          </button>
+        </ng-container>
+        <mat-icon class="copy-icon panel-icon copy-ai-message" (click)="copyToClipboard(message)">content_copy</mat-icon>
       </div>
-    </ng-container>
-    <ng-template #aiMessage>
-      <div class="ai-message">
-        <div class="ai-message-header">
-          <ng-container *ngIf="message.thinkContent">
-            <button class="show-think-button" (click)="message.showThinking = !message.showThinking">
-              <img src="assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
-              {{ message.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
-            </button> 
-          </ng-container>
-          <mat-icon class="copy-icon panel-icon copy-ai-message" (click)="copyToClipboard(message)">content_copy</mat-icon>
-        </div>
-        <div *ngIf="message.showThinking">
-          <p class="thinking-content">{{ message.thinkContent }}</p>
-        </div>
-        <div class="message">{{ message.text }}</div>
+
+      <div *ngIf="message.showThinking">
+        <p class="thinking-content">{{ message.thinkContent }}</p>
       </div>
-    </ng-template>
+
+      <div class="message">{{ message.text }}</div>
+    </div>
   </ng-container>
 
   <form (submit)="sendMessage($event, prompt)">

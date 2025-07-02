@@ -15,9 +15,9 @@
 }
 
 .user-message, .ai-message, .prompt-input {
-  min-width:60%;
+  min-width: 60%;
   max-width: 90%;
-  padding:5px;
+  padding: 5px;
   @include card-style;
 }
 
@@ -31,21 +31,21 @@
   background-color: var(--if-medium-colour);
   align-self: flex-end;
   text-align: right;
-}  
+}
 
-.ai-message { 
+.ai-message {
   background-color: var(--if-light-colour);
   align-self: flex-start;
 }
 
-.think-icon{
-  height:25px;
-  width:25px;
+.think-icon {
+  height: 25px;
+  width: 25px;
 }
 
-.thinking-content{
+.thinking-content {
   font-style: italic;
-  padding: 20px; 
+  padding: 20px;
   transition: height 0.5s ease-in-out;
 }
 
@@ -57,42 +57,38 @@
   width: 100%;
   margin: 10px auto;
   min-height: 50px;
-  max-height: 60vh;  
+  max-height: 60vh;
   padding: 7px;
   background-color: var(--if-paper-colour);
   color: var(--if-dark-colour);
-  resize: vertical; 
+  resize: vertical;
   overflow: auto;
   box-sizing: border-box;
   cursor: text;
-} 
+}
 
 .copy-icon {
-  color : var(--if-paper-colour);
-  align-self: flex-end;  
+  color: var(--if-paper-colour);
+  align-self: flex-end;
   cursor: pointer;
-  margin-left: auto; 
+  margin-left: auto;
 }
 
 .message {
-  flex: 1; 
-  text-align: left; 
+  flex: 1;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .ai-message-header {
   display: flex;
-  justify-content: space-between; /* Space out the elements */
-  align-items: center; /* Vertically align the elements */
+  justify-content: space-between;
+  align-items: center;
   padding: 5px 0;
 }
 
-.show-think-button {
-  display: flex;
-  align-items: center; /* Vertically center the button content */
-  @include show-thinking-button-style;
-}
-
 .copy-ai-message {
-  margin-left: auto; /* Push the icon to the far right */
+  margin-left: auto;
   cursor: pointer;
 }

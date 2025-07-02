@@ -1,4 +1,7 @@
-import { Component, AfterViewInit, ViewChildren, QueryList, OnInit, HostListener, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component, AfterViewInit, ViewChildren, QueryList, OnInit,
+  HostListener, ViewChild, ElementRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { OllamaService } from '../../ollama.service';
 import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.component';
 import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
@@ -32,17 +35,19 @@ import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
   styleUrls: ['./code-gen.component.scss']
 })
 export class CodeGenComponent implements AfterViewInit, OnInit {
-  
   @ViewChildren(CodeGenResponseComponent) codeGenResponses!: QueryList<CodeGenResponseComponent>;
   @ViewChild('inputArea') inputArea!: ElementRef;
 
-  prompt: string = '';
-  responses: { response: string }[] = [];
-  thinking$ = new BehaviorSubject<boolean>(false); // Observable for thinking state
-  error: string = '';
-  conversationId: string = generateGUID(); // Generate a GUID for the conversationId
-  placeholderText: string = 'Ask away!'; // Placeholder text
-  placeholderLabel: string = 'Ask away'; // Label text
+  prompt = '';
+  responses: { prompt: string; response: string }[] = [];
+  thinking$ = new BehaviorSubject<boolean>(false);
+  error = '';
+  conversationId: string = generateGUID();
+  placeholderText = 'Ask away!';
+  placeholderLabel = 'Ask away';
+
+  // Declare as possibly undefined, will initialize in ngOnInit
+  quoteOfTheDay$!: Observable<string>;
 
   private isDragging = false;
   private startX = 0;
@@ -50,89 +55,87 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
   constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
 
-  get quoteOfTheDay(): string {
-    return localStorage.getItem('quoteOfTheDay') || DEFAULT_QUOTATION;
-  }
-
-  set quoteOfTheDay(quote: string) {
-    const cleanedQuote = quote.replace(/<think>.*?<\/think>/gs, '');
-    localStorage.setItem('quoteOfTheDay', cleanedQuote);
+  ngOnInit() {
+    // Initialize quoteOfTheDay$ here to avoid "used before initialization" error
+    this.quoteOfTheDay$ = this.quotationService.quote$;
   }
 
   ngAfterViewInit() {
-    this.codeGenResponses.changes.subscribe(() => { });
-    this.inputArea.nativeElement.focus(); // Set focus on the textarea when the component loads
-  }
-
-  ngOnInit() {
-    this.quotationService.quoteReceived.subscribe({
-      next: (quotation: string) => {
-        this.quoteOfTheDay = quotation;
-      },
-      error: (err: any) => {
-        console.error('Error receiving quote of the day:', err);
-      }
-    });
+    this.codeGenResponses.changes.subscribe(() => {});
+    setTimeout(() => this.inputArea.nativeElement.focus());
   }
 
   onFocus() {
     this.placeholderText = '';
-    this.placeholderLabel = 'Ask away (shift+enter for newline)'; 
+    this.placeholderLabel = 'Ask away (shift+enter for newline)';
   }
 
   onBlur() {
-    this.placeholderText = 'Ask away!';  
-    this.placeholderLabel = 'Ask away (shift+enter for newline)';  
+    this.placeholderText = 'Ask away!';
+    this.placeholderLabel = 'Ask away (shift+enter for newline)';
   }
 
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault(); 
-      this.onSubmit(); 
+      event.preventDefault();
+      this.onSubmit();
     }
   }
 
   onSubmit() {
-    if (!this.prompt.trim()) {
+    const trimmed = this.prompt.trim();
+    if (!trimmed) {
       this.error = 'Please ask a question first.';
       return;
     }
 
-    this.thinking$.next(true); // Set thinking to true
+    this.thinking$.next(true);
     this.error = '';
 
-    const newResponse = { response: '' };
+    const newResponse = { prompt: trimmed, response: '' };
     this.responses.unshift(newResponse);
+    this.prompt = '';
+    setTimeout(() => this.inputArea.nativeElement.focus());
 
-    this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'code')
-      .subscribe({
-        next: (chunk: string) => {
-          newResponse.response += chunk;
-          const firstResponseComponent = this.codeGenResponses.first;
-          if (firstResponseComponent) {
-            firstResponseComponent.processChunk(chunk);
-            firstResponseComponent.prompt = this.prompt; 
+    setTimeout(() => {
+      const targetComponent = this.codeGenResponses.first;
+      if (!targetComponent) {
+        this.error = 'Unable to attach response component.';
+        this.thinking$.next(false);
+        return;
+      }
+
+      targetComponent.prompt = newResponse.prompt;
+
+      this.ollamaService.sendPrompt(this.conversationId, newResponse.prompt, 'code')
+        .subscribe({
+          next: (chunk: string) => {
+            newResponse.response += chunk;
+            targetComponent.processChunk(chunk);
+          },
+          error: (err: unknown) => {
+            if (err instanceof Error) {
+              console.error('Error:', err.message);
+              this.error = 'An error occurred: ' + err.message;
+            } else {
+              console.error('Unknown error:', err);
+              this.error = 'An unknown error occurred.';
+            }
+            this.thinking$.next(false);
+            setTimeout(() => this.inputArea.nativeElement.focus());
+          },
+          complete: () => {
+            this.thinking$.next(false);
           }
-          this.prompt = '';
-          this.inputArea.nativeElement.focus(); // Set focus back to the textarea after sending the prompt
-        },
-        error: (err) => {
-          console.error('Error:', err);
-          this.error = 'An error occurred while processing your request.';
-          this.thinking$.next(false); // Set thinking to false
-          this.inputArea.nativeElement.focus(); // Set focus back to the textarea in case of error
-        },
-        complete: () => {
-          this.thinking$.next(false); // Set thinking to false
-        }
-      });
+        });
+    });
   }
 
-  removeResponse(index: number) {
+  removeResponse(index: number): void {
     this.responses.splice(index, 1);
   }
 
-  onMouseDown(event: MouseEvent) {
+  onMouseDown(event: MouseEvent): void {
     this.isDragging = true;
     this.startX = event.clientX;
     this.startWidth = document.querySelector('.left-pane')!.clientWidth;
@@ -140,21 +143,21 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
     document.addEventListener('mouseup', this.onMouseUp);
   }
 
-  onMouseMove = (event: MouseEvent) => {
+  onMouseMove = (event: MouseEvent): void => {
     if (!this.isDragging) return;
     const dx = event.clientX - this.startX;
     const newWidth = this.startWidth + dx;
-    (document.querySelector('.left-pane') as HTMLElement)!.style.flex = `0 0 ${newWidth}px`;
+    (document.querySelector('.left-pane') as HTMLElement).style.flex = `0 0 ${newWidth}px`;
   };
 
-  onMouseUp = () => {
+  onMouseUp = (): void => {
     this.isDragging = false;
     document.removeEventListener('mousemove', this.onMouseMove);
     document.removeEventListener('mouseup', this.onMouseUp);
   };
 
   @HostListener('window:mouseup', ['$event'])
-  onWindowMouseUp(event: MouseEvent) {
+  onWindowMouseUp(event: MouseEvent): void {
     if (this.isDragging) {
       this.onMouseUp();
     }
@@ -162,7 +165,7 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 }
 
 export function generateGUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);

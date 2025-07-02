@@ -1,11 +1,8 @@
-﻿// [controller] route, full context-aware prompt handling, and test endpoint
-
-using System.Text.Json.Serialization;
+﻿using System.Text;
 using System.Text.Json;
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;
 
 namespace IFOllama.Controllers
 {
@@ -17,7 +14,6 @@ namespace IFOllama.Controllers
         private readonly HttpClient _httpClient;
         private readonly IConversationContextManager _contextManager;
         private readonly CodeContextService? _codeContextService;
-        private readonly IRagService _ragService;
         private readonly ILogger<IFOllamaController> _logger;
 
         public IFOllamaController(
@@ -25,7 +21,6 @@ namespace IFOllama.Controllers
             HttpClient httpClient,
             IConversationContextManager contextManager,
             ILogger<IFOllamaController> logger,
-        //    IRagService ragService,
             CodeContextService? codeContextService = null)
         {
             _configuration = configuration;
@@ -33,7 +28,6 @@ namespace IFOllama.Controllers
             _contextManager = contextManager;
             _logger = logger;
             _codeContextService = codeContextService;
-        //    _ragService = ragService;
 
             if (_codeContextService == null)
                 _logger.LogWarning("CodeContextService is unavailable. Enhanced code context features will be disabled.");
@@ -65,56 +59,34 @@ namespace IFOllama.Controllers
 
         private async Task<IActionResult> HandleCodeOrChatPrompt(string conversationId, string prompt, string conversationContext, string dest)
         {
-            string finalPrompt;
+            var finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
 
-            if (dest == "code" && _codeContextService != null) // && _ragService != null)
-            {
-                try
-                {
-                    var embedding = await _ragService.GetEmbeddingService().EmbedAsync(prompt);
-                    var (distances, ids) = _codeContextService.Search(embedding, 3);
-                    var chunks = await _ragService.GetTopChunksAsync(prompt, 3);
-
-                    var sb = new StringBuilder();
-                    sb.AppendLine("## Code Context:");
-                    foreach (var id in ids[0]) _logger.LogInformation("Context ID: {Id}", id);
-                    sb.AppendLine("\n## Documentation Context:");
-                    foreach (var chunk in chunks) sb.AppendLine(chunk);
-                    sb.AppendLine("\n## User Query:");
-                    sb.AppendLine(prompt);
-
-                    finalPrompt = $"{conversationContext}\nUser: {sb}\nAssistant:";
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Falling back to basic prompt");
-                    finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
-                }
-            }
-            else
-            {
-                finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
-            }
-
-            var request = new StringContent(
+            var jsonRequest = new StringContent(
                 JsonSerializer.Serialize(new { Model = SelectModel(dest), Prompt = finalPrompt }),
                 Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(SelectAPIUrl(), request);
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Request failed");
+            var upstreamResponse = await _httpClient.PostAsync(SelectAPIUrl(), jsonRequest);
+            if (!upstreamResponse.IsSuccessStatusCode)
+                return StatusCode((int)upstreamResponse.StatusCode, "Upstream request failed.");
 
-            // Streaming response to client
-            Response.ContentType = "text/plain";
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            using var reader = new StreamReader(stream);
-            await using var writer = new StreamWriter(Response.Body, Encoding.UTF8);
+            Response.ContentType = "application/x-ndjson";
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["Transfer-Encoding"] = "chunked";
+            Response.Headers["X-Accel-Buffering"] = "no";
+
+            await using var responseStream = await upstreamResponse.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(responseStream);
+
+            await using var writer = new StreamWriter(Response.BodyWriter.AsStream(), Encoding.UTF8, bufferSize: 8192, leaveOpen: true)
+            {
+                AutoFlush = true
+            };
 
             _contextManager.AppendMessage(conversationId, "User", prompt);
 
-            string? line;
             var fullResponse = new StringBuilder();
 
+            string? line;
             while ((line = await reader.ReadLineAsync()) != null)
             {
                 if (string.IsNullOrWhiteSpace(line))
@@ -125,9 +97,9 @@ namespace IFOllama.Controllers
                     var chunk = JsonSerializer.Deserialize(line, AppJsonContext.Default.ChatChunk);
                     if (chunk?.Response is { Length: > 0 })
                     {
-                        await writer.WriteAsync(chunk.Response);
-                        await writer.FlushAsync();
                         fullResponse.Append(chunk.Response);
+                        var ndjson = JsonSerializer.Serialize(chunk);
+                        await writer.WriteLineAsync(ndjson);
                     }
 
                     if (chunk?.Done == true)
@@ -141,9 +113,8 @@ namespace IFOllama.Controllers
 
             _contextManager.AppendMessage(conversationId, "Assistant", fullResponse.ToString());
 
-            return new EmptyResult();
+            return new EmptyResult(); // We've already written the response
         }
-
 
         private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt)
         {
@@ -180,85 +151,6 @@ namespace IFOllama.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { error = "Internal server error", details = ex.Message });
-            }
-        }
-        /*
-        private async Task<MemoryStream> HandleResponse(HttpResponseMessage response)
-        {
-            var stream = await response.Content.ReadAsStreamAsync();
-            using var reader = new StreamReader(stream);
-            var memory = new MemoryStream();
-            using var writer = new StreamWriter(memory, Encoding.UTF8, leaveOpen: true);
-
-            string? line;
-            while ((line = await reader.ReadLineAsync()) != null)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-
-                try
-                {
-                    using var doc = JsonDocument.Parse(line);
-                    if (doc.RootElement.TryGetProperty("response", out var val))
-                    {
-                        var part = val.GetString();
-                        if (!string.IsNullOrEmpty(part))
-                        {
-                            await writer.WriteAsync(part);
-                            await writer.FlushAsync();
-                        }
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogWarning(ex, "Skipping invalid JSON line: {Line}", line);
-                    continue;
-                }
-            }
-
-            memory.Seek(0, SeekOrigin.Begin);
-            return memory;
-        }
-
-*/
-
-        private async Task StreamResponseToClient(HttpResponseMessage response, HttpResponse clientResponse)
-        {
-            clientResponse.ContentType = "text/plain";
-            await using var writer = new StreamWriter(clientResponse.Body, Encoding.UTF8);
-
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            using var reader = new StreamReader(stream);
-
-            string? line;
-            while ((line = await reader.ReadLineAsync()) != null)
-            {
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-
-                try
-                {
-                    using var doc = JsonDocument.Parse(line);
-                    if (doc.RootElement.TryGetProperty("response", out var val))
-                    {
-                        var part = val.GetString();
-                        if (!string.IsNullOrEmpty(part))
-                        {
-                            await writer.WriteAsync(part);
-                            await writer.FlushAsync();
-                        }
-                    }
-
-                    // ✅ 3. Stop early if "done": true is present
-                    if (doc.RootElement.TryGetProperty("done", out var done) && done.GetBoolean())
-                    {
-                        break;
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogWarning(ex, "Skipping malformed JSON line: {Line}", line);
-                }
             }
         }
 
