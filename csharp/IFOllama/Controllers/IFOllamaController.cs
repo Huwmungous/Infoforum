@@ -95,15 +95,20 @@ namespace IFOllama.Controllers
                 try
                 {
                     var chunk = JsonSerializer.Deserialize(line, AppJsonContext.Default.ChatChunk);
-                    if (chunk?.Response is { Length: > 0 })
+                    if (chunk != null)
                     {
-                        fullResponse.Append(chunk.Response);
+                        // Append all responses including empty strings
+                        fullResponse.Append(chunk.Response ?? "");
+
                         var ndjson = JsonSerializer.Serialize(chunk);
                         await writer.WriteLineAsync(ndjson);
-                    }
 
-                    if (chunk?.Done == true)
-                        break;
+                        if (chunk.Done)
+                        {
+                            // Exit loop when done=true is received
+                            break;
+                        }
+                    }
                 }
                 catch (JsonException ex)
                 {
@@ -113,7 +118,7 @@ namespace IFOllama.Controllers
 
             _contextManager.AppendMessage(conversationId, "Assistant", fullResponse.ToString());
 
-            return new EmptyResult(); // We've already written the response
+            return new EmptyResult(); // Response already written
         }
 
         private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt)
