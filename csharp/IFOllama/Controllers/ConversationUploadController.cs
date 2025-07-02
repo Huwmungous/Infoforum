@@ -7,7 +7,7 @@ using System.IO.Compression;
 namespace IFOllama.Controllers
 {
     [ApiController]
-    [Route("api/conversations")]
+    [Route("conversations")]
     public class ConversationUploadController(
         ILogger<ConversationUploadController> logger) : ControllerBase
     {

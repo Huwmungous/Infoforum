@@ -1,23 +1,276 @@
+﻿// [controller] route, full context-aware prompt handling, and test endpoint
 
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Threading;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Text;
 
 namespace IFOllama.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class IFOllamaController(ILogger<IFOllamaController> logger) : ControllerBase
+    [Route("[controller]")]
+    public class IFOllamaController : ControllerBase
     {
-        private readonly ILogger<IFOllamaController> _logger = logger;
+        private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient;
+        private readonly IConversationContextManager _contextManager;
+        private readonly CodeContextService? _codeContextService;
+        private readonly IRagService _ragService;
+        private readonly ILogger<IFOllamaController> _logger;
+
+        public IFOllamaController(
+            IConfiguration configuration,
+            HttpClient httpClient,
+            IConversationContextManager contextManager,
+            ILogger<IFOllamaController> logger,
+        //    IRagService ragService,
+            CodeContextService? codeContextService = null)
+        {
+            _configuration = configuration;
+            _httpClient = httpClient;
+            _contextManager = contextManager;
+            _logger = logger;
+            _codeContextService = codeContextService;
+        //    _ragService = ragService;
+
+            if (_codeContextService == null)
+                _logger.LogWarning("CodeContextService is unavailable. Enhanced code context features will be disabled.");
+        }
 
         [HttpGet("test")]
-        public IActionResult Test()
+        public IActionResult Test() => Ok("IFOllama is alive.");
+
+        [HttpPost]
+        [Authorize(Policy = "MustBeIntelligenceUser")]
+        public async Task<IActionResult> SendPrompt(
+            [FromQuery] string conversationId,
+            [FromBody] PromptDto request,
+            string dest = "code")
         {
-            _logger.LogInformation("Test endpoint hit.");
-            _ = this.HttpContext?.RequestAborted ?? CancellationToken.None;
-            return Ok("Working");
+            try
+            {
+                var context = _contextManager.GetContext(conversationId);
+                return dest == "image"
+                    ? await HandleImagePrompt(conversationId, request.Prompt)
+                    : await HandleCodeOrChatPrompt(conversationId, request.Prompt, context, dest);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing prompt");
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
+
+        private async Task<IActionResult> HandleCodeOrChatPrompt(string conversationId, string prompt, string conversationContext, string dest)
+        {
+            string finalPrompt;
+
+            if (dest == "code" && _codeContextService != null) // && _ragService != null)
+            {
+                try
+                {
+                    var embedding = await _ragService.GetEmbeddingService().EmbedAsync(prompt);
+                    var (distances, ids) = _codeContextService.Search(embedding, 3);
+                    var chunks = await _ragService.GetTopChunksAsync(prompt, 3);
+
+                    var sb = new StringBuilder();
+                    sb.AppendLine("## Code Context:");
+                    foreach (var id in ids[0]) _logger.LogInformation("Context ID: {Id}", id);
+                    sb.AppendLine("\n## Documentation Context:");
+                    foreach (var chunk in chunks) sb.AppendLine(chunk);
+                    sb.AppendLine("\n## User Query:");
+                    sb.AppendLine(prompt);
+
+                    finalPrompt = $"{conversationContext}\nUser: {sb}\nAssistant:";
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Falling back to basic prompt");
+                    finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+                }
+            }
+            else
+            {
+                finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+            }
+
+            var request = new StringContent(
+                JsonSerializer.Serialize(new { Model = SelectModel(dest), Prompt = finalPrompt }),
+                Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(SelectAPIUrl(), request);
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, "Request failed");
+
+            // Streaming response to client
+            Response.ContentType = "text/plain";
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(stream);
+            await using var writer = new StreamWriter(Response.Body, Encoding.UTF8);
+
+            _contextManager.AppendMessage(conversationId, "User", prompt);
+
+            string? line;
+            var fullResponse = new StringBuilder();
+
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                try
+                {
+                    var chunk = JsonSerializer.Deserialize(line, AppJsonContext.Default.ChatChunk);
+                    if (chunk?.Response is { Length: > 0 })
+                    {
+                        await writer.WriteAsync(chunk.Response);
+                        await writer.FlushAsync();
+                        fullResponse.Append(chunk.Response);
+                    }
+
+                    if (chunk?.Done == true)
+                        break;
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Skipping malformed JSON line: {Line}", line);
+                }
+            }
+
+            _contextManager.AppendMessage(conversationId, "Assistant", fullResponse.ToString());
+
+            return new EmptyResult();
+        }
+
+
+        private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt)
+        {
+            _contextManager.AppendMessage(conversationId, "User", prompt);
+
+            var request = new StringContent(
+                JsonSerializer.Serialize(new { Model = SelectModel("image"), Prompt = prompt, ConversationId = conversationId }),
+                Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync(SelectAPIUrl(), request);
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, "Image generation failed");
+
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            var base64 = Convert.ToBase64String(bytes);
+
+            return Ok(new { image = base64 });
+        }
+
+        [HttpGet("query")]
+        [Authorize(Policy = "MustBeIntelligenceUser")]
+        public async Task<IActionResult> QueryCodebase([FromQuery] string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+                return BadRequest(new { error = "Query parameter is required." });
+
+            try
+            {
+                var url = $"{_configuration["QueryApiUrl"]}?query={Uri.EscapeDataString(query)}";
+                var result = await _httpClient.GetStringAsync(url);
+                var lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                return Ok(new { query, results = lines });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "Internal server error", details = ex.Message });
+            }
+        }
+        /*
+        private async Task<MemoryStream> HandleResponse(HttpResponseMessage response)
+        {
+            var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(stream);
+            var memory = new MemoryStream();
+            using var writer = new StreamWriter(memory, Encoding.UTF8, leaveOpen: true);
+
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    if (doc.RootElement.TryGetProperty("response", out var val))
+                    {
+                        var part = val.GetString();
+                        if (!string.IsNullOrEmpty(part))
+                        {
+                            await writer.WriteAsync(part);
+                            await writer.FlushAsync();
+                        }
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Skipping invalid JSON line: {Line}", line);
+                    continue;
+                }
+            }
+
+            memory.Seek(0, SeekOrigin.Begin);
+            return memory;
+        }
+
+*/
+
+        private async Task StreamResponseToClient(HttpResponseMessage response, HttpResponse clientResponse)
+        {
+            clientResponse.ContentType = "text/plain";
+            await using var writer = new StreamWriter(clientResponse.Body, Encoding.UTF8);
+
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(stream);
+
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(line);
+                    if (doc.RootElement.TryGetProperty("response", out var val))
+                    {
+                        var part = val.GetString();
+                        if (!string.IsNullOrEmpty(part))
+                        {
+                            await writer.WriteAsync(part);
+                            await writer.FlushAsync();
+                        }
+                    }
+
+                    // ✅ 3. Stop early if "done": true is present
+                    if (doc.RootElement.TryGetProperty("done", out var done) && done.GetBoolean())
+                    {
+                        break;
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Skipping malformed JSON line: {Line}", line);
+                }
+            }
+        }
+
+        private string SelectAPIUrl() =>
+            _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is missing.");
+
+        private string SelectModel(string dest) => dest switch
+        {
+            "code" => _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel not configured."),
+            "chat" => _configuration["ChatModel"] ?? throw new InvalidOperationException("ChatModel not configured."),
+            "image" => _configuration["ImageModel"] ?? throw new InvalidOperationException("ImageModel not configured."),
+            _ => throw new InvalidOperationException("Invalid model destination.")
+        };
     }
 }

@@ -1,0 +1,18 @@
+[
+  {
+    "role": "User",
+    "message": "hi"
+  },
+  {
+    "role": "Assistant",
+    "message": "Hello! How can I assist you with your programming or computer science queries today?\n"
+  },
+  {
+    "role": "User",
+    "message": "hi"
+  },
+  {
+    "role": "Assistant",
+    "message": ""
+  }
+]

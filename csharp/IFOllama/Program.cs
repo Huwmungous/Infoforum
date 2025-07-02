@@ -1,5 +1,6 @@
 ﻿using IFGlobal;
 using IFOllama;
+using IFOllama.Controllers;
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,25 +32,55 @@ builder.Services.AddSingleton<IConversationContextManager>(sp =>
 builder.Services.AddSingleton<IEmbeddingService, TextEmbeddingService>();
 
 // RAG service using local embeddings
-builder.Services.AddScoped<IRagService, RagService>();
+// builder.Services.AddScoped<IRagService, RagService>();
 
-builder.Services.AddSingleton<CodeContextService>(sp =>
-   new CodeContextService(
-       sp.GetRequiredService<ILogger<CodeContextService>>(),  
-       sp.GetRequiredService<IEmbeddingService>(),  
-       sp.GetRequiredService<IConversationContextManager>()  
-   )
-);
+//builder.Services.AddSingleton<CodeContextService>(provider =>
+//    new CodeContextService(
+//        provider.GetRequiredService<IEmbeddingService>(),
+//        provider.GetRequiredService<IConfiguration>(),
+//        provider.GetRequiredService<ILogger<CodeContextService>>()));
+
 
 // HTTP for Ollama and Context7 fetch
 builder.Services.AddHttpClient();
 
 // Controllers and Swagger
 builder.Services.AddControllers();
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.TypeInfoResolver = AppJsonContext.Default;
+});
+
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" })
-);
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Intelligence API", Version = "v1" });
+
+    // Add JWT support to Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme.\n\nEnter 'Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
 
 // JWT Authentication & Authorization
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -65,8 +96,12 @@ builder.Services.AddAuthorizationBuilder()
 // CORS
 builder.Services.AddCors(opts =>
     opts.AddPolicy("AllowSpecificOrigins", pb => pb
-        .WithOrigins("https://longmanrd.net", $"http://localhost:{port}",
-                     $"http://thehybrid:{port}", $"http://gambit:{port}", "http://localhost:4200")
+        .WithOrigins(
+          "https://longmanrd.net", 
+          $"http://localhost:{port}",
+          $"http://thehybrid:{port}", 
+          $"http://gambit:{port}", 
+          "http://localhost:4200")
         .AllowAnyHeader().AllowAnyMethod().SetIsOriginAllowedToAllowWildcardSubdomains()
     )
 );
@@ -76,7 +111,7 @@ var app = builder.Build();
 // Trigger CodeContextService initialization
 using (var scope = app.Services.CreateScope())
 {
-    var codeContextService = scope.ServiceProvider.GetRequiredService<CodeContextService>();
+    // var codeContextService = scope.ServiceProvider.GetRequiredService<CodeContextService>();
     // The constructor of CodeContextService already calls RebuildIndex
 }
 

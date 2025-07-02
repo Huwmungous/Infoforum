@@ -9,9 +9,9 @@ import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
 
 interface ImageMessage {
-  isUser:    boolean;
-  text:      string;
-  imageData?: string;    // data:image/png;base64,...
+  isUser: boolean;
+  text: string;
+  imageData?: string;
 }
 
 @Component({
@@ -31,11 +31,10 @@ export class ImageGenComponent {
   prompt = '';
   error = '';
   conversationId = generateGUID();
-
   thinking$ = new BehaviorSubject<boolean>(false);
 
   constructor(
-    private ngZone: NgZone,                 // ← inject NgZone
+    private ngZone: NgZone,
     private ollamaService: OllamaService,
     private _clipboard: Clipboard
   ) {}
@@ -46,65 +45,47 @@ export class ImageGenComponent {
       this.error = 'Please enter a prompt for image generation.';
       return;
     }
-  
+
     this.thinking$.next(true);
     this.error = '';
     this.messages.push({ isUser: true, text: prompt });
-  
-    this.ollamaService.sendPrompt(this.conversationId, prompt, 'image')
-      .subscribe({
-        next: response => {
-          // For JSON response, response is already parsed by Angular's HttpClient
-          console.log('🕵️‍♂️ Received response:', response);
-          
-          if (response && response.image) {
-            // Make sure the data URI has the correct prefix
-            const imageData = response.image.startsWith('data:image/')
-              ? response.image  // Keep as is if it already has the prefix
-              : `data:image/png;base64,${response.image}`; // Add prefix if needed
-            
-            this.ngZone.run(() => {
-              this.messages.push({
-                isUser: false,
-                text: '',
-                imageData: imageData
-              });
-              this.thinking$.next(false);
-            });
-            
-            console.log('🖼️ Image data prefix:', imageData.substring(0, 30) + '...');
-            
-            // Optional: If you still want to offer download functionality
-            this.downloadBase64Image(response.image, 'generated-image.png');
-          } else {
-            console.error('Invalid response format:', response);
-            this.error = 'Invalid response format from server.';
-            this.thinking$.next(false);
-          }
-        },
-        error: err => {
-          console.error('Error:', err);
-          this.error = 'An error occurred while generating the image.';
+
+    this.ollamaService.sendImagePrompt(this.conversationId, prompt).subscribe({
+      next: response => {
+        console.log('🕵️‍♂️ Received response:', response);
+        const raw = response.image?.trim();
+        const imageData = raw?.startsWith('data:image/')
+          ? raw
+          : `data:image/png;base64,${raw}`;
+
+        this.ngZone.run(() => {
+          this.messages.push({
+            isUser: false,
+            text: '',
+            imageData
+          });
           this.thinking$.next(false);
-        }
-      });
+        });
+
+        console.log('🖼️ Image data prefix:', imageData.substring(0, 30) + '...');
+        this.downloadBase64Image(imageData, 'generated-image.png');
+      },
+      error: err => {
+        console.error('Error:', err);
+        this.error = 'An error occurred while generating the image.';
+        this.thinking$.next(false);
+      }
+    });
   }
-  
-  // Helper method to download base64 image
+
   private downloadBase64Image(base64Data: string, filename: string): void {
-    // Create a link element
-    const link = document.createElement('a');
-    
-    // Make sure the base64 data doesn't already have the prefix
     const dataUrl = base64Data.startsWith('data:image/')
       ? base64Data
       : `data:image/png;base64,${base64Data}`;
-    
-    // Set link properties
+
+    const link = document.createElement('a');
     link.href = dataUrl;
     link.download = filename;
-    
-    // Append to document, click and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
