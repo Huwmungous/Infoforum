@@ -33,6 +33,7 @@ export class ChatComponent {
   prompt = '';
   error = '';
   conversationId: string = generateGUID();
+  inProgress = false;
 
   constructor(
     private ollamaService: OllamaService,
@@ -63,6 +64,8 @@ export class ChatComponent {
     let aggregatedText = '';
     let capturedThink: string | undefined;
 
+    this.inProgress = true;
+
     this.ollamaService.sendPrompt(this.conversationId, trimmed, 'chat')
       .subscribe({
         next: (chunk) => {
@@ -87,6 +90,7 @@ export class ChatComponent {
             this.error = err instanceof Error
               ? `An error occurred: ${err.message}`
               : 'An unknown error occurred.';
+            this.inProgress = false;
           });
         },
         complete: () => {
@@ -94,6 +98,7 @@ export class ChatComponent {
             assistantMsg.text = aggregatedText;
             assistantMsg.thinkContent = capturedThink;
             assistantMsg.showThinking = false;
+            this.inProgress = false;
           });
         }
       });

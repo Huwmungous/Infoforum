@@ -5,7 +5,7 @@
     z-index="1000">
   </div>
 
-  <app-thinking-progress [active]="false"></app-thinking-progress>
+  <app-thinking-progress [active]="inProgress"></app-thinking-progress>
 
   <ng-container *ngFor="let message of messages">
     <div *ngIf="message.isUser" class="user-message">
