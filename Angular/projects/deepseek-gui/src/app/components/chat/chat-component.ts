@@ -42,67 +42,78 @@ export class ChatComponent {
   ) {}
 
   sendMessage(event: Event, msg: string): void {
-    event.preventDefault();
+  event.preventDefault();
 
-    const trimmed = this.prompt.trim();
-    if (!trimmed) {
-      this.error = 'Please ask a question first.';
-      return;
-    }
-
-    this.error = '';
-    this.prompt = '';
-    this.messages.push({ isUser: true, text: trimmed, showThinking: false });
-
-    const assistantMsg: Message = {
-      isUser: false,
-      text: '',
-      showThinking: true
-    };
-    this.messages.push(assistantMsg);
-
-    let aggregatedText = '';
-    let capturedThink: string | undefined;
-
-    this.inProgress = true;
-
-    this.ollamaService.sendPrompt(this.conversationId, trimmed, 'chat')
-      .subscribe({
-        next: (chunk) => {
-          this.ngZone.run(() => {
-            const response = chunk.response ?? '';
-
-            // Extract <think>...</think> content if present
-            const thinkMatch = response.match(/<think>([\s\S]*?)<\/think>/);
-            const cleanChunk = thinkMatch ? response.replace(thinkMatch[0], '') : response;
-
-            if (thinkMatch && !capturedThink) {
-              capturedThink = thinkMatch[1].trim();
-            }
-
-            aggregatedText += cleanChunk;
-          });
-        },
-        error: (err: unknown) => {
-          this.ngZone.run(() => {
-            assistantMsg.text = '⚠️ Error: Unable to retrieve response.';
-            assistantMsg.showThinking = false;
-            this.error = err instanceof Error
-              ? `An error occurred: ${err.message}`
-              : 'An unknown error occurred.';
-            this.inProgress = false;
-          });
-        },
-        complete: () => {
-          this.ngZone.run(() => {
-            assistantMsg.text = aggregatedText;
-            assistantMsg.thinkContent = capturedThink;
-            assistantMsg.showThinking = false;
-            this.inProgress = false;
-          });
-        }
-      });
+  const trimmed = this.prompt.trim();
+  if (!trimmed) {
+    this.error = 'Please ask a question first.';
+    return;
   }
+
+  this.error = '';
+  this.prompt = '';
+  this.messages.push({ isUser: true, text: trimmed, showThinking: false });
+
+  const assistantMsg: Message = {
+    isUser: false,
+    text: '',
+    showThinking: false
+  };
+  this.messages.push(assistantMsg);
+
+  let aggregatedText = '';
+  let capturedThink = '';
+  let insideThink = false;
+
+  this.inProgress = true;
+
+  this.ollamaService.sendPrompt(this.conversationId, trimmed, 'chat')
+    .subscribe({
+      next: (chunk) => {
+        this.ngZone.run(() => {
+          const response = chunk.response ?? '';
+
+          let temp = response;
+
+          // opening <think>
+          if (temp.includes('<think>')) {
+            insideThink = true;
+            temp = temp.replace('<think>', '');
+          }
+          // closing </think>
+          if (temp.includes('</think>')) {
+            insideThink = false;
+            temp = temp.replace('</think>', '');
+          }
+
+          if (insideThink) {
+            capturedThink += temp;
+          } else {
+            aggregatedText += temp;
+          }
+        });
+      },
+      error: (err: unknown) => {
+        this.ngZone.run(() => {
+          assistantMsg.text = '⚠️ Error: Unable to retrieve response.';
+          assistantMsg.showThinking = false;
+          this.error = err instanceof Error
+            ? `An error occurred: ${err.message}`
+            : 'An unknown error occurred.';
+          this.inProgress = false;
+        });
+      },
+      complete: () => {
+        this.ngZone.run(() => {
+          assistantMsg.text = aggregatedText.trim();
+          assistantMsg.thinkContent = capturedThink.trim() || undefined;
+          assistantMsg.showThinking = false;
+          this.inProgress = false;
+        });
+      }
+    });
+}
+
 
   copyToClipboard(message: Message): void {
     const value = message.showThinking && message.thinkContent
