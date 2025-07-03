@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,50 @@ namespace IFOllama.Controllers
                 _logger.LogWarning("CodeContextService is unavailable. Enhanced code context features will be disabled.");
         }
 
+        private class ChatChunk
+        {
+            [JsonPropertyName("response")]
+            public string? Response { get; set; }
+
+            [JsonPropertyName("done")]
+            public bool Done { get; set; }
+        }
+
+        [HttpGet("stream")]
+        public async Task StreamTest()
+        {
+            var response = Response;
+            response.ContentType = "application/x-ndjson";
+            response.Headers["Cache-Control"] = "no-cache";
+            response.Headers["X-Accel-Buffering"] = "no";
+
+            var utf8NoBom = new UTF8Encoding(false);
+            await using var writer = new StreamWriter(response.BodyWriter.AsStream(), utf8NoBom, leaveOpen: true)
+            {
+                AutoFlush = true
+            };
+
+            var chunks = new[]
+            {
+                new { Response = "Hello", Done = false },
+                new { Response = " World", Done = false },
+                new { Response = "", Done = true }
+            };
+
+            foreach (var chunk in chunks)
+            {
+                var json = JsonSerializer.Serialize(chunk);
+                await writer.WriteLineAsync(json);
+                await writer.FlushAsync();
+                await response.Body.FlushAsync();
+
+                if (chunk.Done)
+                    break;
+
+                await Task.Delay(500);
+            }
+        }
+
         [HttpGet("test")]
         public IActionResult Test() => Ok("IFOllama is alive.");
 
@@ -46,9 +91,15 @@ namespace IFOllama.Controllers
             try
             {
                 var context = _contextManager.GetContext(conversationId);
-                return dest == "image"
-                    ? await HandleImagePrompt(conversationId, request.Prompt)
-                    : await HandleCodeOrChatPrompt(conversationId, request.Prompt, context, dest);
+                if (dest == "image")
+                {
+                    return await HandleImagePrompt(conversationId, request.Prompt);
+                }
+                else
+                {
+                    await HandleCodeOrChatPrompt(conversationId, request.Prompt, context, dest);
+                    return new EmptyResult();
+                }
             }
             catch (Exception ex)
             {
@@ -57,7 +108,7 @@ namespace IFOllama.Controllers
             }
         }
 
-        private async Task<IActionResult> HandleCodeOrChatPrompt(string conversationId, string prompt, string conversationContext, string dest)
+        private async Task HandleCodeOrChatPrompt(string conversationId, string prompt, string conversationContext, string dest)
         {
             var finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
 
@@ -67,17 +118,21 @@ namespace IFOllama.Controllers
 
             var upstreamResponse = await _httpClient.PostAsync(SelectAPIUrl(), jsonRequest);
             if (!upstreamResponse.IsSuccessStatusCode)
-                return StatusCode((int)upstreamResponse.StatusCode, "Upstream request failed.");
+            {
+                Response.StatusCode = (int)upstreamResponse.StatusCode;
+                return;
+            }
 
             Response.ContentType = "application/x-ndjson";
             Response.Headers["Cache-Control"] = "no-cache";
-            Response.Headers["Transfer-Encoding"] = "chunked";
             Response.Headers["X-Accel-Buffering"] = "no";
+
+            var utf8NoBom = new UTF8Encoding(false);
 
             await using var responseStream = await upstreamResponse.Content.ReadAsStreamAsync();
             using var reader = new StreamReader(responseStream);
 
-            await using var writer = new StreamWriter(Response.BodyWriter.AsStream(), Encoding.UTF8, bufferSize: 8192, leaveOpen: true)
+            await using var writer = new StreamWriter(Response.BodyWriter.AsStream(), utf8NoBom, leaveOpen: true)
             {
                 AutoFlush = true
             };
@@ -87,6 +142,11 @@ namespace IFOllama.Controllers
             var fullResponse = new StringBuilder();
 
             string? line;
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
             while ((line = await reader.ReadLineAsync()) != null)
             {
                 if (string.IsNullOrWhiteSpace(line))
@@ -94,18 +154,18 @@ namespace IFOllama.Controllers
 
                 try
                 {
-                    var chunk = JsonSerializer.Deserialize(line, AppJsonContext.Default.ChatChunk);
+                    var chunk = JsonSerializer.Deserialize<ChatChunk>(line, jsonOptions);
                     if (chunk != null)
                     {
-                        // Append all responses including empty strings
                         fullResponse.Append(chunk.Response ?? "");
 
                         var ndjson = JsonSerializer.Serialize(chunk);
                         await writer.WriteLineAsync(ndjson);
+                        await writer.FlushAsync();
+                        await Response.Body.FlushAsync();
 
                         if (chunk.Done)
                         {
-                            // Exit loop when done=true is received
                             break;
                         }
                     }
@@ -117,8 +177,6 @@ namespace IFOllama.Controllers
             }
 
             _contextManager.AppendMessage(conversationId, "Assistant", fullResponse.ToString());
-
-            return new EmptyResult(); // Response already written
         }
 
         private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt)

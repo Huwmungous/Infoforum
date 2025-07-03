@@ -53,7 +53,6 @@ export class ChatComponent {
     this.prompt = '';
     this.messages.push({ isUser: true, text: trimmed, showThinking: false });
 
-    // Add placeholder assistant message
     const assistantMsg: Message = {
       isUser: false,
       text: '',
@@ -66,24 +65,19 @@ export class ChatComponent {
 
     this.ollamaService.sendPrompt(this.conversationId, trimmed, 'chat')
       .subscribe({
-        next: (chunk: string) => {
+        next: (chunk) => {
           this.ngZone.run(() => {
-            if (!chunk.startsWith('{')) return; // skip invalid or header lines
-            try {
-              const parsed = JSON.parse(chunk);
-              const response = parsed.response ?? '';
+            const response = chunk.response ?? '';
 
-              const thinkMatch = response.match(/<think>([\s\S]*?)<\/think>/);
-              const cleanChunk = thinkMatch ? response.replace(thinkMatch[0], '') : response;
+            // Extract <think>...</think> content if present
+            const thinkMatch = response.match(/<think>([\s\S]*?)<\/think>/);
+            const cleanChunk = thinkMatch ? response.replace(thinkMatch[0], '') : response;
 
-              if (thinkMatch && !capturedThink) {
-                capturedThink = thinkMatch[1].trim();
-              }
-
-              aggregatedText += cleanChunk;
-            } catch (err) {
-              console.warn('⚠️ Failed to parse chunk:', chunk, err);
+            if (thinkMatch && !capturedThink) {
+              capturedThink = thinkMatch[1].trim();
             }
+
+            aggregatedText += cleanChunk;
           });
         },
         error: (err: unknown) => {

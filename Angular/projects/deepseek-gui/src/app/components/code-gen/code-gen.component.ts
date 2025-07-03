@@ -16,6 +16,12 @@ import { CodeGenResponseComponent } from './code-gen-response/code-gen-response.
 import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
 import { DEFAULT_QUOTATION, QuotationService } from '../../quotation.service';
 
+interface ChatChunk {
+  response: string;
+  done: boolean;
+  // Add other properties if needed
+}
+
 @Component({
   selector: 'app-code-gen',
   standalone: true,
@@ -46,7 +52,6 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   placeholderText = 'Ask away!';
   placeholderLabel = 'Ask away';
 
-  // Declare as possibly undefined, will initialize in ngOnInit
   quoteOfTheDay$!: Observable<string>;
 
   private isDragging = false;
@@ -56,7 +61,6 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   constructor(private ollamaService: OllamaService, private quotationService: QuotationService) {}
 
   ngOnInit() {
-    // Initialize quoteOfTheDay$ here to avoid "used before initialization" error
     this.quoteOfTheDay$ = this.quotationService.quote$;
   }
 
@@ -109,9 +113,9 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
 
       this.ollamaService.sendPrompt(this.conversationId, newResponse.prompt, 'code')
         .subscribe({
-          next: (chunk: string) => {
-            newResponse.response += chunk;
-            targetComponent.processChunk(chunk);
+          next: (chunk: ChatChunk) => {  // <--- Correct typing here
+            newResponse.response += chunk.response;
+            targetComponent.processChunk(chunk);  // Pass ChatChunk now
           },
           error: (err: unknown) => {
             if (err instanceof Error) {

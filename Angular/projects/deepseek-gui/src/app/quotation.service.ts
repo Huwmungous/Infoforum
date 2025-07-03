@@ -25,9 +25,10 @@ export class QuotationService {
 
   constructor(private ollamaService: OllamaService) {
     interval(1220 * 60 * 1000).pipe(
-      startWith(0),
+      // remove startWith(0), so no immediate fetch
+      startWith(10 * 60 * 1000), // <-- emit after 10 minutes (in ms)
       switchMap(() => this.fetchQuotation())
-    ).subscribe();
+   )
   }
 
   private fetchQuotation() {

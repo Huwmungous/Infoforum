@@ -5,8 +5,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { mapDeepseekToHighlight } from '../../../deepseek/deepseek-to-highlight-map';
 
-
 declare const hljs: any;
+
+interface ChatChunk {
+  response: string;
+  done: boolean;
+  // Add other properties if needed
+}
 
 @Component({
   selector: 'app-code-gen-response',
@@ -22,7 +27,7 @@ declare const hljs: any;
 })
 export class CodeGenResponseComponent {
   @Output() delete = new EventEmitter<void>();
-  
+
   sections: { type: string, content: string, language?: string, showThinking: boolean }[] = [];
 
   prompt: string = '';
@@ -33,14 +38,20 @@ export class CodeGenResponseComponent {
     this.highlightCode();
   }
 
-  processChunk(chunk: string) { 
-    this.partialChunk += chunk; 
-    const parts = this.partialChunk.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g); 
-    // Process each part
+  // Changed to accept ChatChunk instead of string
+  processChunk(chunk: ChatChunk) {
+    this.partialChunk += chunk.response;
+
+    // Split partialChunk into text, code blocks, and think blocks
+    const parts = this.partialChunk.split(/(```[\s\S]*?```|<think>[\s\S]*?<\/think>)/g);
+
     this.sections = parts.map((part, index) => {
+      if (!part) return null;
+
       const partIsCode = part.startsWith('```');
       const partIsThink = part.startsWith('<think>');
-      const isComplete = partIsCode && part.endsWith('```') || partIsThink && part.endsWith('</think>');
+      const isComplete = (partIsCode && part.endsWith('```')) || (partIsThink && part.endsWith('</think>'));
+
       if (partIsCode && isComplete) {
         const content = part.slice(3, -3);
         const firstLineEnd = content.indexOf('\n');
@@ -49,17 +60,19 @@ export class CodeGenResponseComponent {
         return { type: 'code', content: code, language: mapDeepseekToHighlight(language), showThinking: false };
       } else if (partIsThink && isComplete) {
         const content = part.slice(7, -8).trim();
-        return { type: 'think', content: content, showThinking: false  };
+        return { type: 'think', content: content, showThinking: false };
       } else if ((partIsCode || partIsThink) && !isComplete) {
-        this.partialChunk = part; 
+        // Incomplete chunk — keep for next processChunk call
+        this.partialChunk = part;
         return null;
       } else {
+        // Plain text formatting
         const formattedContent = part.trim()
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
-        .replace(/###(.*?)(\n|$)/g, '<em>$1</em>$2'); 
-        return { type: 'text', content: formattedContent, showThinking: false  };
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/###(.*?)(\n|$)/g, '<em>$1</em>$2');
+        return { type: 'text', content: formattedContent, showThinking: false };
       }
-    }).filter(section => section !== null);
+    }).filter(section => section !== null) as typeof this.sections;
 
     this.highlightCode();
   }
@@ -71,8 +84,7 @@ export class CodeGenResponseComponent {
   }
 
   copyToClipboard(content: string) {
-    navigator.clipboard.writeText(content).then(() => { 
-    }).catch(err => {
+    navigator.clipboard.writeText(content).catch(err => {
       console.error('Could not copy text: ', err);
     });
   }
