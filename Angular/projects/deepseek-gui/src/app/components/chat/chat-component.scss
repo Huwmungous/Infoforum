@@ -61,15 +61,17 @@
 
 .thinking-content {
   font-style: italic;
-  padding: 0 20px; // start with zero padding for collapse effect
+  padding: 0 20px;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out;
+  margin: 0;
 }
 
 .thinking-content.expanded {
-  max-height: 500px; // large enough to show all content
+  max-height: 500px;
   padding: 20px;
+  margin-top: 5px;
 }
 
 .show-think-button {
@@ -136,6 +138,11 @@
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+.user-message, .ai-message {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 
 .ai-message-header {
   display: flex;
