@@ -90,13 +90,13 @@ namespace IFOllama.Controllers
         {
             try
             {
-                var context = _contextManager.GetContext(conversationId);
                 if (dest == "image")
                 {
                     return await HandleImagePrompt(conversationId, request.Prompt);
                 }
                 else
                 {
+                    var context = _contextManager.GetContext(conversationId) ?? "No previous context available.";
                     await HandleCodeOrChatPrompt(conversationId, request.Prompt, context, dest);
                     return new EmptyResult();
                 }
