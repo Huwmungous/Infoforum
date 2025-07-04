@@ -96,8 +96,23 @@ rebuild_library() {
 build_application() {
     echo -e "${YELLOW}Building application...${NC}"
     cd ../..
-    ng build $APP_NAME --configuration=production --base-href=/intelligence/ || handle_error "Application build failed"
+    ng build $APP_NAME --configuration=production --base-href=/ || handle_error "Application build failed"
     cd projects/$APP_NAME # return to the project directory
+}
+
+# Replace index.html in the build output with the prod version
+replace_index_html() {
+    echo -e "${YELLOW}Replacing index.html with production version...${NC}"
+    PROD_INDEX="projects/$APP_NAME/src/index.prod.html"
+    BUILD_OUTPUT="../../dist/$APP_NAME"
+
+    if [ -f "$PROD_INDEX" ]; then
+        cp "$PROD_INDEX" "$BUILD_OUTPUT/index.html" || handle_error "Failed to replace index.html"
+        echo -e "${GREEN}index.html replaced successfully.${NC}"
+    else
+        echo -e "${RED}Production index.html not found at $PROD_INDEX${NC}"
+        exit 1
+    fi
 }
 
 # Deploy application
@@ -133,6 +148,7 @@ main() {
     npm install || handle_error "NPM install failed"
     
     build_application
+    replace_index_html
     deploy_application
 
     git checkout --force # Discard any local changes    

@@ -3,6 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
+
     "deepseek-gui": {
       "projectType": "application",
       "schematics": {
@@ -16,10 +17,11 @@
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:application",
-          "options": {
+          "options": { 
             "outputPath": "dist/deepseek-gui",
             "index": "projects/deepseek-gui/src/index.html",
             "browser": "projects/deepseek-gui/src/main.ts",
+ 
             "polyfills": [
               "zone.js"
             ],
@@ -29,7 +31,7 @@
               {
                 "glob": "**/*",
                 "input": "projects/deepseek-gui/public",
-                "output": "assets"
+                "output": "/assets"
               }
             ],
             "styles": [
@@ -39,7 +41,6 @@
           },
           "configurations": {
             "production": {
-              "index": "projects/deepseek-gui/src/index.prod.html",
               "fileReplacements": [
                 {
                   "replace": "projects/deepseek-gui/src/environments/environment.ts",
@@ -96,7 +97,7 @@
               {
                 "glob": "**/*",
                 "input": "projects/deepseek-gui/public",
-                "output": "assets"
+                "output": "/assets"
               }
             ],
             "styles": [
