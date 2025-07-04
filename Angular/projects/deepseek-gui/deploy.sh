@@ -11,6 +11,7 @@ LIB_NAME="ifauth-lib"
 DEPLOY_PATH="/var/www/deepseek-gui"
 LIB_PACKAGE_JSON="$SCRIPT_DIR/../ifauth-lib/package.json"
 LIB_PATH="$SCRIPT_DIR/../ifauth-lib"
+ENV_PROD_PATH="$SCRIPT_DIR/src/environments/environment.prod.ts"
 
 # Color codes for output
 GREEN='\033[0;32m'
@@ -52,6 +53,7 @@ increment_library_version() {
     new_version=$(echo $current_version | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
     sed -i "s/\"version\": \"$current_version\"/\"version\": \"$new_version\"/" "$LIB_PACKAGE_JSON"
     echo -e "${GREEN}Updated library version from $current_version to $new_version${NC}"
+    echo "$new_version"  # return new version
 }
 
 git_commit_and_push() {
@@ -59,6 +61,26 @@ git_commit_and_push() {
     git add "$LIB_PACKAGE_JSON" "$SCRIPT_DIR/.last_lib_commit"
     git commit -m "Increment library version for deployment" || handle_error "Git commit failed"
     git push origin main || handle_error "Git push failed"
+}
+
+update_environment_version() {
+    local version="$1"
+    echo -e "${YELLOW}Updating environment.prod.ts with version $version ...${NC}"
+
+    cat > "$ENV_PROD_PATH" << EOF
+export const environment = {
+  production: true,
+  apiUrl: 'https://longmanrd.net/aiapi',
+  consoleLog: true,
+  appName: '/intelligence/',
+  realm: 'LongmanRd',
+  clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
+  version: '$version'
+};
+EOF
+    git add "$ENV_PROD_PATH"
+    git commit -m "Update environment.prod.ts with version $version" || handle_error "Git commit failed for environment.prod.ts"
+    git push origin main || handle_error "Git push failed for environment.prod.ts"
 }
 
 rebuild_library() {
@@ -79,14 +101,12 @@ generate_prod_index() {
     BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME/browser"
     PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
 
-    # Enable nullglob for safe globbing
     shopt -s nullglob
 
     polyfills_files=($BUILD_OUTPUT/polyfills-*.js)
     main_files=($BUILD_OUTPUT/main-*.js)
     styles_files=($BUILD_OUTPUT/styles-*.css)
 
-    # Disable nullglob after usage
     shopt -u nullglob
 
     if [ ${#polyfills_files[@]} -eq 0 ] || [ ${#main_files[@]} -eq 0 ] || [ ${#styles_files[@]} -eq 0 ]; then
@@ -139,12 +159,30 @@ main() {
     git_pull
     clean_build
     npm install || handle_error "NPM install failed"
+
+    # Optionally, rebuild the library if needed:
+    # check_library_changes && {
+    #    increment_library_version
+    #    rebuild_library
+    # }
+
     build_application
     generate_prod_index
     deploy_application
+
+    # Increment version and commit/tag after successful deploy
+    NEW_VERSION=$(increment_library_version)
+    git_commit_and_push
+
+    update_environment_version "$NEW_VERSION"
+
+    # Tag the commit with the version
+    git tag -a "v$NEW_VERSION" -m "Deployment version $NEW_VERSION" || handle_error "Git tag failed"
+    git push origin "v$NEW_VERSION" || handle_error "Git push tag failed"
+
     git checkout --force
     chmod 755 "$SCRIPT_DIR/deploy.sh"
-    echo -e "${GREEN}Deployment completed successfully!${NC}"
+    echo -e "${GREEN}Deployment completed successfully! Version: $NEW_VERSION${NC}"
 }
 
 main
