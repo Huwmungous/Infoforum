@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_NAME="deepseek-gui"
 DEPLOY_PATH="/var/www/deepseek-gui"
 ENV_PROD="$SCRIPT_DIR/src/environments/environment.prod.ts"
-GIT_TAG_PREFIX="v"
+GIT_TAG_PREFIX="v."
 
 # Color codes for output
 GREEN='\033[0;32m'
