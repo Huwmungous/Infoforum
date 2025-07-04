@@ -106,13 +106,6 @@ generate_prod_index() {
         handle_error "Production index.html template not found at $PROD_INDEX"
     fi
 
-    # Read index.prod.html and inject dynamic bundles replacing placeholders
-    # Use a simple template format in index.prod.html with placeholders:
-    #   %%POLYFILLS_JS%%
-    #   %%MAIN_JS%%
-    #   %%STYLES_CSS%%
-    # These placeholders will be replaced here.
-
     local GENERATED_INDEX="$BUILD_OUTPUT/index.html"
 
     sed \
