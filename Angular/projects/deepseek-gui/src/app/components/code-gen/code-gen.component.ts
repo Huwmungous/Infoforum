@@ -82,11 +82,11 @@ export class CodeGenComponent implements AfterViewInit, OnInit {
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      this.onSubmit();
+      this.sendMessage();
     }
   }
 
-  onSubmit() {
+  sendMessage() {
     const trimmed = this.prompt.trim();
     if (!trimmed) {
       this.error = 'Please ask a question first.';
