@@ -35,7 +35,7 @@ increment_version_in_env() {
         handle_error "File $ENV_PROD not found"
     fi
 
-    # Extract current version
+    # Extract current version (handles single quotes around the version)
     current_version=$(grep -oP "(?<=version:\s*')[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" "$ENV_PROD" || echo "1.0.0.0")
 
     # Parse parts
@@ -47,7 +47,7 @@ increment_version_in_env() {
 
     new_version="${major}.${minor}.${patch}.${build}"
 
-    # Replace version line
+    # Replace version line in file
     sed -i -E "s/version:\s*'[^']+'/version: '$new_version'/" "$ENV_PROD"
 
     echo -e "${GREEN}Version updated: $current_version -> $new_version${NC}"
@@ -57,14 +57,20 @@ commit_version_and_tag() {
     echo -e "${YELLOW}Committing environment.prod.ts and tagging git...${NC}"
 
     git add "$ENV_PROD"
-    git commit -m "Bump version to $new_version" || handle_error "Git commit failed"
-    git push origin main || handle_error "Git push failed"
 
-    tag_name="${GIT_TAG_PREFIX}${new_version}"
-    git tag -a "$tag_name" -m "Version $new_version"
-    git push origin "$tag_name" || handle_error "Git tag push failed"
+    # Commit only if there are staged changes (avoid failing on no changes)
+    if ! git diff --cached --quiet; then
+        git commit -m "Bump version to $new_version" || handle_error "Git commit failed"
+        git push origin main || handle_error "Git push failed"
 
-    echo -e "${GREEN}Git tagged with $tag_name${NC}"
+        tag_name="${GIT_TAG_PREFIX}${new_version}"
+        git tag -a "$tag_name" -m "Version $new_version"
+        git push origin "$tag_name" || handle_error "Git tag push failed"
+
+        echo -e "${GREEN}Git tagged with $tag_name${NC}"
+    else
+        echo "No changes to commit."
+    fi
 }
 
 build_application() {
