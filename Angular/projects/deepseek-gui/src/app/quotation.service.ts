@@ -25,8 +25,8 @@ export class QuotationService {
 
   constructor(private ollamaService: OllamaService) {
     interval(1220 * 60 * 1000).pipe(
-      // startWith(10 * 60 * 1000), // emit after 10 minutes on start
-      startWith(0), // emit immediately
+      startWith(30 * 60 * 1000), // emit after 30 minutes on start
+      // startWith(0), // emit immediately
       switchMap(() => this.fetchQuotation())
     ).subscribe();
   }
@@ -44,7 +44,7 @@ export class QuotationService {
         error: (err) => {
           console.error('Quotation fetch error:', err);
         },
-        
+
         complete: () => {
           // Remove all <think>...</think> blocks
           let cleanedQuote = accumulatedQuote.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
