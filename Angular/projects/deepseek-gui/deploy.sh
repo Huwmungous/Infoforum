@@ -76,7 +76,7 @@ build_application() {
 replace_index_html() {
     echo -e "${YELLOW}Replacing index.html with production version...${NC}"
     PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
-    BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME"
+    BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME/browser"
 
     echo "Prod index path: $PROD_INDEX"
     echo "Build output path: $BUILD_OUTPUT"
@@ -94,12 +94,12 @@ replace_index_html() {
 
 deploy_application() {
     echo -e "${YELLOW}Deploying application...${NC}"
-    sudo mkdir -p $DEPLOY_PATH
-    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}.${NC}"
-    sudo rm -rf $DEPLOY_PATH/*
-    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/"* $DEPLOY_PATH/
-    sudo chown -R nginx:nginx $DEPLOY_PATH
-    sudo chmod -R 755 $DEPLOY_PATH
+    sudo mkdir -p "$DEPLOY_PATH/browser"
+    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}/browser.${NC}"
+    sudo rm -rf "$DEPLOY_PATH/browser/*"
+    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/browser/"* "$DEPLOY_PATH/browser/"
+    sudo chown -R nginx:nginx "$DEPLOY_PATH/browser"
+    sudo chmod -R 755 "$DEPLOY_PATH/browser"
 }
 
 clean_build() {
