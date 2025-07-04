@@ -1,4 +1,4 @@
-import { Injectable, EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject, interval } from 'rxjs';
 import { startWith, switchMap, tap } from 'rxjs/operators';
 import { OllamaService } from './ollama.service';
@@ -25,31 +25,37 @@ export class QuotationService {
 
   constructor(private ollamaService: OllamaService) {
     interval(1220 * 60 * 1000).pipe(
-      // remove startWith(0), so no immediate fetch
-      startWith(10 * 60 * 1000), // <-- emit after 10 minutes (in ms)
+      // startWith(10 * 60 * 1000), // emit after 10 minutes on start
+      startWith(0), // emit immediately
       switchMap(() => this.fetchQuotation())
-   )
+    ).subscribe();
   }
 
   private fetchQuotation() {
+    let accumulatedQuote = '';
+
     return this.ollamaService.sendPrompt(this.conversationGuid, DEFAULT_PROMPT, 'chat').pipe(
       tap({
         next: (chunk: any) => {
           if (!chunk || typeof chunk !== 'object') return;
-          const current = this._quoteSubject.getValue();
-          this._quoteSubject.next(current + (chunk.response ?? ''));
+          accumulatedQuote += chunk.response ?? '';
         },
         error: (err) => {
           console.error('Quotation fetch error:', err);
         },
         complete: () => {
-          // Save latest quote to localStorage on completion
-          localStorage.setItem(this.STORAGE_KEY, this._quoteSubject.getValue());
-          this.createNewConversation();
-        }
+          // Remove all <think>...</think> blocks
+          let cleanedQuote = accumulatedQuote.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+          if (!cleanedQuote) cleanedQuote = DEFAULT_QUOTATION;
+  
+          this._quoteSubject.next(cleanedQuote);
+          localStorage.setItem(this.STORAGE_KEY, cleanedQuote);
+            this.createNewConversation();
+          }
       })
     );
   }
+
 
   fetch() {
     this.fetchQuotation().subscribe();
