@@ -58,11 +58,6 @@ export class QuotationService {
     );
   }
 
-
-  fetch() {
-    this.fetchQuotation().subscribe();
-  }
-
   createNewConversation() {
     this.conversationGuid = generateGUID();
   }
