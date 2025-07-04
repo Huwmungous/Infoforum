@@ -103,7 +103,7 @@ build_application() {
 # Replace index.html in the build output with the prod version
 replace_index_html() {
     echo -e "${YELLOW}Replacing index.html with production version...${NC}"
-    PROD_INDEX="projects/$APP_NAME/src/index.prod.html"
+    PROD_INDEX="src/index.prod.html"
     BUILD_OUTPUT="../../dist/$APP_NAME"
 
     if [ -f "$PROD_INDEX" ]; then
