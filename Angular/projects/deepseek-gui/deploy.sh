@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Configuration Variables
 APP_NAME="deepseek-gui"
 LIB_NAME="ifauth-lib"
-DEPLOY_PATH="/var/www/deepseek-gui/browser"
+DEPLOY_PATH="/var/www/deepseek-gui"
 LIB_PACKAGE_JSON="$SCRIPT_DIR/../ifauth-lib/package.json"
 LIB_PATH="$SCRIPT_DIR/../ifauth-lib"
 
