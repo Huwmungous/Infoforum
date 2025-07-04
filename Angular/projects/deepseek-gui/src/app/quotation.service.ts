@@ -40,9 +40,11 @@ export class QuotationService {
           if (!chunk || typeof chunk !== 'object') return;
           accumulatedQuote += chunk.response ?? '';
         },
+
         error: (err) => {
           console.error('Quotation fetch error:', err);
         },
+        
         complete: () => {
           // Remove all <think>...</think> blocks
           let cleanedQuote = accumulatedQuote.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
