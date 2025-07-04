@@ -3,9 +3,7 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "paths": {
-      "@ifauth-lib/*": ["node_modules/ifauth-lib"],
-    },
+    "paths": { },
     "outDir": "../../out-tsc/app",
     "types": []
   },

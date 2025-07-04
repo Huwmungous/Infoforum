@@ -7,11 +7,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Configuration Variables
 APP_NAME="deepseek-gui"
-LIB_NAME="ifauth-lib"
 DEPLOY_PATH="/var/www/deepseek-gui"
-LIB_PACKAGE_JSON="$SCRIPT_DIR/../ifauth-lib/package.json"
-LIB_PATH="$SCRIPT_DIR/../ifauth-lib"
-ENV_PROD_PATH="$SCRIPT_DIR/src/environments/environment.prod.ts"
+ENV_PROD="$SCRIPT_DIR/src/environments/environment.prod.ts"
+GIT_TAG_PREFIX="v"
 
 # Color codes for output
 GREEN='\033[0;32m'
@@ -30,69 +28,50 @@ git_pull() {
     git pull origin main || handle_error "Git pull failed"
 }
 
-check_library_changes() {
-    echo -e "${YELLOW}Checking for library changes...${NC}"
-    local last_commit=$(git log -n 1 --pretty=format:%H -- "$LIB_PATH")
-    local marker_file="$SCRIPT_DIR/.last_lib_commit"
-    [ -f "$marker_file" ] || echo "" > "$marker_file"
-    local previous_commit=$(cat "$marker_file")
+increment_version_in_env() {
+    echo -e "${YELLOW}Incrementing version in environment.prod.ts...${NC}"
 
-    if [ "$last_commit" != "$previous_commit" ]; then
-        echo -e "${GREEN}Library changes detected. Version update needed.${NC}"
-        echo "$last_commit" > "$marker_file"
-        return 0
-    else
-        echo -e "${YELLOW}No library changes detected. Version update not needed.${NC}"
-        return 1
+    if [ ! -f "$ENV_PROD" ]; then
+        handle_error "File $ENV_PROD not found"
     fi
+
+    # Extract current version
+    current_version=$(grep -oP "(?<=version:\s*')[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" "$ENV_PROD" || echo "1.0.0.0")
+
+    # Parse parts
+    IFS='.' read -r major minor patch build <<< "$current_version"
+    if [ -z "$build" ]; then
+        build=0
+    fi
+    build=$((build + 1))
+
+    new_version="${major}.${minor}.${patch}.${build}"
+
+    # Replace version line
+    sed -i -E "s/version:\s*'[^']+'/version: '$new_version'/" "$ENV_PROD"
+
+    echo -e "${GREEN}Version updated: $current_version -> $new_version${NC}"
 }
 
-increment_library_version() {
-    echo -e "${YELLOW}Incrementing library version...${NC}"
-    current_version=$(grep -m1 '"version":' "$LIB_PACKAGE_JSON" | sed -E 's/.*"version": "(.*)".*/\1/')
-    new_version=$(echo $current_version | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
-    sed -i "s/\"version\": \"$current_version\"/\"version\": \"$new_version\"/" "$LIB_PACKAGE_JSON"
-    echo -e "${GREEN}Updated library version from $current_version to $new_version${NC}"
-    echo "$new_version"  # return new version
-}
+commit_version_and_tag() {
+    echo -e "${YELLOW}Committing environment.prod.ts and tagging git...${NC}"
 
-git_commit_and_push() {
-    echo -e "${YELLOW}Committing and pushing changes...${NC}"
-    git add "$LIB_PACKAGE_JSON" "$SCRIPT_DIR/.last_lib_commit"
-    git commit -m "Increment library version for deployment" || handle_error "Git commit failed"
+    git add "$ENV_PROD"
+    git commit -m "Bump version to $new_version" || handle_error "Git commit failed"
     git push origin main || handle_error "Git push failed"
-}
 
-update_environment_version() {
-    local version="$1"
-    echo -e "${YELLOW}Updating environment.prod.ts with version $version ...${NC}"
+    tag_name="${GIT_TAG_PREFIX}${new_version}"
+    git tag -a "$tag_name" -m "Version $new_version"
+    git push origin "$tag_name" || handle_error "Git tag push failed"
 
-    cat > "$ENV_PROD_PATH" << EOF
-export const environment = {
-  production: true,
-  apiUrl: 'https://longmanrd.net/aiapi',
-  consoleLog: true,
-  appName: '/intelligence/',
-  realm: 'LongmanRd',
-  clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
-  version: '$version'
-};
-EOF
-    git add "$ENV_PROD_PATH"
-    git commit -m "Update environment.prod.ts with version $version" || handle_error "Git commit failed for environment.prod.ts"
-    git push origin main || handle_error "Git push failed for environment.prod.ts"
-}
-
-rebuild_library() {
-    echo -e "${YELLOW}Rebuilding library to ensure latest changes...${NC}"
-    ng build $LIB_NAME --configuration=production || handle_error "Library rebuild failed"
+    echo -e "${GREEN}Git tagged with $tag_name${NC}"
 }
 
 build_application() {
     echo -e "${YELLOW}Building application...${NC}"
     cd "$SCRIPT_DIR/../.."
     ng build $APP_NAME --configuration=production --base-href=/intelligence/ || handle_error "Application build failed"
-    cd "$SCRIPT_DIR" # back to script directory (projects/deepseek-gui)
+    cd "$SCRIPT_DIR" # back to script directory
 }
 
 generate_prod_index() {
@@ -102,20 +81,18 @@ generate_prod_index() {
     PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
 
     shopt -s nullglob
-
     polyfills_files=($BUILD_OUTPUT/polyfills-*.js)
     main_files=($BUILD_OUTPUT/main-*.js)
     styles_files=($BUILD_OUTPUT/styles-*.css)
-
     shopt -u nullglob
 
     if [ ${#polyfills_files[@]} -eq 0 ] || [ ${#main_files[@]} -eq 0 ] || [ ${#styles_files[@]} -eq 0 ]; then
         handle_error "One or more bundles (polyfills, main, styles) not found in build output."
     fi
 
-    local POLYFILLS=$(basename "${polyfills_files[0]}")
-    local MAINJS=$(basename "${main_files[0]}")
-    local STYLESCSS=$(basename "${styles_files[0]}")
+    POLYFILLS=$(basename "${polyfills_files[0]}")
+    MAINJS=$(basename "${main_files[0]}")
+    STYLESCSS=$(basename "${styles_files[0]}")
 
     echo "Detected bundles:"
     echo "Polyfills: $POLYFILLS"
@@ -126,7 +103,7 @@ generate_prod_index() {
         handle_error "Production index.html template not found at $PROD_INDEX"
     fi
 
-    local GENERATED_INDEX="$BUILD_OUTPUT/index.html"
+    GENERATED_INDEX="$BUILD_OUTPUT/index.html"
 
     sed \
         -e "s|%%POLYFILLS_JS%%|$POLYFILLS|g" \
@@ -159,30 +136,14 @@ main() {
     git_pull
     clean_build
     npm install || handle_error "NPM install failed"
-
-    # Optionally, rebuild the library if needed:
-    # check_library_changes && {
-    #    increment_library_version
-    #    rebuild_library
-    # }
-
+    increment_version_in_env
     build_application
     generate_prod_index
     deploy_application
-
-    # Increment version and commit/tag after successful deploy
-    NEW_VERSION=$(increment_library_version)
-    git_commit_and_push
-
-    update_environment_version "$NEW_VERSION"
-
-    # Tag the commit with the version
-    git tag -a "v$NEW_VERSION" -m "Deployment version $NEW_VERSION" || handle_error "Git tag failed"
-    git push origin "v$NEW_VERSION" || handle_error "Git push tag failed"
-
+    commit_version_and_tag
     git checkout --force
     chmod 755 "$SCRIPT_DIR/deploy.sh"
-    echo -e "${GREEN}Deployment completed successfully! Version: $NEW_VERSION${NC}"
+    echo -e "${GREEN}Deployment completed successfully!${NC}"
 }
 
 main
