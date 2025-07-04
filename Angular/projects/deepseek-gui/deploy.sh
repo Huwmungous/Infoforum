@@ -75,67 +75,66 @@ build_application() {
 
 generate_prod_index() {
     echo -e "${YELLOW}Generating dynamic production index.html...${NC}"
-    local BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME"
 
-    # Detect hashed filenames
-    local POLYFILLS=$(ls "$BUILD_OUTPUT"/polyfills-*.js | xargs -n 1 basename)
-    local MAINJS=$(ls "$BUILD_OUTPUT"/main-*.js | xargs -n 1 basename)
-    local STYLESCSS=$(ls "$BUILD_OUTPUT"/styles-*.css | xargs -n 1 basename)
+    BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME/browser"
+    PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
+
+    # Enable nullglob for safe globbing
+    shopt -s nullglob
+
+    polyfills_files=($BUILD_OUTPUT/polyfills-*.js)
+    main_files=($BUILD_OUTPUT/main-*.js)
+    styles_files=($BUILD_OUTPUT/styles-*.css)
+
+    # Disable nullglob after usage
+    shopt -u nullglob
+
+    if [ ${#polyfills_files[@]} -eq 0 ] || [ ${#main_files[@]} -eq 0 ] || [ ${#styles_files[@]} -eq 0 ]; then
+        handle_error "One or more bundles (polyfills, main, styles) not found in build output."
+    fi
+
+    local POLYFILLS=$(basename "${polyfills_files[0]}")
+    local MAINJS=$(basename "${main_files[0]}")
+    local STYLESCSS=$(basename "${styles_files[0]}")
 
     echo "Detected bundles:"
     echo "Polyfills: $POLYFILLS"
     echo "Main JS: $MAINJS"
     echo "Styles CSS: $STYLESCSS"
 
-    # Create the index.prod.html dynamically
-    cat > "$SCRIPT_DIR/src/index.prod.html" <<EOF
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Intelligence Gui</title>
-  <base href="/intelligence/" />
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/x-icon" href="/intelligence/assets/favicon.ico" />
-  <link rel="stylesheet" href="$STYLESCSS" />
-</head>
-<body>
-  <app-root></app-root>
-  <script src="$POLYFILLS" type="module"></script>
-  <script src="$MAINJS" type="module"></script>
-</body>
-</html>
-EOF
-
-    echo -e "${GREEN}index.prod.html generated successfully.${NC}"
-}
-
-replace_index_html() {
-    echo -e "${YELLOW}Replacing index.html with generated production version...${NC}"
-    local PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
-    local BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME"
-
-    if [ -f "$PROD_INDEX" ]; then
-        cp "$PROD_INDEX" "$BUILD_OUTPUT/index.html" || handle_error "Failed to replace index.html"
-        echo -e "${GREEN}index.html replaced successfully.${NC}"
-        echo "Checking favicon line in replaced index.html:"
-        grep -i 'favicon.ico' "$BUILD_OUTPUT/index.html" || echo "No favicon line found!"
-    else
-        echo -e "${RED}Production index.html not found at $PROD_INDEX${NC}"
-        exit 1
+    if [ ! -f "$PROD_INDEX" ]; then
+        handle_error "Production index.html template not found at $PROD_INDEX"
     fi
+
+    # Read index.prod.html and inject dynamic bundles replacing placeholders
+    # Use a simple template format in index.prod.html with placeholders:
+    #   %%POLYFILLS_JS%%
+    #   %%MAIN_JS%%
+    #   %%STYLES_CSS%%
+    # These placeholders will be replaced here.
+
+    local GENERATED_INDEX="$BUILD_OUTPUT/index.html"
+
+    sed \
+        -e "s|%%POLYFILLS_JS%%|$POLYFILLS|g" \
+        -e "s|%%MAIN_JS%%|$MAINJS|g" \
+        -e "s|%%STYLES_CSS%%|$STYLESCSS|g" \
+        "$PROD_INDEX" > "$GENERATED_INDEX" || handle_error "Failed to generate index.html"
+
+    echo -e "${GREEN}index.html generated successfully.${NC}"
+
+    echo "Checking favicon line in generated index.html:"
+    grep -i 'favicon.ico' "$GENERATED_INDEX" || echo "No favicon line found!"
 }
 
 deploy_application() {
     echo -e "${YELLOW}Deploying application...${NC}"
-    sudo mkdir -p $DEPLOY_PATH
-    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}.${NC}"
-    sudo rm -rf $DEPLOY_PATH/*
-    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/"* $DEPLOY_PATH/
-    sudo chown -R nginx:nginx $DEPLOY_PATH
-    sudo chmod -R 755 $DEPLOY_PATH
+    sudo mkdir -p "$DEPLOY_PATH/browser"
+    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}/browser.${NC}"
+    sudo rm -rf "$DEPLOY_PATH/browser"/*
+    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/browser/"* "$DEPLOY_PATH/browser/"
+    sudo chown -R nginx:nginx "$DEPLOY_PATH/browser"
+    sudo chmod -R 755 "$DEPLOY_PATH/browser"
 }
 
 clean_build() {
@@ -149,7 +148,6 @@ main() {
     npm install || handle_error "NPM install failed"
     build_application
     generate_prod_index
-    replace_index_html
     deploy_application
     git checkout --force
     chmod 755 "$SCRIPT_DIR/deploy.sh"
