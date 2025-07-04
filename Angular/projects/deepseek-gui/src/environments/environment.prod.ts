@@ -7,5 +7,5 @@ export const environment = {
     appName: '/intelligence/',
     realm: 'LongmanRd', 
     clientId: '53FF08FC-C03E-4F1D-A7E9-41F2CB3EE3C7',
-    version: '1.0.0.3'
+    version: '1.0.0.4'
   };
