@@ -73,13 +73,49 @@ build_application() {
     cd "$SCRIPT_DIR" # back to script directory (projects/deepseek-gui)
 }
 
-replace_index_html() {
-    echo -e "${YELLOW}Replacing index.html with production version...${NC}"
-    PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
-    BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME/browser"
+generate_prod_index() {
+    echo -e "${YELLOW}Generating dynamic production index.html...${NC}"
+    local BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME"
 
-    echo "Prod index path: $PROD_INDEX"
-    echo "Build output path: $BUILD_OUTPUT"
+    # Detect hashed filenames
+    local POLYFILLS=$(ls "$BUILD_OUTPUT"/polyfills-*.js | xargs -n 1 basename)
+    local MAINJS=$(ls "$BUILD_OUTPUT"/main-*.js | xargs -n 1 basename)
+    local STYLESCSS=$(ls "$BUILD_OUTPUT"/styles-*.css | xargs -n 1 basename)
+
+    echo "Detected bundles:"
+    echo "Polyfills: $POLYFILLS"
+    echo "Main JS: $MAINJS"
+    echo "Styles CSS: $STYLESCSS"
+
+    # Create the index.prod.html dynamically
+    cat > "$SCRIPT_DIR/src/index.prod.html" <<EOF
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Intelligence Gui</title>
+  <base href="/intelligence/" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.5.1/highlight.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/x-icon" href="/intelligence/assets/favicon.ico" />
+  <link rel="stylesheet" href="$STYLESCSS" />
+</head>
+<body>
+  <app-root></app-root>
+  <script src="$POLYFILLS" type="module"></script>
+  <script src="$MAINJS" type="module"></script>
+</body>
+</html>
+EOF
+
+    echo -e "${GREEN}index.prod.html generated successfully.${NC}"
+}
+
+replace_index_html() {
+    echo -e "${YELLOW}Replacing index.html with generated production version...${NC}"
+    local PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
+    local BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME"
 
     if [ -f "$PROD_INDEX" ]; then
         cp "$PROD_INDEX" "$BUILD_OUTPUT/index.html" || handle_error "Failed to replace index.html"
@@ -94,12 +130,12 @@ replace_index_html() {
 
 deploy_application() {
     echo -e "${YELLOW}Deploying application...${NC}"
-    sudo mkdir -p "$DEPLOY_PATH/browser"
-    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}/browser.${NC}"
-    sudo rm -rf "$DEPLOY_PATH/browser/*"
-    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/browser/"* "$DEPLOY_PATH/browser/"
-    sudo chown -R nginx:nginx "$DEPLOY_PATH/browser"
-    sudo chmod -R 755 "$DEPLOY_PATH/browser"
+    sudo mkdir -p $DEPLOY_PATH
+    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}.${NC}"
+    sudo rm -rf $DEPLOY_PATH/*
+    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/"* $DEPLOY_PATH/
+    sudo chown -R nginx:nginx $DEPLOY_PATH
+    sudo chmod -R 755 $DEPLOY_PATH
 }
 
 clean_build() {
@@ -112,6 +148,7 @@ main() {
     clean_build
     npm install || handle_error "NPM install failed"
     build_application
+    generate_prod_index
     replace_index_html
     deploy_application
     git checkout --force
