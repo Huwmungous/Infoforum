@@ -97,7 +97,7 @@ build_application() {
     echo -e "${YELLOW}Building application...${NC}"
     cd ../..
     # Removed --base-href=/intelligence/ here:
-    ng build $APP_NAME --configuration=production || handle_error "Application build failed"
+    ng build $APP_NAME --configuration=production --base-href=/intelligence/ || handle_error "Application build failed"
     cd projects/$APP_NAME # return to the project directory
 }
 
