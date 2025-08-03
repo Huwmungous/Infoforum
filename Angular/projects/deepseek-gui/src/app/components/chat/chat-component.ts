@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, NgZone, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { OllamaService } from '../../ollama.service';
 import { generateGUID } from '../code-gen/code-gen.component';
-import { BehaviorSubject } from 'rxjs';
 import { ThinkingProgressComponent } from '../thinking-progress/thinking-progress.component';
 import { Clipboard } from '@angular/cdk/clipboard';
 import { MatIconModule } from '@angular/material/icon';
@@ -19,68 +18,124 @@ interface Message {
   selector: 'app-chat',
   templateUrl: './chat-component.html',
   styleUrls: ['./chat-component.scss'],
-  standalone: true, // <-- Use standalone components for Angular 14+
-  imports:[CommonModule, FormsModule, ThinkingProgressComponent, MatIconModule]
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ThinkingProgressComponent,
+    MatIconModule
+  ]
 })
 export class ChatComponent {
+  @ViewChild('chatContainer') chatContainer?: ElementRef<HTMLDivElement>;
+
   messages: Message[] = [];
   prompt = '';
-  error: string = '';
+  error = '';
   conversationId: string = generateGUID();
-  
-  thinking$ = new BehaviorSubject<boolean>(false);
+  inProgress = false;
 
-  constructor(private ollamaService: OllamaService, private _clipboard: Clipboard) {}
+  constructor(
+    private ollamaService: OllamaService,
+    private _clipboard: Clipboard,
+    private ngZone: NgZone
+  ) {}
 
   sendMessage(event: Event, msg: string): void {
     event.preventDefault();
-    
-    if (!this.prompt.trim()) {
+
+    const trimmed = this.prompt.trim();
+    if (!trimmed) {
       this.error = 'Please ask a question first.';
       return;
     }
-  
-    this.thinking$.next(true); 
+
     this.error = '';
-  
-    this.messages.push({ isUser: true, text: this.prompt, showThinking: false });
-  
-    this.ollamaService.sendPrompt(this.conversationId, this.prompt, 'chat')
+    this.prompt = '';
+    this.messages.push({ isUser: true, text: trimmed, showThinking: false });
+    this.scrollToBottom();
+
+    const assistantMsg: Message = {
+      isUser: false,
+      text: '',
+      showThinking: false
+    };
+    this.messages.push(assistantMsg);
+    this.scrollToBottom();
+
+    let aggregatedText = '';
+    let capturedThink = '';
+    let insideThink = false;
+
+    this.inProgress = true;
+
+    this.ollamaService.sendPrompt(this.conversationId, trimmed, 'chat')
       .subscribe({
-        next: (chunk: string) => { 
-          const thinkMatch = chunk.match(/<think>([\s\S]*?)<\/think>/);
-          if (thinkMatch) {
-            this.messages.push({
-              isUser: false,
-              text: chunk.replace(/<think>[\s\S]*?<\/think>/, '').trim(), 
-              thinkContent: thinkMatch[1].trim(),  
-              showThinking: false
-            });
-          } else {
-            this.messages.push({ isUser: false, text: chunk, showThinking: false });
-          }
+        next: (chunk) => {
+          this.ngZone.run(() => {
+            const response = chunk.response ?? '';
+
+            // Track inside <think> block due to fragmented chunks
+            let temp = response;
+
+            if (temp.includes('<think>')) {
+              insideThink = true;
+              temp = temp.replace('<think>', '');
+            }
+            if (temp.includes('</think>')) {
+              insideThink = false;
+              temp = temp.replace('</think>', '');
+            }
+
+            if (insideThink) {
+              capturedThink += temp;
+            } else {
+              aggregatedText += temp;
+            }
+
+            assistantMsg.text = aggregatedText.trim();
+            assistantMsg.thinkContent = capturedThink.trim() || undefined;
+            assistantMsg.showThinking = false;
+
+            this.scrollToBottom();
+          });
         },
-        error: (err) => {
-          console.error('Error:', err);
-          this.error = 'An error occurred while processing your request.';
-          this.thinking$.next(false); 
+        error: (err: unknown) => {
+          this.ngZone.run(() => {
+            assistantMsg.text = '⚠️ Error: Unable to retrieve response.';
+            assistantMsg.showThinking = false;
+            this.error = err instanceof Error
+              ? `An error occurred: ${err.message}`
+              : 'An unknown error occurred.';
+            this.inProgress = false;
+            this.scrollToBottom();
+          });
         },
         complete: () => {
-          this.thinking$.next(false); 
-          this.prompt = '';
+          this.ngZone.run(() => {
+            assistantMsg.text = aggregatedText.trim();
+            assistantMsg.thinkContent = capturedThink.trim() || undefined;
+            assistantMsg.showThinking = false;
+            this.inProgress = false;
+            this.scrollToBottom();
+          });
         }
       });
   }
 
-  copyToClipboard(message: Message): void {
-    if (message.isUser) {
-      this._clipboard.copy(message.text);
-    } else {
-      if (message.showThinking && message.thinkContent) {
-        this._clipboard.copy(message.thinkContent);
-      } else {
-        this._clipboard.copy(message.text);
+  scrollToBottom(): void {
+    setTimeout(() => {
+      if (this.chatContainer?.nativeElement) {
+        const el = this.chatContainer.nativeElement;
+        el.scrollTop = el.scrollHeight;
       }
-    }
+    }, 100);
+  }
+
+  copyToClipboard(message: Message): void {
+    const value = message.showThinking && message.thinkContent
+      ? message.thinkContent
+      : message.text;
+    this._clipboard.copy(value);
   }
 }

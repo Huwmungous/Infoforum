@@ -1,8 +1,8 @@
-import { Injectable, EventEmitter } from '@angular/core';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, interval } from 'rxjs';
+import { startWith, switchMap, tap } from 'rxjs/operators';
 import { OllamaService } from './ollama.service';
 import { generateGUID } from './components/code-gen/code-gen.component';
-import { interval } from 'rxjs';
-import { startWith, switchMap, tap } from 'rxjs/operators';
 
 const DEFAULT_PROMPT = 'Please provide a witty quotation relating to questions, research or enquiry. Include a citation but no other text.';
 export const DEFAULT_QUOTATION = '"Ask and you shall receive, but only if you listen carefully. - Attributed to various sources in Zen Buddhism."';
@@ -11,39 +11,54 @@ export const DEFAULT_QUOTATION = '"Ask and you shall receive, but only if you li
   providedIn: 'root'
 })
 export class QuotationService {
-  quoteReceived = new EventEmitter<string>();
+  private readonly STORAGE_KEY = 'quoteOfTheDay';
+
+  // BehaviorSubject holds current quote, starts with default or localStorage value
+  private _quoteSubject = new BehaviorSubject<string>(
+    localStorage.getItem(this.STORAGE_KEY) ?? DEFAULT_QUOTATION
+  );
+
+  // Observable to expose quote changes
+  quote$ = this._quoteSubject.asObservable();
 
   conversationGuid: string = generateGUID();
 
-  createNewConversation() { this.conversationGuid = generateGUID(); }
-
   constructor(private ollamaService: OllamaService) {
-    interval(1220 * 60 * 1000).pipe( // every 12 hours or so
-      startWith(5), 
+    interval(1220 * 60 * 1000).pipe(
+      startWith(30 * 60 * 1000), // emit after 30 minutes on start
+      // startWith(0), // emit immediately
       switchMap(() => this.fetchQuotation())
     ).subscribe();
   }
 
-  private fetchQuotation() { 
-    const result = { response: '' };
+  private fetchQuotation() {
+    let accumulatedQuote = '';
 
     return this.ollamaService.sendPrompt(this.conversationGuid, DEFAULT_PROMPT, 'chat').pipe(
       tap({
-        next: (chunk: string) => {
-          result.response += chunk;
+        next: (chunk: any) => {
+          if (!chunk || typeof chunk !== 'object') return;
+          accumulatedQuote += chunk.response ?? '';
         },
+
         error: (err) => {
-          console.error('Error:', err);
+          console.error('Quotation fetch error:', err);
         },
+
         complete: () => {
-          this.quoteReceived.emit(result.response);
-          this.createNewConversation();
-        }
+          // Remove all <think>...</think> blocks
+          let cleanedQuote = accumulatedQuote.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+          if (!cleanedQuote) cleanedQuote = DEFAULT_QUOTATION;
+  
+          this._quoteSubject.next(cleanedQuote);
+          localStorage.setItem(this.STORAGE_KEY, cleanedQuote);
+            this.createNewConversation();
+          }
       })
     );
   }
 
-  fetch() {
-    this.fetchQuotation().subscribe();
+  createNewConversation() {
+    this.conversationGuid = generateGUID();
   }
 }

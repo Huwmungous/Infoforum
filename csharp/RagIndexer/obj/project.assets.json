@@ -327,23 +327,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\": {},
+    "C:\\Users\\hugh\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
+      "projectUniqueName": "D:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
       "projectName": "RagIndexer",
-      "projectPath": "C:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
-      "packagesPath": "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\",
-      "outputPath": "C:\\repos\\Infoforum\\csharp\\RagIndexer\\obj\\",
+      "projectPath": "D:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
+      "packagesPath": "C:\\Users\\hugh\\.nuget\\packages\\",
+      "outputPath": "D:\\repos\\Infoforum\\csharp\\RagIndexer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\hugh.LONGMANRD.000\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\hugh\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -352,6 +352,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {

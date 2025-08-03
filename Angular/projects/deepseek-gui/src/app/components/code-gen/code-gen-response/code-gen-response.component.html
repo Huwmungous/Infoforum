@@ -1,6 +1,5 @@
 <mat-card class="response-card">
   <mat-card-content>
-    
     <mat-expansion-panel *ngIf="prompt.length > 0" class="response-prompt-panel">
       <mat-expansion-panel-header class="expansion-panel-header">
         <mat-panel-title>
@@ -9,35 +8,43 @@
       </mat-expansion-panel-header>
       <p>{{ prompt }}</p>
     </mat-expansion-panel>
-    
-    <div *ngFor="let section of sections">
+
+    <div *ngFor="let section of sections; let i = index">
       <div *ngIf="section.type === 'text'" class="text-block" [innerHTML]="section.content"></div>
+
       <div *ngIf="section.type === 'code'" class="code-block-container">
         <div class="code-block">
-          <mat-icon class="copy-icon panel-icon" (click)="copyToClipboard(section.content)">content_copy</mat-icon>
+          <mat-icon
+            class="copy-icon panel-icon"
+            (click)="copyToClipboard(section.content)"
+            title="Copy code to clipboard"
+          >content_copy</mat-icon>
           <pre>
             <code [class]="'language-' + section.language" [textContent]="section.content"></code>
           </pre>
         </div>
       </div>
 
-      <!-- <mat-expansion-panel class="response-reasoning-panel" *ngIf="section.type === 'think'">
-        <mat-expansion-panel-header class="expansion-panel-header">
-          <mat-panel-title>
-            <mat-icon class="panel-icon">lightbulb</mat-icon>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        <p [innerHTML]="section.content"></p>
-      </mat-expansion-panel> -->
-
       <div *ngIf="section.type === 'think'" class="response-reasoning">
-        <button class="show-think-button" (click)="section.showThinking = !section.showThinking">
+        <button
+          class="show-think-button"
+          (click)="section.showThinking = !section.showThinking"
+          [attr.aria-expanded]="section.showThinking"
+          [attr.aria-controls]="'thinking-content-' + i"
+          [attr.id]="'think-toggle-' + i"
+        >
           <img src="assets/ai-thinking.png" alt="Think Icon" class="think-icon" />
           {{ section.showThinking ? 'Hide Thinking' : 'Show Thinking' }}
         </button>
-        <div *ngIf="section.showThinking" class="thinking-content" [innerHTML]="section.content"></div>
+        <div
+          *ngIf="section.showThinking"
+          class="thinking-content"
+          [innerHTML]="section.content"
+          role="region"
+          [attr.aria-labelledby]="'think-toggle-' + i"
+          [attr.id]="'thinking-content-' + i"
+        ></div>
       </div>
-      
     </div>
   </mat-card-content>
 </mat-card>

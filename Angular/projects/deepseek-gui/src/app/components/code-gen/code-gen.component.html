@@ -4,7 +4,7 @@
     <div class="left-pane">
       <mat-card class="request-card">
         <mat-card-content>
-          <form (ngSubmit)="onSubmit()" #promptForm="ngForm">
+          <form (ngSubmit)="sendMessage()" #promptForm="ngForm">
             <mat-form-field appearance="fill" class="w-100 no-border">
               <mat-label>Ask away</mat-label>
               <textarea
@@ -19,19 +19,20 @@
                 (blur)="onBlur()"
                 (keydown)="onKeyDown($event)">
               </textarea>
-              <p class="mt-3">{{quoteOfTheDay}}</p>
+              <p class="mt-3">{{ quoteOfTheDay$ | async }}</p>
             </mat-form-field> 
             
             <div class="button-container">
-              <button
-                mat-raised-button
-                class="send-button"
-                color="primary"
-                type="submit"
-                [disabled]="thinking$"
-                (click)="onSubmit()">
-                {{ (thinking$ | async) ? 'Processing...' : 'Send' }}
-              </button>
+              
+            <button
+              mat-raised-button
+              class="send-button"
+              color="primary"
+              type="submit"
+              [disabled]="thinking$ | async">
+              {{ (thinking$ | async) ? 'Processing...' : 'Send' }}
+            </button>
+
             </div>
           </form>
           <div *ngIf="error" class="alert alert-danger mt-3">

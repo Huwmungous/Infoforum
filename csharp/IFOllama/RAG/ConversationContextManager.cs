@@ -1,171 +1,81 @@
-﻿using IFOllama.RAG;
-using Newtonsoft.Json;
 
-namespace IFOllama
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+
+namespace IFOllama.RAG
 {
-    public partial class ConversationContextManager : IConversationContextManager
+    public class ConversationContextManager : IConversationContextManager
     {
-        private readonly string _conversationFolder = Path.Combine(Directory.GetCurrentDirectory(), "Conversations");
-        private readonly IDictionary<string, List<string>> _conversationHistories = new Dictionary<string, List<string>>();
         private readonly ILogger<ConversationContextManager> _logger;
+        private readonly string _folder;
+        private readonly JsonSerializerOptions _jsonSerializerOptions; // Cached instance  
 
         public ConversationContextManager(ILogger<ConversationContextManager> logger)
         {
             _logger = logger;
+            _folder = Path.Combine(Directory.GetCurrentDirectory(), "Conversations");
+            _jsonSerializerOptions = new JsonSerializerOptions { WriteIndented = true }; // Initialize cached instance  
         }
 
         public void Initialize()
         {
-            if (!Directory.Exists(_conversationFolder))
+            if (!Directory.Exists(_folder))
             {
-                Directory.CreateDirectory(_conversationFolder);
-                _logger.LogInformation($"Created conversation folder at {_conversationFolder}");
+                Directory.CreateDirectory(_folder);
+                _logger.LogInformation("Created conversation folder at {_folder}", _folder);
             }
         }
 
         public void AppendMessage(string conversationId, string role, string message)
         {
-            var existingMessages = GetConversation(conversationId) ?? new List<string>();
+            var path = Path.Combine(_folder, $"{conversationId}.json");
+            var history = GetConversation(conversationId);
+            history.Add(new Dictionary<string, string> { ["role"] = role, ["message"] = message });
 
-            // Write individual response to disk immediately
-            AppendIndividualMessage(conversationId, role, message);
-
-            existingMessages.Add($"{role}: {message}");
-            _conversationHistories[conversationId] = existingMessages;
-
-            _logger.LogInformation($"Appended message to conversation {conversationId}: {role}: {message}");
+            File.WriteAllText(path, JsonSerializer.Serialize(history, _jsonSerializerOptions)); // Use cached instance  
         }
 
-        private void AppendIndividualMessage(string conversationId, string role, string message)
+        public List<Dictionary<string, string>> GetConversation(string conversationId)
         {
-            string folderPath = Path.Combine(_conversationFolder, conversationId);
-            Directory.CreateDirectory(folderPath);
+            var path = Path.Combine(_folder, $"{conversationId}.json");
+            if (!File.Exists(path))
+                return [];
 
-            var responseId = Guid.NewGuid().ToString();
-            var responsePath = Path.Combine(folderPath, $"{responseId}.json");
-
-            using (StreamWriter writer = File.CreateText(responsePath))
-            {
-                var responseData = new ResponseData { Message = message, Timestamp = DateTime.Now };
-                writer.Write(JsonConvert.SerializeObject(responseData, Formatting.Indented));
-            }
-
-            _conversationHistories[conversationId].Add($"{role}: {message}");
-            _logger.LogInformation($"Saved individual message for conversation {conversationId} at {responsePath}");
+            var content = File.ReadAllText(path);
+            return JsonSerializer.Deserialize<List<Dictionary<string, string>>>(content) ?? [];
         }
 
-        public string GetContext(string conversationId)
+        public List<string> ListConversations()
         {
-            if (!_conversationHistories.ContainsKey(conversationId))
-            {
-                _conversationHistories[conversationId] = new List<string>();
-                _logger.LogInformation($"Created new conversation history for {conversationId}");
-            }
-
-            return string.Join("\n", _conversationHistories[conversationId]);
-        }
-
-        public void SaveResponse(string conversationId, string response)
-        {
-            var existingMessages = GetConversation(conversationId) ?? new List<string>();
-            existingMessages.Add($"User: {response}");
-
-            // Write conversation data to disk
-            SaveConversation(conversationId, existingMessages);
-
-            // Save individual response to disk
-            AppendIndividualMessage(conversationId, "User", response);
-
-            _logger.LogInformation($"Saved response for conversation {conversationId}: {response}");
-        }
-
-        private void SaveConversation(string conversationId, List<string> messages)
-        {
-            string folderPath = Path.Combine(_conversationFolder, conversationId);
-            Directory.CreateDirectory(folderPath);
-
-            string jsonPath = Path.Combine(folderPath, "conversation.json");
-
-            var conversationData = new ConversationData
-            {
-                Messages = messages,
-                LastMessageTimestamp = DateTime.Now
-            };
-
-            using (StreamWriter writer = File.CreateText(jsonPath))
-            {
-                writer.Write(JsonConvert.SerializeObject(conversationData, Formatting.Indented));
-            }
-
-            _logger.LogInformation($"Saved conversation {conversationId} to {jsonPath}");
-        }
-
-        public List<string>? GetConversation(string conversationId)
-        {
-            if (_conversationHistories.TryGetValue(conversationId, out List<string>? value))
-                return value;
-
-            _logger.LogWarning($"No conversation found for {conversationId}");
-            return null;
-        }
-
-        public List<string> LoadConversation(string conversationId)
-        {
-            string jsonPath = Path.Combine(_conversationFolder, $"{conversationId}.json");
-            if (File.Exists(jsonPath))
-            {
-                using StreamReader reader = File.OpenText(jsonPath);
-                var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
-                _logger.LogInformation($"Loaded conversation {conversationId} from {jsonPath}");
-                return conversationData?.Messages ?? new List<string>();
-            }
-
-            _logger.LogWarning($"No conversation file found for {conversationId} at {jsonPath}");
-            return new List<string>();
-        }
-
-        public List<List<string>> LoadAllConversations()
-        {
-            var allConversations = new List<List<string>>();
-
-            foreach (var directory in Directory.GetDirectories(_conversationFolder))
-            {
-                string folderPath = directory;
-                string jsonPath = Path.Combine(folderPath, "conversation.json");
-
-                if (File.Exists(jsonPath))
-                {
-                    using StreamReader reader = File.OpenText(jsonPath);
-                    var conversationData = JsonConvert.DeserializeObject<ConversationData>(reader.ReadToEnd());
-                    if (conversationData?.Messages != null)
-                    {
-                        allConversations.Add(conversationData.Messages);
-                        _logger.LogInformation($"Loaded conversation from {jsonPath}");
-                    }
-                }
-            }
-
-            return allConversations;
+            return [.. Directory.EnumerateFiles(_folder, "*.json")
+                            .Select(Path.GetFileNameWithoutExtension)
+                            .Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x!)];
         }
 
         public void DeleteConversation(string conversationId)
         {
-            string folderPath = Path.Combine(_conversationFolder, conversationId);
-
-            if (Directory.Exists(folderPath))
+            var path = Path.Combine(_folder, $"{conversationId}.json");
+            if (File.Exists(path))
             {
-                Directory.Delete(folderPath, true);
-                _logger.LogInformation($"Deleted conversation {conversationId} at {folderPath}", conversationId, folderPath);
-            }
-            else
-            {
-                _logger.LogWarning($"Attempted to delete non-existent conversation {conversationId}", conversationId);
+                File.Delete(path);
+                _logger.LogInformation("Deleted conversation {ConversationId}", conversationId);
             }
         }
 
-        public void GradeResponse(string conversationId, double grade)
+        public string? GetContext(string conversationId)
         {
-            _logger.LogInformation($"Graded response for conversation {conversationId} with grade {grade}", conversationId, grade);
+            var contextPath = Path.Combine(_folder, conversationId, "context");
+            if (!Directory.Exists(contextPath)) return null;
+
+            var files = Directory.EnumerateFiles(contextPath, "*.*", SearchOption.AllDirectories)
+                                 .Where(f => f.EndsWith(".cs") || f.EndsWith(".ts") || f.EndsWith(".html") || f.EndsWith(".json"))
+                                 .Take(10);
+
+            var snippets = files.Select(path => $"File: {Path.GetFileName(path)}\n{File.ReadAllText(path)}");
+            return string.Join("\n---\n", snippets);
         }
     }
 }

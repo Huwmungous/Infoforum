@@ -1,8 +1,9 @@
+﻿using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using IFOllama.RAG;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System.Text;
 
 namespace IFOllama.Controllers
 {
@@ -14,7 +15,6 @@ namespace IFOllama.Controllers
         private readonly HttpClient _httpClient;
         private readonly IConversationContextManager _contextManager;
         private readonly CodeContextService? _codeContextService;
-        private readonly IRagService _ragService;
         private readonly ILogger<IFOllamaController> _logger;
 
         public IFOllamaController(
@@ -22,42 +22,83 @@ namespace IFOllama.Controllers
             HttpClient httpClient,
             IConversationContextManager contextManager,
             ILogger<IFOllamaController> logger,
-            IRagService ragService,
             CodeContextService? codeContextService = null)
         {
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _contextManager = contextManager ?? throw new ArgumentNullException(nameof(contextManager));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _codeContextService = codeContextService; // May be null
-            _ragService = ragService;
+            _configuration = configuration;
+            _httpClient = httpClient;
+            _contextManager = contextManager;
+            _logger = logger;
+            _codeContextService = codeContextService;
 
             if (_codeContextService == null)
-            {
                 _logger.LogWarning("CodeContextService is unavailable. Enhanced code context features will be disabled.");
+        }
+
+        private class ChatChunk
+        {
+            [JsonPropertyName("response")]
+            public string? Response { get; set; }
+
+            [JsonPropertyName("done")]
+            public bool Done { get; set; }
+        }
+
+        [HttpGet("stream")]
+        public async Task StreamTest()
+        {
+            var response = Response;
+            response.ContentType = "application/x-ndjson";
+            response.Headers["Cache-Control"] = "no-cache";
+            response.Headers["X-Accel-Buffering"] = "no";
+
+            var utf8NoBom = new UTF8Encoding(false);
+            await using var writer = new StreamWriter(response.BodyWriter.AsStream(), utf8NoBom, leaveOpen: true)
+            {
+                AutoFlush = true
+            };
+
+            var chunks = new[]
+            {
+                new { Response = "Hello", Done = false },
+                new { Response = " World", Done = false },
+                new { Response = "", Done = true }
+            };
+
+            foreach (var chunk in chunks)
+            {
+                var json = JsonSerializer.Serialize(chunk);
+                await writer.WriteLineAsync(json);
+                await writer.FlushAsync();
+                await response.Body.FlushAsync();
+
+                if (chunk.Done)
+                    break;
+
+                await Task.Delay(500);
             }
         }
+
+        [HttpGet("test")]
+        public IActionResult Test() => Ok("IFOllama is alive.");
 
         [HttpPost]
         [Authorize(Policy = "MustBeIntelligenceUser")]
         public async Task<IActionResult> SendPrompt(
             [FromQuery] string conversationId,
-            [FromBody] string prompt,
-            string dest = "code"
-        )
+            [FromBody] PromptDto request,
+            string dest = "code")
         {
             try
             {
-                // Retrieve existing conversation context (always needed regardless of dest)
-                var conversationContext = _contextManager.GetContext(conversationId);
-
                 if (dest == "image")
                 {
-                    return await HandleImagePrompt(conversationId, prompt, dest);
+                    return await HandleImagePrompt(conversationId, request.Prompt);
                 }
                 else
                 {
-                    return await HandleCodeOrChatPrompt(conversationId, prompt, dest, conversationContext);
+                    var context = _contextManager.GetContext(conversationId) ?? "No previous context available.";
+                    await HandleCodeOrChatPrompt(conversationId, request.Prompt, context, dest);
+                    return new EmptyResult();
                 }
             }
             catch (Exception ex)
@@ -67,136 +108,93 @@ namespace IFOllama.Controllers
             }
         }
 
-        private async Task<IActionResult> HandleCodeOrChatPrompt(string conversationId, string prompt, string dest, string conversationContext)
+        private async Task HandleCodeOrChatPrompt(string conversationId, string prompt, string conversationContext, string dest)
         {
-            string combinedPrompt;
+            var finalPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
 
-            // Only enhance with code context and RAG for "code" destination AND if services are available
-            if (dest == "code" && _codeContextService != null && _ragService != null)
+            var jsonRequest = new StringContent(
+                JsonSerializer.Serialize(new { Model = SelectModel(dest), Prompt = finalPrompt }),
+                Encoding.UTF8, "application/json");
+
+            var upstreamResponse = await _httpClient.PostAsync(SelectAPIUrl(), jsonRequest);
+            if (!upstreamResponse.IsSuccessStatusCode)
             {
+                Response.StatusCode = (int)upstreamResponse.StatusCode;
+                return;
+            }
+
+            Response.ContentType = "application/x-ndjson";
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["X-Accel-Buffering"] = "no";
+
+            var utf8NoBom = new UTF8Encoding(false);
+
+            await using var responseStream = await upstreamResponse.Content.ReadAsStreamAsync();
+            using var reader = new StreamReader(responseStream);
+
+            await using var writer = new StreamWriter(Response.BodyWriter.AsStream(), utf8NoBom, leaveOpen: true)
+            {
+                AutoFlush = true
+            };
+
+            _contextManager.AppendMessage(conversationId, "User", prompt);
+
+            var fullResponse = new StringBuilder();
+
+            string? line;
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
                 try
                 {
-                    _logger.LogInformation("Enhancing code prompt with context");
-
-                    // Get code context (via embeddings)
-                    var queryEmbedding = await _ragService.GetEmbeddingService().EmbedAsync(prompt);
-                    var (distances, codeContextIds) = _codeContextService.Search(queryEmbedding, 3);
-
-                    // Get RAG chunks for additional context
-                    var relevantChunks = await _ragService.GetTopChunksAsync(prompt, 3);
-
-                    // Build enhanced prompt with context
-                    var promptWithContext = new StringBuilder();
-                    promptWithContext.AppendLine("## Code Context:");
-
-                    // Add code context if available
-                    if (codeContextIds.Length > 0 && codeContextIds[0].Length > 0)
+                    var chunk = JsonSerializer.Deserialize<ChatChunk>(line, jsonOptions);
+                    if (chunk != null)
                     {
-                        foreach (var id in codeContextIds[0])
+                        fullResponse.Append(chunk.Response ?? "");
+
+                        var ndjson = JsonSerializer.Serialize(chunk);
+                        await writer.WriteLineAsync(ndjson);
+                        await writer.FlushAsync();
+                        await Response.Body.FlushAsync();
+
+                        if (chunk.Done)
                         {
-                            _logger.LogInformation($"Adding code context ID: {id}");
+                            break;
                         }
                     }
-
-                    promptWithContext.AppendLine("\n## Documentation Context:");
-                    foreach (var chunk in relevantChunks)
-                    {
-                        promptWithContext.AppendLine(chunk);
-                    }
-
-                    promptWithContext.AppendLine("\n## User Query:");
-                    promptWithContext.AppendLine(prompt);
-
-                    // Combine with conversation context
-                    combinedPrompt = $"{conversationContext}\nUser: {promptWithContext}\nAssistant:";
-                    _logger.LogInformation("Enhanced prompt with code context and documentation");
                 }
-                catch (Exception ex)
+                catch (JsonException ex)
                 {
-                    _logger.LogError(ex, "Failed to enhance prompt with context. Using regular prompt.");
-                    combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
+                    _logger.LogWarning(ex, "Skipping malformed JSON line: {Line}", line);
                 }
             }
-            else
-            {
-                // For chat or when services aren't available, just use the regular conversation context and prompt
-                combinedPrompt = $"{conversationContext}\nUser: {prompt}\nAssistant:";
-            }
 
-            // Create request payload
-            var content = new StringContent(
-                JsonConvert.SerializeObject(new OllamaRequest
-                {
-                    Model = SelectModel(dest),
-                    Prompt = combinedPrompt
-                }),
-                Encoding.UTF8,
-                "application/json"
-            );
-
-            // Rest of the method remains unchanged
-            var response = await _httpClient.PostAsync(SelectAPIUrl(), content);
-
-            if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Request failed");
-
-            MemoryStream responseStreamWriter = await HandleResponse(response);
-            responseStreamWriter.Seek(0, SeekOrigin.Begin);
-
-            // Read the text response
-            var responseText = await new StreamReader(responseStreamWriter).ReadToEndAsync();
-
-            // Append both the user prompt and the assistant's response to the conversation
-            _contextManager.AppendMessage(conversationId, "User", prompt);
-            _contextManager.AppendMessage(conversationId, "Assistant", responseText);
-
-            // Return the text response
-            return new FileStreamResult(new MemoryStream(Encoding.UTF8.GetBytes(responseText)), "text/plain");
+            _contextManager.AppendMessage(conversationId, "Assistant", fullResponse.ToString());
         }
 
-        // Rest of your controller methods remain unchanged
-        private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt, string dest)
+        private async Task<IActionResult> HandleImagePrompt(string conversationId, string prompt)
         {
-            // [Existing implementation unchanged]
-            // Record the user prompt in the conversation history.
             _contextManager.AppendMessage(conversationId, "User", prompt);
 
-            // Create an image generation request that includes conversationId.
-            var imageRequest = new ImageGenerationRequest
-            {
-                Model = SelectModel(dest),
-                Prompt = prompt,
-                ConversationId = conversationId
-            };
+            var request = new StringContent(
+                JsonSerializer.Serialize(new { Model = SelectModel("image"), Prompt = prompt, ConversationId = conversationId }),
+                Encoding.UTF8, "application/json");
 
-            // Serialize and send the image generation request to the proper API.
-            var content = new StringContent(
-                JsonConvert.SerializeObject(imageRequest),
-                Encoding.UTF8,
-                "application/json"
-            );
+            var response = await _httpClient.PostAsync(SelectAPIUrl(), request);
+            if (!response.IsSuccessStatusCode)
+                return StatusCode((int)response.StatusCode, "Image generation failed");
 
-            // Use the API URL for image generation.
-            var imageApiUrl = SelectAPIUrl();
-            var imageResponse = await _httpClient.PostAsync(imageApiUrl, content);
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            var base64 = Convert.ToBase64String(bytes);
 
-            if (!imageResponse.IsSuccessStatusCode)
-                return StatusCode((int)imageResponse.StatusCode, "Image generation request failed.");
-
-            // Read the binary image data.
-            var imageBytes = await imageResponse.Content.ReadAsByteArrayAsync();
-
-            // Convert image bytes to base64 string
-            var base64Image = Convert.ToBase64String(imageBytes);
-
-            // Create response object with base64 image
-            var response = new
-            {
-                image = base64Image
-            };
-
-            // Return JSON response
-            return Ok(response);
+            return Ok(new { image = base64 });
         }
 
         [HttpGet("query")]
@@ -208,9 +206,10 @@ namespace IFOllama.Controllers
 
             try
             {
-                var response = await _httpClient.GetStringAsync($"{_configuration["QueryApiUrl"]}?query={Uri.EscapeDataString(query)}");
-                var results = response.Split("\n", StringSplitOptions.RemoveEmptyEntries);
-                return Ok(new { query, results });
+                var url = $"{_configuration["QueryApiUrl"]}?query={Uri.EscapeDataString(query)}";
+                var result = await _httpClient.GetStringAsync(url);
+                var lines = result.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                return Ok(new { query, results = lines });
             }
             catch (Exception ex)
             {
@@ -218,47 +217,15 @@ namespace IFOllama.Controllers
             }
         }
 
-        private static async Task<MemoryStream> HandleResponse(HttpResponseMessage response)
+        private string SelectAPIUrl() =>
+            _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is missing.");
+
+        private string SelectModel(string dest) => dest switch
         {
-            var tokenStream = await response.Content.ReadAsStreamAsync();
-            var tokenStreamReader = new StreamReader(tokenStream);
-            var responseStreamWriter = new MemoryStream();
-            var responseWriter = new StreamWriter(responseStreamWriter);
-
-            using (var jsonReader = new JsonTextReader(tokenStreamReader) { SupportMultipleContent = true })
-            {
-                var jsonSerializer = new JsonSerializer();
-
-                while (await jsonReader.ReadAsync())
-                {
-                    if (jsonReader.TokenType == JsonToken.StartObject)
-                    {
-                        var responseObject = jsonSerializer.Deserialize<OllamaResponse>(jsonReader);
-                        if (responseObject != null)
-                        {
-                            await responseWriter.WriteAsync(responseObject.Response);
-                            await responseWriter.FlushAsync();
-                        }
-                    }
-                }
-            }
-            return responseStreamWriter;
-        }
-
-        private string SelectAPIUrl()
-        {
-            return _configuration["ApiUrl"] ?? throw new InvalidOperationException("ApiUrl is not configured.");
-        }
-
-        private string SelectModel(string dest)
-        {
-            return dest switch
-            {
-                "code" => _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel is not configured."),
-                "chat" => _configuration["ChatModel"] ?? throw new InvalidOperationException("ChatModel is not configured."),
-                "image" => _configuration["ImageModel"] ?? throw new InvalidOperationException("ImageModel is not configured."),
-                _ => throw new InvalidOperationException("Destination model must be 'code', 'chat', or 'image'.")
-            };
-        }
+            "code" => _configuration["CodeModel"] ?? throw new InvalidOperationException("CodeModel not configured."),
+            "chat" => _configuration["ChatModel"] ?? throw new InvalidOperationException("ChatModel not configured."),
+            "image" => _configuration["ImageModel"] ?? throw new InvalidOperationException("ImageModel not configured."),
+            _ => throw new InvalidOperationException("Invalid model destination.")
+        };
     }
 }

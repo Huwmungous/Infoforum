@@ -15,6 +15,14 @@
   width: 75px;
 }
 
+.version-number {
+  margin-left: 8px;
+  font-weight: normal;
+  font-size: smaller;
+  color: var(--if-window-colour);
+  /* Add any additional styling you want here */
+}
+
 .logout-button {
   @include button-style;
   background: var(--if-hl-medium-colour);

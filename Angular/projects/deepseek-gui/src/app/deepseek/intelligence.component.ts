@@ -8,6 +8,8 @@ import { IFAuthModule } from '../../auth/ifauth.module';
 import { CodeGenComponent, generateGUID } from '../components/code-gen/code-gen.component'; 
 import { ChatComponent } from '../components/chat/chat-component';
 import { ImageGenComponent } from "../components/image-gen/image-gen.component";
+import { environment } from '../../environments/environment';
+
 
 @Component({
   selector: 'app-intelligence',
@@ -26,6 +28,8 @@ import { ImageGenComponent } from "../components/image-gen/image-gen.component";
 ]
 })
 export class IntelligenceComponent {
+
+  version = environment.version ?? 'dev';
   
   conversationId: string = generateGUID(); 
 

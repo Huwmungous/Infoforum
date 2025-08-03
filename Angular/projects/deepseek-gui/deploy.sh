@@ -2,12 +2,14 @@
 
 # Deployment Script for Deepseek GUI
 
+# Resolve script directory absolute path
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Configuration Variables
 APP_NAME="deepseek-gui"
-LIB_NAME="ifauth-lib"
 DEPLOY_PATH="/var/www/deepseek-gui"
-LIB_PACKAGE_JSON="projects/ifauth-lib/package.json"
-LIB_PATH="projects/ifauth-lib"
+ENV_PROD="$SCRIPT_DIR/src/environments/environment.prod.ts"
+GIT_TAG_PREFIX="v."
 
 # Color codes for output
 GREEN='\033[0;32m'
@@ -15,130 +17,140 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Error handling function
 handle_error() {
     echo -e "${RED}Error: $1${NC}"
     exit 1
 }
 
-# Git pull from origin main
 git_pull() {
     echo -e "${YELLOW}Pulling latest changes from origin main...${NC}"
-    
-    # Fetch and pull
     git fetch origin main
     git pull origin main || handle_error "Git pull failed"
 }
 
-# Check for library changes
-check_library_changes() {
-    echo -e "${YELLOW}Checking for library changes...${NC}"
-    
-    # Get the latest commit hash that touched the library
-    local last_commit=$(git log -n 1 --pretty=format:%H -- "$LIB_PATH")
-    
-    # Get the last commit hash from a marker file (create if doesn't exist)
-    local marker_file=".last_lib_commit"
-    [ -f "$marker_file" ] || echo "" > "$marker_file"
-    local previous_commit=$(cat "$marker_file")
-    
-    # Compare commits
-    if [ "$last_commit" != "$previous_commit" ]; then
-        echo -e "${GREEN}Library changes detected. Version update needed.${NC}"
-        # Update the marker file with the latest commit hash
-        echo "$last_commit" > "$marker_file"
-        return 0  # Changes detected
-    else
-        echo -e "${YELLOW}No library changes detected. Version update not needed.${NC}"
-        return 1  # No changes detected
+increment_version_in_env() {
+    echo -e "${YELLOW}Incrementing version in environment.prod.ts...${NC}"
+
+    if [ ! -f "$ENV_PROD" ]; then
+        handle_error "File $ENV_PROD not found"
     fi
+
+    # Extract current version (using sed, portable)
+    current_version=$(sed -n "s/.*version: '\([0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+\)'.*/\1/p" "$ENV_PROD")
+    current_version=${current_version:-"1.0.0.0"}
+
+    # Parse version parts
+    IFS='.' read -r major minor patch build <<< "$current_version"
+    if [ -z "$build" ]; then
+        build=0
+    fi
+    build=$((build + 1))
+
+    new_version="${major}.${minor}.${patch}.${build}"
+
+    # Replace version line in environment.prod.ts
+    sed -i -E "s/version:\s*'[^']+'/version: '$new_version'/" "$ENV_PROD"
+
+    echo -e "${GREEN}Version updated: $current_version -> $new_version${NC}"
 }
 
-# Increment library version
-increment_library_version() {
-    echo -e "${YELLOW}Incrementing library version...${NC}"
-    
-    # Get current version
-    current_version=$(grep -m1 '"version":' "$LIB_PACKAGE_JSON" | sed -E 's/.*"version": "(.*)".*/\1/')
+commit_version_and_tag() {
+    echo -e "${YELLOW}Committing environment.prod.ts and tagging git...${NC}"
 
-    # Increment version
-    new_version=$(echo $current_version | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+    # Check if there are any changes to commit (to avoid error)
+    if git diff --quiet "$ENV_PROD"; then
+        echo -e "${YELLOW}No changes detected in $ENV_PROD, skipping commit and tag.${NC}"
+        return
+    fi
 
-    # Update package.json
-    sed -i "s/\"version\": \"$current_version\"/\"version\": \"$new_version\"/" "$LIB_PACKAGE_JSON"
-
-    echo -e "${GREEN}Updated library version from $current_version to $new_version${NC}"
-}
-
-# Git commit and push
-git_commit_and_push() {
-    echo -e "${YELLOW}Committing and pushing changes...${NC}"
-    
-    # Stage changes
-    git add "$LIB_PACKAGE_JSON" ".last_lib_commit"
-    
-    # Commit with version increment message
-    git commit -m "Increment library version for deployment" || handle_error "Git commit failed"
-    
-    # Push changes
+    git add "$ENV_PROD"
+    git commit -m "Bump version to $new_version" || handle_error "Git commit failed"
     git push origin main || handle_error "Git push failed"
+
+    tag_name="${GIT_TAG_PREFIX}${new_version}"
+    git tag -a "$tag_name" -m "Version $new_version"
+    git push origin "$tag_name" || handle_error "Git tag push failed"
+
+    echo -e "${GREEN}Git tagged with $tag_name${NC}"
 }
 
-# Rebuild library to ensure latest changes
-rebuild_library() {
-    echo -e "${YELLOW}Rebuilding library to ensure latest changes...${NC}"
-    
-    # Clean library dist and rebuild
-    ng build $LIB_NAME --configuration=production || handle_error "Library rebuild failed"
-}
-
-# Build application
 build_application() {
     echo -e "${YELLOW}Building application...${NC}"
-    cd ../..
+    cd "$SCRIPT_DIR/../.."
     ng build $APP_NAME --configuration=production --base-href=/intelligence/ || handle_error "Application build failed"
-    cd projects/$APP_NAME # return to the project directory
+    cd "$SCRIPT_DIR" # back to script directory
 }
 
-# Deploy application
+generate_prod_index() {
+    echo -e "${YELLOW}Generating dynamic production index.html...${NC}"
+
+    BUILD_OUTPUT="$SCRIPT_DIR/../../dist/$APP_NAME/browser"
+    PROD_INDEX="$SCRIPT_DIR/src/index.prod.html"
+
+    shopt -s nullglob
+    polyfills_files=($BUILD_OUTPUT/polyfills-*.js)
+    main_files=($BUILD_OUTPUT/main-*.js)
+    styles_files=($BUILD_OUTPUT/styles-*.css)
+    shopt -u nullglob
+
+    if [ ${#polyfills_files[@]} -eq 0 ] || [ ${#main_files[@]} -eq 0 ] || [ ${#styles_files[@]} -eq 0 ]; then
+        handle_error "One or more bundles (polyfills, main, styles) not found in build output."
+    fi
+
+    POLYFILLS=$(basename "${polyfills_files[0]}")
+    MAINJS=$(basename "${main_files[0]}")
+    STYLESCSS=$(basename "${styles_files[0]}")
+
+    echo "Detected bundles:"
+    echo "Polyfills: $POLYFILLS"
+    echo "Main JS: $MAINJS"
+    echo "Styles CSS: $STYLESCSS"
+
+    if [ ! -f "$PROD_INDEX" ]; then
+        handle_error "Production index.html template not found at $PROD_INDEX"
+    fi
+
+    GENERATED_INDEX="$BUILD_OUTPUT/index.html"
+
+    sed \
+        -e "s|%%POLYFILLS_JS%%|$POLYFILLS|g" \
+        -e "s|%%MAIN_JS%%|$MAINJS|g" \
+        -e "s|%%STYLES_CSS%%|$STYLESCSS|g" \
+        "$PROD_INDEX" > "$GENERATED_INDEX" || handle_error "Failed to generate index.html"
+
+    echo -e "${GREEN}index.html generated successfully.${NC}"
+
+    echo "Checking favicon line in generated index.html:"
+    grep -i 'favicon.ico' "$GENERATED_INDEX" || echo "No favicon line found!"
+}
+
 deploy_application() {
     echo -e "${YELLOW}Deploying application...${NC}"
-
-    # Create deployment directory if it doesn't exist
-    sudo mkdir -p $DEPLOY_PATH
-
-    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}.${NC}"
-    sudo rm -rf $DEPLOY_PATH/*
-
-    # Copy build artifacts
-    sudo cp -R ../../dist/$APP_NAME/* $DEPLOY_PATH/
-
-    # Set correct permissions
-    sudo chown -R nginx:nginx $DEPLOY_PATH
-    sudo chmod -R 755 $DEPLOY_PATH
+    sudo mkdir -p "$DEPLOY_PATH/browser"
+    echo -e "${YELLOW}Cleaning target ${DEPLOY_PATH}/browser.${NC}"
+    sudo rm -rf "$DEPLOY_PATH/browser"/*
+    sudo cp -R "$SCRIPT_DIR/../../dist/$APP_NAME/browser/"* "$DEPLOY_PATH/browser/"
+    sudo chown -R nginx:nginx "$DEPLOY_PATH/browser"
+    sudo chmod -R 755 "$DEPLOY_PATH/browser"
 }
 
-# Clean build artifacts
 clean_build() {
     echo -e "${YELLOW}Cleaning build artifacts...${NC}"
-    sudo rm -rf ../../dist
+    sudo rm -rf "$SCRIPT_DIR/../../dist"
 }
 
-# Main deployment workflow
 main() {
     git_pull
-
+    git checkout --force    # Reset any local changes before starting
     clean_build
-    
     npm install || handle_error "NPM install failed"
-    
+    increment_version_in_env
     build_application
+    generate_prod_index
     deploy_application
-
-    git checkout --force # Discard any local changes    
-    chmod 755 ./deploy.sh
+    commit_version_and_tag
+    chmod 755 "$SCRIPT_DIR/deploy.sh"
     echo -e "${GREEN}Deployment completed successfully!${NC}"
 }
 
-# Run the deployment
 main

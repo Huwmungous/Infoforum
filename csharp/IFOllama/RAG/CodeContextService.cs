@@ -1,4 +1,4 @@
-﻿
+
 using HNSW.Net;
 
 namespace IFOllama.RAG
@@ -15,7 +15,7 @@ namespace IFOllama.RAG
         private readonly IProvideRandomValues _rng = DefaultRandomGenerator.Instance;
         private readonly List<string> _exclusions;
 
-        // Keep chunks for ID→text if you need it
+        // Keep chunks for ID?text if you need it
         private List<string> _allChunks = [];
 
         public CodeContextService(
@@ -28,14 +28,14 @@ namespace IFOllama.RAG
 
             _exclusions = configuration.GetSection("Exclusions").Get<List<string>>() ?? new List<string>();
 
-            // 1) Load code­set path & extensions
+            // 1) Load code�set path & extensions
             var root = configuration["CodeSet"] ?? throw new ArgumentException("CodeSet must be specified");
             if (!Directory.Exists(root)) throw new DirectoryNotFoundException($"CodeSet not found: {root}");
 
             var exts = configuration.GetSection("Extensions").Get<List<string>>() ?? [];
             _extensions = new HashSet<string>(exts, StringComparer.OrdinalIgnoreCase);
 
-            // 2) HNSW parameters + constructor (four­-arg)
+            // 2) HNSW parameters + constructor (four�-arg)
             _parameters = new SmallWorld<float[], float>.Parameters
             {
                 M = 32,
@@ -102,7 +102,7 @@ namespace IFOllama.RAG
                 _parameters
             );
 
-            // 4) Bulk‐insert all vectors
+            // 4) Bulk?insert all vectors
             newGraph.AddItems(vectors);
 
             // 5) Swap in under lock, update chunk mapping
@@ -152,7 +152,7 @@ namespace IFOllama.RAG
             (var distsArr, var idsArr) = Search(qvec, k);
             var ids = idsArr[0];
 
-            // 3) Map IDs → chunk text (guarding bounds)
+            // 3) Map IDs ? chunk text (guarding bounds)
             var results = new List<string>();
             foreach (var id in ids)
             {
