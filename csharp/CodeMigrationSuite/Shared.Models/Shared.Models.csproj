@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+
+  </ItemGroup>
+</Project>

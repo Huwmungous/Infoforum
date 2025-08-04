@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net9.0-windows</TargetFramework>
+		<UseWindowsForms>true</UseWindowsForms>
+		<LangVersion>preview</LangVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Generator.WebAPI\Generator.WebAPI.csproj" />
+		<ProjectReference Include="..\\Shared.Models\\Shared.Models.csproj" />
+		<ProjectReference Include="..\\Ingestor.Core\\Ingestor.Core.csproj" />
+	</ItemGroup>
+</Project>
+
