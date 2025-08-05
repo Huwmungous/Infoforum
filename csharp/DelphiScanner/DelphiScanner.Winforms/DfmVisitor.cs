@@ -1,4 +1,4 @@
-﻿// DfmQueryExtractorVisitor.cs (improved version)
+﻿// DfmVisitor.cs (improved version)
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,12 +6,13 @@ using System.Text;
 
 namespace DelphiScanner.Winforms
 {
-    public class DfmQueryExtractorVisitor : DelphiDfmBaseVisitor<object>
+    public class DfmVisitor : DelphiDfmBaseVisitor<object>
     {
-        public Dictionary<string, QueryInfo> Queries { get; } = [];
         private readonly Stack<string> _contextStack = new();
         private string _currentFormName = "";
         private QueryInfo? _currentQuery = null;
+        internal string UnitFileName = string.Empty;
+        internal Dictionary<string, QueryInfo> QueryMap = [];
 
         public override object VisitDfmFile(DelphiDfmParser.DfmFileContext context)
         {
@@ -115,11 +116,11 @@ namespace DelphiScanner.Winforms
             {
                 ObjectName = objectName,
                 ClassName = className,
-                FormName = _currentFormName
+                UnitFileName = UnitFileName
             };
 
             var key = GetQueryKey(objectName);
-            Queries[key] = queryInfo;
+            QueryMap[key] = queryInfo;
             _currentQuery = queryInfo; // Set context for nested processing
 
             Console.WriteLine($"[QUERY] Created query object: {key}");
@@ -183,9 +184,9 @@ namespace DelphiScanner.Winforms
         public void PrintSummary()
         {
             Console.WriteLine("\n=== EXTRACTION SUMMARY ===");
-            Console.WriteLine($"Found {Queries.Count} query objects:");
+            Console.WriteLine($"Found {QueryMap.Count} query objects:");
 
-            foreach(var kvp in Queries)
+            foreach(var kvp in QueryMap)
             {
                 var query = kvp.Value;
                 Console.WriteLine($"\n[{kvp.Key}]");

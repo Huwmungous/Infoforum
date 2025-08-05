@@ -7,7 +7,8 @@ namespace DelphiScanner.Winforms
 {
     public partial class MainForm : Form
     {
-        private string selectedFolderPath = string.Empty;
+        private const string DefaultFolderPath = @"C:\Temp\PostgresFiddle\Delphi\PostgresFiddle";
+        private string selectedFolderPath = DefaultFolderPath;
 
         public MainForm()
         {
@@ -27,6 +28,8 @@ namespace DelphiScanner.Winforms
             }
         }
 
+        private Dictionary<string, QueryInfo> QueryMap = new(StringComparer.OrdinalIgnoreCase);       
+
         private void ScanFolderButton_Click(object sender, EventArgs e)
         {
             if(string.IsNullOrEmpty(selectedFolderPath) || !Directory.Exists(selectedFolderPath))
@@ -35,7 +38,8 @@ namespace DelphiScanner.Winforms
                 return;
             }
 
-            var queryMap = new Dictionary<string, QueryInfo>(StringComparer.OrdinalIgnoreCase);
+            this.QueryMap = [];
+
             var dfmFiles = Directory.GetFiles(selectedFolderPath, "*.dfm", SearchOption.AllDirectories);
             var pasFiles = Directory.GetFiles(selectedFolderPath, "*.pas", SearchOption.AllDirectories);
 
@@ -51,14 +55,8 @@ namespace DelphiScanner.Winforms
                     var parser = new DelphiDfmParser(tokens);
                     var tree = parser.dfmFile();
 
-                    var visitor = new DfmQueryExtractorVisitor();
-                    // var visitor = new DebugVisitor();
+                    var visitor = new DfmVisitor() { UnitFileName = dfmFile, QueryMap = this.QueryMap };
                     visitor.Visit(tree);
-
-                    //foreach(var kvp in visitor.Queries)
-                    //{
-                    //    queryMap[kvp.Key] = kvp.Value;
-                    //}
                 }
                 catch(Exception ex)
                 {
@@ -66,29 +64,36 @@ namespace DelphiScanner.Winforms
                 }
             }
 
-            // STEP 2: Parse all .pas files and update queryMap
-            //foreach(var pasFile in pasFiles)
-            //{
-            //    try
-            //    {
-            //        var input = File.ReadAllText(pasFile);
-            //        var inputStream = new AntlrInputStream(input);
-            //        var lexer = new DelphiLexer(inputStream);
-            //        var tokens = new CommonTokenStream(lexer);
-            //        var parser = new DelphiParser(tokens);
-            //        var tree = parser.compilationUnit(); // or entry rule you use
+            // STEP 2: Parse all .pas files and update queryMap usage info
+            foreach(var pasFile in pasFiles)
+            {
+                try
+                {
+                    var input = File.ReadAllText(pasFile);
+                    var inputStream = new AntlrInputStream(input);
+                    var lexer = new DelphiLexer(inputStream);
+                    var tokens = new CommonTokenStream(lexer);
+                    var parser = new DelphiParser(tokens);
+                    var tree = parser.file();
 
-            //        var visitor = new QueryUsageCollector(queryMap);
-            //        visitor.Visit(tree);
-            //    }
-            //    catch(Exception ex)
-            //    {
-            //        Console.WriteLine($"Failed to parse {pasFile}: {ex.Message}");
-            //    }
-            //}
+                    var visitor = new DelphiVisitor() { 
+                        Form=Path.GetFileNameWithoutExtension(pasFile), 
+                        QueryMap = this.QueryMap 
+                    };
+
+                    visitor.Visit(tree);
+
+                    var t = tree.ToStringTree(parser);
+                    Console.WriteLine(t);
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"Failed to parse {pasFile}: {ex.Message}");
+                }
+            }
 
             // OPTIONAL: show result in console or debug window
-            foreach(var kvp in queryMap)
+            foreach(var kvp in QueryMap)
             {
                 Console.WriteLine($"Query: {kvp.Key}");
                 Console.WriteLine("  SQL:");
@@ -110,3 +115,10 @@ namespace DelphiScanner.Winforms
 
     }
 }
+
+
+/*
+ 
+"(file (unit (unitHead unit (namespaceName (ident DataModule)) ;) (unitInterface interface (usesClause uses (namespaceNameList (namespaceName (ident System) . (ident SysUtils)) , (namespaceName (ident System) . (ident Classes)) , (namespaceName (ident DBAccess)) , (namespaceName (ident PgDacVcl)) , (namespaceName (ident Data) . (ident DB)) , (namespaceName (ident MemDS)) , (namespaceName (ident PgAccess)) , (namespaceName (ident Vcl) . (ident Dialogs)) , (namespaceName (ident VirtualDataSet)) , (namespaceName (ident Datasnap) . (ident Provider)) , (namespaceName (ident Datasnap) . (ident DBClient)) ;)) (interfaceDecl (typeSection type (typeDeclaration (genericTypeIdent (qualifiedIdent (ident TDM))) = (typeDecl (strucType (strucTypePart (classDecl (classTypeDecl class (classParent ( (genericTypeIdent (qualifiedIdent (ident TDataModule))) )) (classItem (classField (identList (ident PgConnection1)) : (typeDecl (typeId (namespacedQualifiedIdent (qualifiedIdent (ident TPgConnection))))) ;)) (classItem (classField (..." 
+
+ */
