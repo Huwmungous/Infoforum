@@ -9,7 +9,7 @@ namespace BTTranslate
     class Program
     {
         private static string accessToken = "";
-        private static readonly string ifollamaApiUrl = "https://longmanrd.net/aiapi";
+        private static readonly string ifollamaApiUrl = "https://longmanrd.net/intelligence";
         private static string connectionString = "";
         private static readonly string conversationId = Guid.NewGuid().ToString(); //"3E48E5D3-6EE3-4E6D-B816-8E6E9FB23C37";
 
@@ -64,7 +64,7 @@ namespace BTTranslate
                 // Update the dbo.language table with the new version for each language code
                 UpdateLanguageVersions();
             }
-            catch (Exception ex)
+             catch (Exception ex)
             {
                 Console.WriteLine("Error: " + ex.Message);
             }

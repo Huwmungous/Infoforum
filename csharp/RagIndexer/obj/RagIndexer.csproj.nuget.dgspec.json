@@ -57,11 +57,11 @@
             },
             "HNSW": {
               "target": "Package",
-              "version": "[25.3.56901, )"
+              "version": "[25.7.60036, )"
             },
             "MessagePack": {
               "target": "Package",
-              "version": "[3.1.3, )"
+              "version": "[3.1.4, )"
             }
           },
           "imports": [

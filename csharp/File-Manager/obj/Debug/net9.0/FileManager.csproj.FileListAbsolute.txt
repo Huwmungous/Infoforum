@@ -51,4 +51,3 @@ D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net9.0\refint\FileManager.dll
 D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net9.0\FileManager.pdb
 D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net9.0\FileManager.genruntimeconfig.cache
 D:\repos\Infoforum\csharp\File-Manager\obj\Debug\net9.0\ref\FileManager.dll
-D:\repos\Infoforum\csharp\File-Manager\bin\Debug\net9.0\Newtonsoft.Json.dll

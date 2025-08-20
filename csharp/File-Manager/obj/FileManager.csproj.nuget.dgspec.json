@@ -57,19 +57,19 @@
           "dependencies": {
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
               "target": "Package",
-              "version": "[9.0.5, )"
+              "version": "[9.0.8, )"
             },
             "Microsoft.IdentityModel.Tokens": {
               "target": "Package",
-              "version": "[8.10.0, )"
+              "version": "[8.14.0, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[8.1.1, )"
+              "version": "[9.0.3, )"
             },
             "System.DirectoryServices.Protocols": {
               "target": "Package",
-              "version": "[9.0.5, )"
+              "version": "[9.0.8, )"
             }
           },
           "imports": [
@@ -144,7 +144,7 @@
           "dependencies": {
             "Microsoft.Extensions.Logging.Abstractions": {
               "target": "Package",
-              "version": "[9.0.5, )"
+              "version": "[9.0.8, )"
             }
           },
           "imports": [
