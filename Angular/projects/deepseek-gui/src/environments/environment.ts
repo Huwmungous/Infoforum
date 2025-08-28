@@ -2,8 +2,8 @@
 
 export const environment = {
     production: false,
-    apiUrl: 'http://intelligence:5008/IFOllama', 
-    // apiUrl: 'http://localhost:5008/IFOllama', 
+    // apiUrl: 'http://intelligence:5008/IFOllama', 
+    apiUrl: 'http://localhost:5008/IFOllama', 
     // apiUrl: 'https://longmanrd.net/aiapi', 
     consoleLog: true,
     appName: '',

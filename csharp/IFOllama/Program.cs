@@ -2,12 +2,23 @@
 using IFOllama;
 using IFOllama.Controllers;
 using IFOllama.RAG;
+using IFOllama.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 
 int port = PortResolver.GetPort("IFOllama");
 var builder = WebApplication.CreateBuilder(args);
+
+// Options from config (optional; see appsettings.json below)
+builder.Services.Configure<ConversationStorageOptions>(
+    builder.Configuration.GetSection("ConversationStorage"));
+
+// Register the manager
+builder.Services.AddSingleton<IConversationContextManager, ConversationContextManager>();
+
+builder.Services.AddSingleton<IChatModel, FakeEchoModel>();
+// builder.Services.AddSingleton<IChatModel, OllamaChatModel>();
 
 // Add environment-specific configuration
 builder.Configuration
@@ -16,17 +27,6 @@ builder.Configuration
 
 // Listen on configured port
 builder.WebHost.ConfigureKestrel(opts => opts.ListenAnyIP(port));
-
-// Fix for CS1729, CS0119, CS1525, CS1003, CS0103
-
-// Corrected the instantiation of ConversationContextManager by ensuring the _logger is properly resolved from the service provider
-builder.Services.AddSingleton<IConversationContextManager>(sp =>
-{
-    var logger = sp.GetRequiredService<ILogger<ConversationContextManager>>(); // Correctly resolve the _logger
-    var cm = new ConversationContextManager(logger); // Pass the _logger to the constructor
-    cm.Initialize();
-    return cm;
-});
 
 // Fully-local embedding service (ONNX Sentence Transformer)
 builder.Services.AddSingleton<IEmbeddingService, TextEmbeddingService>();
