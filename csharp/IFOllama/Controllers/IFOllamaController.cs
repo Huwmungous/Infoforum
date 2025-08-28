@@ -163,7 +163,7 @@ namespace IFOllama.Controllers
             var reqBody = new { model = SelectModel(dest), messages, stream = true };
 
             using var jsonRequest = new StringContent(JsonSerializer.Serialize(reqBody), Encoding.UTF8, "application/json");
-            using var upstreamResponse = await _httpClient.PostAsync(SelectChatUrl(), jsonRequest);
+            using var upstreamResponse = await _httpClient.PostAsync(SelectUrl(), jsonRequest);
 
             if(!upstreamResponse.IsSuccessStatusCode)
             {
@@ -306,7 +306,7 @@ namespace IFOllama.Controllers
             var reqBody = new { model = SelectModel(dest), prompt = sb.ToString(), stream = true };
 
             using var jsonRequest = new StringContent(JsonSerializer.Serialize(reqBody), Encoding.UTF8, "application/json");
-            using var upstreamResponse = await _httpClient.PostAsync(SelectGenerateUrl(), jsonRequest);
+            using var upstreamResponse = await _httpClient.PostAsync(SelectUrl(), jsonRequest);
             if(!upstreamResponse.IsSuccessStatusCode)
             {
                 Response.StatusCode = (int)upstreamResponse.StatusCode;
@@ -430,7 +430,7 @@ namespace IFOllama.Controllers
                 JsonSerializer.Serialize(reqBody),
                 Encoding.UTF8, "application/json");
 
-            using var response = await _httpClient.PostAsync(SelectGenerateUrl(), request);
+            using var response = await _httpClient.PostAsync(SelectUrl(), request);
             if(!response.IsSuccessStatusCode)
             {
                 var err = await response.Content.ReadAsStringAsync();
@@ -446,14 +446,10 @@ namespace IFOllama.Controllers
         }
 
         // ----------- Config helpers -----------
-        private string SelectGenerateUrl()
+        private string SelectUrl()
             => _configuration["GenerateApiUrl"]
                ?? _configuration["ApiUrl"]
                ?? throw new InvalidOperationException("GenerateApiUrl/ApiUrl is missing.");
-
-        private string SelectChatUrl()
-            => _configuration["ChatApiUrl"]
-               ?? throw new InvalidOperationException("ChatApiUrl is missing (required for UpstreamMode=chat).");
 
         private string SelectModel(string dest) => dest switch
         {
