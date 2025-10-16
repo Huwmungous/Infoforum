@@ -1,25 +1,42 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using BraveSearchMcpServer.Protocol;
-using BraveSearchMcpServer.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading.Channels;
+using SfD.Global;
+using BraveSearchMcpServer.Protocol;
+using BraveSearchMcpServer.Models;
+using BraveSearchMcpServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+int port = PortResolver.GetPort();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(port);
+});
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Existing service registrations
-services.AddHttpClient<BraveSearchService>();
-        services.AddSingleton<BraveSearchService>(sp =>
-        {
-            var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
-            var logger = sp.GetRequiredService<ILogger<BraveSearchService>>();
-            return new BraveSearchService(httpClient, logger, apiKey);
+builder.Services.AddHttpClient<BraveSearchService>();
+builder.Services.AddSingleton<BraveSearchService>(sp =>
+{
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient();
+    var logger = sp.GetRequiredService<ILogger<BraveSearchService>>();
+    var apiKey = Environment.GetEnvironmentVariable("BRAVE_API_KEY") ?? "";
+    return new BraveSearchService(httpClient, logger, apiKey);
+});
 builder.Services.AddSingleton<McpServer>();
+
+// Add Swagger for development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new() { Title = "BraveSearchMcpServer API", Version = "v1" });
+    });
+}
+
+
 
 var app = builder.Build();
 
@@ -52,6 +69,18 @@ app.MapPost("/rpc", async (HttpContext ctx, McpServer mcp) =>
     return Results.Json(resp);
 });
 
+
+// Enable Swagger in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BraveSearchMcpServer API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
 app.Run();
 
 public sealed class SseHub
@@ -65,3 +94,7 @@ public sealed class SseHub
         return _ch.Writer.WriteAsync(chunk).AsTask();
     }
 }
+
+
+
+

@@ -1,21 +1,35 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using CodeFormatterMcpServer.Protocol;
-using CodeFormatterMcpServer.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading.Channels;
+using SfD.Global;
+using CodeFormatterMcpServer.Protocol;
+using CodeFormatterMcpServer.Models;
+using CodeFormatterMcpServer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+int port = PortResolver.GetPort();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(port);
+});
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Existing service registrations
-services.AddSingleton<CodeFormatterService>();
-        services.AddSingleton<McpServer>();
-builder.Services.AddSingleton<McpServer>();
+builder.Services.AddSingleton<CodeFormatterService>();
+        builder.Services.AddSingleton<McpServer>();
+
+// Add Swagger for development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new() { Title = "CodeFormatterMcpServer API", Version = "v1" });
+    });
+}
+
+
 
 var app = builder.Build();
 
@@ -48,6 +62,18 @@ app.MapPost("/rpc", async (HttpContext ctx, McpServer mcp) =>
     return Results.Json(resp);
 });
 
+
+// Enable Swagger in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CodeFormatterMcpServer API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
 app.Run();
 
 public sealed class SseHub
@@ -61,3 +87,7 @@ public sealed class SseHub
         return _ch.Writer.WriteAsync(chunk).AsTask();
     }
 }
+
+
+
+

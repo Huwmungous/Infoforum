@@ -1,19 +1,36 @@
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using DocumentationMcpServer;
-                using var reader = new StreamReader(Console.OpenStandardInput());
-                using var writer = new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true };
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using System.Threading.Channels;
+using SfD.Global;
+using DocumentationMcpServer;
+using DocumentationMcpServer.Protocol;
 
 var builder = WebApplication.CreateBuilder(args);
+int port = PortResolver.GetPort();
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(port);
+});
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 builder.Services.AddSingleton<McpServer>();
+
+// Add Swagger for development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new() { Title = "DocumentationMcpServer API", Version = "v1" });
+    });
+}
+
+
 
 var app = builder.Build();
 
@@ -46,6 +63,18 @@ app.MapPost("/rpc", async (HttpContext ctx, McpServer mcp) =>
     return Results.Json(resp);
 });
 
+
+// Enable Swagger in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "DocumentationMcpServer API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
 app.Run();
 
 public sealed class SseHub
@@ -59,3 +88,7 @@ public sealed class SseHub
         return _ch.Writer.WriteAsync(chunk).AsTask();
     }
 }
+
+
+
+

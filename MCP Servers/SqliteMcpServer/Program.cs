@@ -1,23 +1,40 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using SqliteMcpServer.Protocol;
-using SqliteMcpServer.Services;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading.Channels;
+using SfD.Global;
+using SqliteMcpServer.Protocol;
+using SqliteMcpServer.Models;
+using SqliteMcpServer.Services;
+using SqliteMcpServer;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{ 
+    options.ListenAnyIP(PortResolver.GetPort());
+});
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 // Existing service registrations
-services.AddSingleton<SqliteService>(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<SqliteService>>();
-            return new SqliteService(logger, dbPath);
+builder.Services.AddSingleton<SqliteService>(sp =>
+{
+    var logger = sp.GetRequiredService<ILogger<SqliteService>>();
+    var dbPath = Environment.GetEnvironmentVariable("SQLITE_DB_PATH") ?? "data.db";
+    return new SqliteService(logger, dbPath);
+});
 builder.Services.AddSingleton<McpServer>();
+
+// Add Swagger for development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new() { Title = "SqliteMcpServer API", Version = "v1" });
+    });
+}
+
+
 
 var app = builder.Build();
 
@@ -50,16 +67,21 @@ app.MapPost("/rpc", async (HttpContext ctx, McpServer mcp) =>
     return Results.Json(resp);
 });
 
+
+// Enable Swagger in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "SqliteMcpServer API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
+
 app.Run();
 
-public sealed class SseHub
-{
-    private readonly Channel<string> _ch = Channel.CreateUnbounded<string>();
-    public ChannelReader<string> Reader => _ch.Reader;
-    public Task PushAsync(string evt, object payload)
-    {
-        var json = JsonSerializer.Serialize(payload);
-        var chunk = $"event: {evt}\n" + $"data: {json}\n\n";
-        return _ch.Writer.WriteAsync(chunk).AsTask();
-    }
-}
+
+
+
+

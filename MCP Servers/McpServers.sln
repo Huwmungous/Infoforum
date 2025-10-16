@@ -41,7 +41,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestGeneratorMcpServer", "T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UiComponentConverterMcpServer", "UiComponentConverterMcpServer\UiComponentConverterMcpServer.csproj", "{70102F40-99E7-3905-676B-F10473734A4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SfD.Global", "..\SfD.Global\SfD.Global.csproj", "{6C3CD33A-41B9-2389-BCF4-E2567C0429EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SfD.Global", "..\..\SfD\SfD.Global\SfD.Global.csproj", "{88C2AA1A-46EA-770B-3890-92832F7FA550}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,10 +113,10 @@ Global
 		{70102F40-99E7-3905-676B-F10473734A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70102F40-99E7-3905-676B-F10473734A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70102F40-99E7-3905-676B-F10473734A4B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6C3CD33A-41B9-2389-BCF4-E2567C0429EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6C3CD33A-41B9-2389-BCF4-E2567C0429EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6C3CD33A-41B9-2389-BCF4-E2567C0429EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6C3CD33A-41B9-2389-BCF4-E2567C0429EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88C2AA1A-46EA-770B-3890-92832F7FA550}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88C2AA1A-46EA-770B-3890-92832F7FA550}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88C2AA1A-46EA-770B-3890-92832F7FA550}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88C2AA1A-46EA-770B-3890-92832F7FA550}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
