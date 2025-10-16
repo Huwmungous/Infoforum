@@ -56,7 +56,7 @@ public class McpServer
         }
     }
 
-    private async Task<McpResponse> HandleRequestAsync(McpRequest request)
+    public async Task<McpResponse> HandleRequestAsync(McpRequest request)
     {
         await Task.CompletedTask;
         return request.Method switch

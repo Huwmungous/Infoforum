@@ -1,10 +1,6 @@
-#!/bin/bash
-set -e
-
-# Deploy this MCP server using the shared helper one level up.
-# Usage: ./deploy.sh [extra dotnet args...]
-
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DEPLOY_ROOT="/srv/sfddevelopment/MCPServers"
-
-exec "$SCRIPT_DIR/../deploy-one-MCPServer.sh" "DocumentationMcpServer" "documentation-mcp" "$DEPLOY_ROOT" "$@"
+#!/usr/bin/env bash
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUT="${SCRIPT_DIR}/publish"
+dotnet publish "${SCRIPT_DIR}/DocumentationMcpServer.csproj" -c Release -o "${OUT}"
+echo "Published DocumentationMcpServer webservice to $OUT"
