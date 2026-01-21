@@ -1,4 +1,4 @@
-using FirebirdSql.Data.FirebirdClient;
+using Npgsql;
 using Microsoft.Extensions.Logging;
 using IFGlobal.Models;
 using System.Data;
@@ -7,19 +7,19 @@ using System.Data.Common;
 namespace IFGlobal.DataAccess;
 
 /// <summary>
-/// Base class for Firebird data access repositories.
+/// Base class for PostgreSQL data access repositories.
 /// Provides common database operations with async support and transaction management.
 /// Can be used directly or extended by specific repositories.
 /// </summary>
 public class BaseRepository : IBaseRepository
 {
     private readonly string _connectionString;
-    private FbTransaction? _transaction;
+    private NpgsqlTransaction? _transaction;
     protected readonly ILogger _logger;
 
-    public BaseRepository(FBConnectionConfig fbConnection, ILogger<BaseRepository> logger)
+    public BaseRepository(PGConnectionConfig pgConnection, ILogger<BaseRepository> logger)
     {
-        _connectionString = fbConnection.ToString();
+        _connectionString = pgConnection.ToString();
         _logger = logger;
     }
 
@@ -37,7 +37,7 @@ public class BaseRepository : IBaseRepository
     /// <summary>
     /// Gets or sets an explicit transaction for operations.
     /// </summary>
-    public FbTransaction? ExplicitTransaction
+    public NpgsqlTransaction? ExplicitTransaction
     {
         get => _transaction;
         set
@@ -50,12 +50,12 @@ public class BaseRepository : IBaseRepository
     /// <summary>
     /// Creates and opens a new connection, or returns the transaction's connection if set.
     /// </summary>
-    protected async Task<FbConnection> GetConnectionAsync(CancellationToken ct = default)
+    protected async Task<NpgsqlConnection> GetConnectionAsync(CancellationToken ct = default)
     {
         if (_transaction is not null)
             return _transaction.Connection!;
 
-        var connection = new FbConnection(_connectionString);
+        var connection = new NpgsqlConnection(_connectionString);
         await connection.OpenAsync(ct);
         return connection;
     }
@@ -63,12 +63,12 @@ public class BaseRepository : IBaseRepository
     /// <summary>
     /// Creates and opens a new connection synchronously.
     /// </summary>
-    public FbConnection GetConnection()
+    public NpgsqlConnection GetConnection()
     {
         if (_transaction is not null)
             return _transaction.Connection!;
 
-        var connection = new FbConnection(_connectionString);
+        var connection = new NpgsqlConnection(_connectionString);
         connection.Open();
         return connection;
     }
@@ -82,7 +82,7 @@ public class BaseRepository : IBaseRepository
         CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
-        await using var command = new FbCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
 
         return await ReadResultsAsync(command, mapper, ct);
     }
@@ -92,12 +92,12 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<List<T>> ExecuteQueryAsync<T>(
         string sql,
-        Action<FbParameterCollection> configureParameters,
+        Action<NpgsqlParameterCollection> configureParameters,
         Func<DbDataReader, T?> mapper,
         CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
-        await using var command = new FbCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
 
         configureParameters(command.Parameters);
 
@@ -110,7 +110,7 @@ public class BaseRepository : IBaseRepository
     protected async Task<T?> ExecuteScalarAsync<T>(string sql, CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
-        await using var command = new FbCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
 
         var result = await command.ExecuteScalarAsync(ct);
         return result is DBNull or null ? default : (T)Convert.ChangeType(result, typeof(T));
@@ -121,11 +121,11 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<T?> ExecuteScalarAsync<T>(
         string sql,
-        Action<FbParameterCollection> configureParameters,
+        Action<NpgsqlParameterCollection> configureParameters,
         CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
-        await using var command = new FbCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
 
         configureParameters(command.Parameters);
 
@@ -139,7 +139,7 @@ public class BaseRepository : IBaseRepository
     protected async Task<int> ExecuteNonQueryAsync(string sql, CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
-        await using var command = new FbCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
 
         return await command.ExecuteNonQueryAsync(ct);
     }
@@ -149,11 +149,11 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<int> ExecuteNonQueryAsync(
         string sql,
-        Action<FbParameterCollection> configureParameters,
+        Action<NpgsqlParameterCollection> configureParameters,
         CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
-        await using var command = new FbCommand(sql, connection);
+        await using var command = new NpgsqlCommand(sql, connection);
 
         configureParameters(command.Parameters);
 
@@ -165,7 +165,7 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<T?> ExecuteQueryFirstOrDefaultAsync<T>(
         string sql,
-        Action<FbParameterCollection> configureParameters,
+        Action<NpgsqlParameterCollection> configureParameters,
         Func<DbDataReader, T?> mapper,
         CancellationToken ct = default)
     {
@@ -178,7 +178,7 @@ public class BaseRepository : IBaseRepository
     /// Legacy method - prefer ExecuteInTransactionScopeAsync for better composability.
     /// </summary>
     protected async Task ExecuteInTransactionAsync(
-        Func<FbTransaction, Task> operations,
+        Func<NpgsqlTransaction, Task> operations,
         CancellationToken ct = default)
     {
         await using var connection = await GetConnectionAsync(ct);
@@ -284,7 +284,7 @@ public class BaseRepository : IBaseRepository
     /// <summary>
     /// Opens a synchronous query reader.
     /// </summary>
-    public FbDataReader OpenQuery(string sql)
+    public NpgsqlDataReader OpenQuery(string sql)
     {
         var connection = GetConnection();
         var command = connection.CreateCommand();
@@ -294,7 +294,7 @@ public class BaseRepository : IBaseRepository
     }
 
     private static async Task<List<T>> ReadResultsAsync<T>(
-        FbCommand command,
+        NpgsqlCommand command,
         Func<DbDataReader, T?> mapper,
         CancellationToken ct)
     {

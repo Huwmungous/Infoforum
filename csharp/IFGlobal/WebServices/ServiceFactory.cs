@@ -455,9 +455,6 @@ public static partial class ServiceFactory
     {
         switch (config)
         {
-            case FBConnectionConfig fb:
-                LogDatabaseConnection(logger, serviceName, fb.Host, fb.Port, fb.Database);
-                break;
             case PGConnectionConfig pg:
                 LogDatabaseConnection(logger, serviceName, pg.Host, pg.Port, pg.Database);
                 break;
@@ -471,6 +468,7 @@ public static partial class ServiceFactory
     /// <summary>
     /// Creates a service with Firebird database configuration.
     /// </summary>
+    [Obsolete("Firebird support is deprecated. Use CreateWithPostgresAsync instead.")]
     public static Task<WebApplication> CreateWithFirebirdAsync(
         string serviceName,
         string? description = null,

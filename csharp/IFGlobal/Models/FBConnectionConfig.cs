@@ -1,5 +1,6 @@
 namespace IFGlobal.Models;
 
+[Obsolete("Firebird support is deprecated. Use PGConnectionConfig for PostgreSQL connections.")]
 public class FBConnectionConfig
 {
     public bool RequiresRelay { get; set; } = false;

@@ -66,7 +66,7 @@ public class SampleController : ControllerBase
                 await connection.OpenAsync(cancellationToken);
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = "SELECT 1 FROM RDB$DATABASE";
+                    command.CommandText = "SELECT 1";
                     var scalar = await command.ExecuteScalarAsync(cancellationToken);
                     result = Convert.ToInt32(scalar);
                 }

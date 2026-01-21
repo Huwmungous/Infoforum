@@ -1,4 +1,4 @@
-using FirebirdSql.Data.FirebirdClient;
+using Npgsql;
 using SampleWebService.Models;
 using IFGlobal.Models;
 
@@ -14,27 +14,27 @@ public sealed class AccountRepository : IAsyncDisposable
     private readonly string _connectionString;
     private readonly bool _requiresRelay;
 
-    private FbConnection? _connection;
+    private NpgsqlConnection? _connection;
 
     public AccountRepository(
-        FBConnectionConfig fbConfig,
+        PGConnectionConfig pgConfig,
         ILogger<AccountRepository> logger)
     {
         _logger = logger;
-        _connectionString = fbConfig.ToString();
-        _requiresRelay = fbConfig.RequiresRelay;
+        _connectionString = pgConfig.ToString();
+        _requiresRelay = pgConfig.RequiresRelay;
 
         _logger.LogDebug("AccountRepository initialised - Mode: {Mode}, Database: {Host}:{Port}/{Database}",
             _requiresRelay ? "RELAY" : "DIRECT",
-            fbConfig.Host,
-            fbConfig.Port,
-            fbConfig.Database);
+            pgConfig.Host,
+            pgConfig.Port,
+            pgConfig.Database);
     }
 
     /// <summary>
     /// Gets a database connection, creating one if necessary.
     /// </summary>
-    private async Task<FbConnection> GetConnectionAsync(CancellationToken cancellationToken = default)
+    private async Task<NpgsqlConnection> GetConnectionAsync(CancellationToken cancellationToken = default)
     {
         if (_requiresRelay)
         {
@@ -44,7 +44,7 @@ public sealed class AccountRepository : IAsyncDisposable
 
         if (_connection is null || _connection.State != System.Data.ConnectionState.Open)
         {
-            _connection = new FbConnection(_connectionString);
+            _connection = new NpgsqlConnection(_connectionString);
             await _connection.OpenAsync(cancellationToken);
         }
 
@@ -60,7 +60,7 @@ public sealed class AccountRepository : IAsyncDisposable
         var accounts = new List<Account>();
 
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT * FROM ACCOUNT ORDER BY ACCOUNT_ID";
+        cmd.CommandText = "SELECT * FROM account ORDER BY account_id";
 
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
@@ -79,7 +79,7 @@ public sealed class AccountRepository : IAsyncDisposable
         var connection = await GetConnectionAsync(cancellationToken);
 
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT * FROM ACCOUNT WHERE ACCOUNT_ID = @AccountId";
+        cmd.CommandText = "SELECT * FROM account WHERE account_id = @AccountId";
         cmd.Parameters.AddWithValue("@AccountId", accountId);
 
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
@@ -99,7 +99,7 @@ public sealed class AccountRepository : IAsyncDisposable
         var connection = await GetConnectionAsync(cancellationToken);
 
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM ACCOUNT";
+        cmd.CommandText = "SELECT COUNT(*) FROM account";
 
         var result = await cmd.ExecuteScalarAsync(cancellationToken);
         return Convert.ToInt32(result);
@@ -114,7 +114,7 @@ public sealed class AccountRepository : IAsyncDisposable
         var accounts = new List<Account>();
 
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT * FROM ACCOUNT ORDER BY NAME";
+        cmd.CommandText = "SELECT * FROM account WHERE is_active = true ORDER BY account_name";
 
         await using var reader = await cmd.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
@@ -135,28 +135,22 @@ public sealed class AccountRepository : IAsyncDisposable
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
         try
         {
-            // Get next ID (Firebird generator)
-            await using var idCmd = connection.CreateCommand();
-            idCmd.Transaction = transaction;
-            idCmd.CommandText = "SELECT GEN_ID(GEN_ACCOUNT_ID, 1) FROM RDB$DATABASE";
-            var newId = Convert.ToInt32(await idCmd.ExecuteScalarAsync(cancellationToken));
-
-            // Insert the account
+            // Insert the account and return the generated ID (PostgreSQL RETURNING clause)
             await using var insertCmd = connection.CreateCommand();
             insertCmd.Transaction = transaction;
             insertCmd.CommandText = @"
-                INSERT INTO ACCOUNT (ACCOUNT_ID, ACCOUNT_NUMBER, ACCOUNT_NAME, ACCOUNT_TYPE, BALANCE, CREATED_DATE, IS_ACTIVE)
-                VALUES (@AccountId, @AccountNumber, @AccountName, @AccountType, @Balance, @CreatedDate, @IsActive)";
+                INSERT INTO account (account_number, account_name, account_type, balance, created_date, is_active)
+                VALUES (@AccountNumber, @AccountName, @AccountType, @Balance, @CreatedDate, @IsActive)
+                RETURNING account_id";
 
-            insertCmd.Parameters.AddWithValue("@AccountId", newId);
-            insertCmd.Parameters.AddWithValue("@AccountNumber", account.AccountNumber);
-            insertCmd.Parameters.AddWithValue("@AccountName", account.AccountName);
-            insertCmd.Parameters.AddWithValue("@AccountType", account.AccountType);
-            insertCmd.Parameters.AddWithValue("@Balance", account.Balance);
+            insertCmd.Parameters.AddWithValue("@AccountNumber", (object?)account.AccountNumber ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@AccountName", (object?)account.AccountName ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@AccountType", (object?)account.AccountType ?? DBNull.Value);
+            insertCmd.Parameters.AddWithValue("@Balance", (object?)account.Balance ?? DBNull.Value);
             insertCmd.Parameters.AddWithValue("@CreatedDate", DateTime.Now);
             insertCmd.Parameters.AddWithValue("@IsActive", true);
 
-            await insertCmd.ExecuteNonQueryAsync(cancellationToken);
+            var newId = Convert.ToInt32(await insertCmd.ExecuteScalarAsync(cancellationToken));
             await transaction.CommitAsync(cancellationToken);
 
             return newId;
@@ -177,22 +171,22 @@ public sealed class AccountRepository : IAsyncDisposable
 
         await using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            UPDATE ACCOUNT SET
-                ACCOUNT_NUMBER = @AccountNumber,
-                ACCOUNT_NAME = @AccountName,
-                ACCOUNT_TYPE = @AccountType,
-                BALANCE = @Balance,
-                MODIFIED_DATE = @ModifiedDate,
-                IS_ACTIVE = @IsActive
-            WHERE ACCOUNT_ID = @AccountId";
+            UPDATE account SET
+                account_number = @AccountNumber,
+                account_name = @AccountName,
+                account_type = @AccountType,
+                balance = @Balance,
+                modified_date = @ModifiedDate,
+                is_active = @IsActive
+            WHERE account_id = @AccountId";
 
         cmd.Parameters.AddWithValue("@AccountId", account.AccountId);
-        cmd.Parameters.AddWithValue("@AccountNumber", account.AccountNumber);
-        cmd.Parameters.AddWithValue("@AccountName", account.AccountName);
-        cmd.Parameters.AddWithValue("@AccountType", account.AccountType);
-        cmd.Parameters.AddWithValue("@Balance", account.Balance);
+        cmd.Parameters.AddWithValue("@AccountNumber", (object?)account.AccountNumber ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@AccountName", (object?)account.AccountName ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@AccountType", (object?)account.AccountType ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@Balance", (object?)account.Balance ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@ModifiedDate", DateTime.Now);
-        cmd.Parameters.AddWithValue("@IsActive", account.IsActive);
+        cmd.Parameters.AddWithValue("@IsActive", (object?)account.IsActive ?? DBNull.Value);
 
         var rowsAffected = await cmd.ExecuteNonQueryAsync(cancellationToken);
         return rowsAffected > 0;
@@ -206,7 +200,7 @@ public sealed class AccountRepository : IAsyncDisposable
         var connection = await GetConnectionAsync(cancellationToken);
 
         await using var cmd = connection.CreateCommand();
-        cmd.CommandText = "DELETE FROM ACCOUNT WHERE ACCOUNT_ID = @AccountId";
+        cmd.CommandText = "DELETE FROM account WHERE account_id = @AccountId";
         cmd.Parameters.AddWithValue("@AccountId", accountId);
 
         var rowsAffected = await cmd.ExecuteNonQueryAsync(cancellationToken);
@@ -216,16 +210,16 @@ public sealed class AccountRepository : IAsyncDisposable
     /// <summary>
     /// Maps a data reader row to an Account object.
     /// </summary>
-    private static Account MapAccount(FbDataReader reader)
+    private static Account MapAccount(NpgsqlDataReader reader)
     {
         return new Account
         {
-            AccountId = reader.GetInt32(reader.GetOrdinal("ACCOUNT_ID")),
-            AccountNumber = reader.GetString(reader.GetOrdinal("ACCOUNT_NUMBER")),
-            AccountName = reader.GetString(reader.GetOrdinal("ACCOUNT_NAME")),
-            AccountType = reader.GetString(reader.GetOrdinal("ACCOUNT_TYPE")),
-            Balance = reader.GetDecimal(reader.GetOrdinal("BALANCE")),
-            IsActive = reader.GetBoolean(reader.GetOrdinal("IS_ACTIVE"))
+            AccountId = reader.GetInt32(reader.GetOrdinal("account_id")),
+            AccountNumber = reader.IsDBNull(reader.GetOrdinal("account_number")) ? null : reader.GetString(reader.GetOrdinal("account_number")),
+            AccountName = reader.IsDBNull(reader.GetOrdinal("account_name")) ? null : reader.GetString(reader.GetOrdinal("account_name")),
+            AccountType = reader.IsDBNull(reader.GetOrdinal("account_type")) ? null : reader.GetString(reader.GetOrdinal("account_type")),
+            Balance = reader.IsDBNull(reader.GetOrdinal("balance")) ? null : reader.GetDecimal(reader.GetOrdinal("balance")),
+            IsActive = reader.IsDBNull(reader.GetOrdinal("is_active")) ? null : reader.GetBoolean(reader.GetOrdinal("is_active"))
         };
     }
 

@@ -1,0 +1,69 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\repos\\Infoforum\\IF.WebServices\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2DB643E3-35DF-76F4-7A78-CBD232CC3280}|..\\csharp\\IFGlobal\\IFGlobal.csproj|c:\\repos\\infoforum\\csharp\\ifglobal\\dataaccess\\baserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DB643E3-35DF-76F4-7A78-CBD232CC3280}|..\\csharp\\IFGlobal\\IFGlobal.csproj|c:\\repos\\infoforum\\csharp\\ifglobal\\webservices\\servicefactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{32C12310-FD0C-F7B4-3862-91FDBD861EE6}|SampleWebService\\SampleWebService.csproj|c:\\repos\\infoforum\\if.webservices\\samplewebservice\\repositories\\accountrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{32C12310-FD0C-F7B4-3862-91FDBD861EE6}|SampleWebService\\SampleWebService.csproj|solutionrelative:samplewebservice\\repositories\\accountrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BaseRepository.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "RelativeDocumentMoniker": "..\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "RelativeToolTip": "..\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAIwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T16:01:09.162Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ServiceFactory.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "RelativeDocumentMoniker": "..\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "RelativeToolTip": "..\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "ViewState": "AgIAAMEBAAAAAAAAAAAewMsBAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T15:59:29.503Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AccountRepository.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Repositories\\AccountRepository.cs",
+              "RelativeDocumentMoniker": "SampleWebService\\Repositories\\AccountRepository.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Repositories\\AccountRepository.cs",
+              "RelativeToolTip": "SampleWebService\\Repositories\\AccountRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T15:58:44.899Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

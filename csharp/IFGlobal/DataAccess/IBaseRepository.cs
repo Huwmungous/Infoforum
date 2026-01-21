@@ -1,4 +1,4 @@
-using FirebirdSql.Data.FirebirdClient;
+using Npgsql;
 using IFGlobal.Models;
 
 namespace IFGlobal.DataAccess;
@@ -16,15 +16,15 @@ public interface IBaseRepository
     /// <summary>
     /// Gets or sets an explicit transaction for operations.
     /// </summary>
-    FbTransaction? ExplicitTransaction { get; set; }
+    NpgsqlTransaction? ExplicitTransaction { get; set; }
 
     /// <summary>
     /// Creates and opens a new connection synchronously.
     /// </summary>
-    FbConnection GetConnection();
+    NpgsqlConnection GetConnection();
 
     /// <summary>
     /// Opens a synchronous query reader.
     /// </summary>
-    FbDataReader OpenQuery(string sql);
+    NpgsqlDataReader OpenQuery(string sql);
 }
