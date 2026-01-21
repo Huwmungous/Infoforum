@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 
 namespace IFGlobal
@@ -13,6 +13,7 @@ namespace IFGlobal
         {
             switch (appname)
             {
+                // Core applications (5000-5011)
                 case "BreakTackle": return 5000;
                 case "BreakTackleAPI": return 5001;
                 case "JibberJabber": return 5002;
@@ -25,6 +26,28 @@ namespace IFGlobal
                 case "File-Manager": return 5009;
                 case "ClipboardSyncService": return 5010;
                 case "OllamaMcpServer": return 5011;
+
+                // MCP Servers (5012-5027)
+                case "BraveSearchMcpServer": return 5012;
+                case "CodeAnalysisMcpServer": return 5013;
+                case "CodeFormatterMcpServer": return 5014;
+                case "ConfigManagementMcpServer": return 5015;
+                case "DatabaseCompareMcpServer": return 5016;
+                case "DocumentationMcpServer": return 5017;
+                case "DotNetBuildMcpServer": return 5018;
+                case "FileSystemMcpServer": return 5019;
+                case "FileTransferMcpServer": return 5020;
+                case "FirebirdMcpServer": return 5021;
+                case "GitMcpServer": return 5022;
+                case "PlaywrightMcpServer": return 5023;
+                case "SqlGeneratorMcpServer": return 5024;
+                case "SqliteMcpServer": return 5025;
+                case "TestGeneratorMcpServer": return 5026;
+                case "UiComponentConverterMcpServer": return 5027;
+
+                // IFOllama WebService and React server (5028-5029)
+                case "IFOllama.WebService": return 5028;
+                case "IFOllama.React": return 5029;
 
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";
