@@ -36,3 +36,12 @@
 /csharp/BTTranslate/bin
 /CodeZip
 node_modules
+/csharp/File-Manager/obj/Debug/net9.0
+/csharp/IFOllama.WebService/.vs
+/csharp/IFOllama.WebService/IFOllama.Classes/bin/Debug/net10.0
+/csharp/IFOllama.WebService/IFOllama.Classes/obj/Debug/net10.0
+/csharp/IFOllama.WebService/IFOllama.Classes/obj
+/csharp/IFOllama.WebService/IFOllama.WebService/bin/Debug/net10.0
+/csharp/IFOllama.WebService/IFOllama.WebService/obj/Debug/net10.0
+/csharp/IFOllama.WebService/IFOllama.WebService/obj
+/IF.WebServices/.vs/IF.WebServices/FileContentIndex
