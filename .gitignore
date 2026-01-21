@@ -45,3 +45,6 @@ node_modules
 /csharp/IFOllama.WebService/IFOllama.WebService/obj/Debug/net10.0
 /csharp/IFOllama.WebService/IFOllama.WebService/obj
 /IF.WebServices/.vs/IF.WebServices/FileContentIndex
+/IF.WebServices/ConfigWebService/obj
+/IF.WebServices/LoggerWebService/obj
+/IF.WebServices/SampleWebService/obj
