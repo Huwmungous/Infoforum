@@ -1,0 +1,208 @@
+@LoggerWebService_HostAddress = http://localhost:5310
+
+### Add a log entry
+POST {{LoggerWebService_HostAddress}}/api/logs
+Content-Type: application/json
+
+{
+  "idx": 1,
+  "logData": {
+    "level": "Error",
+    "message": "Database connection failed",
+    "timestamp": "2025-11-17T10:30:00Z",
+    "eventName": "DatabaseError",
+    "category": "MyApp.Database",
+    "exception": "SqlException: Connection timeout",
+    "machineName": "PROD-SERVER-01",
+    "processId": 1234,
+    "threadId": 42
+  }
+}
+
+### Get all logs (with pagination)
+GET {{LoggerWebService_HostAddress}}/api/logs?limit=10&offset=0
+
+### Get specific log by idx
+GET {{LoggerWebService_HostAddress}}/api/logs/1
+
+### Search - Simple equals filter
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "Level", "operator": "Equals", "value": "Error" }
+  ],
+  "limit": 50
+}
+
+### Search - OR condition (Error OR Critical)
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "Level", "operator": "Equals", "value": "Error" },
+    { "field": "Level", "operator": "Equals", "value": "Critical" }
+  ],
+  "filterLogic": "Or",
+  "limit": 100
+}
+
+### Search - Contains (partial text match)
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "Message", "operator": "Contains", "value": "database" }
+  ]
+}
+
+### Search - StartsWith
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "Category", "operator": "StartsWith", "value": "MyApp" }
+  ]
+}
+
+### Search - IN operator (multiple values)
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { 
+      "field": "Level", 
+      "operator": "In", 
+      "values": ["Error", "Critical", "Warning"] 
+    }
+  ]
+}
+
+### Search - Numeric range with Between
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "ProcessId", "operator": "Between", "value": "1000", "valueTo": "5000" }
+  ]
+}
+
+### Search - Greater than
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "ThreadId", "operator": "GreaterThan", "value": "10" }
+  ]
+}
+
+### Search - IsNotNull (find logs with exceptions)
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "Exception", "operator": "IsNotNull" }
+  ]
+}
+
+### Search - Date range
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "createdAfter": "2025-11-17T00:00:00Z",
+  "createdBefore": "2025-11-17T23:59:59Z",
+  "limit": 100
+}
+
+### Search - Combined filters (Level=Error AND Category starts with Database)
+POST {{LoggerWebService_HostAddress}}/api/logs/search
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "Level", "operator": "Equals", "value": "Error" },
+    { "field": "Category", "operator": "StartsWith", "value": "Database" }
+  ],
+  "filterLogic": "And",
+  "createdAfter": "2025-11-17T00:00:00Z"
+}
+
+### Advanced Search - Grouped conditions
+### (Level=Error OR Level=Critical) AND (Category LIKE 'Database%')
+POST {{LoggerWebService_HostAddress}}/api/logs/advanced-search
+Content-Type: application/json
+
+{
+  "filterGroups": [
+    {
+      "conditions": [
+        { "field": "Level", "operator": "Equals", "value": "Error" },
+        { "field": "Level", "operator": "Equals", "value": "Critical" }
+      ],
+      "logic": "Or"
+    },
+    {
+      "conditions": [
+        { "field": "Category", "operator": "StartsWith", "value": "Database" }
+      ],
+      "logic": "And"
+    }
+  ],
+  "groupLogic": "And",
+  "limit": 50
+}
+
+### Advanced Search - Complex multi-group
+### (Level=Error AND Message contains 'timeout') OR (Level=Critical)
+POST {{LoggerWebService_HostAddress}}/api/logs/advanced-search
+Content-Type: application/json
+
+{
+  "filterGroups": [
+    {
+      "conditions": [
+        { "field": "Level", "operator": "Equals", "value": "Error" },
+        { "field": "Message", "operator": "Contains", "value": "timeout" }
+      ],
+      "logic": "And"
+    },
+    {
+      "conditions": [
+        { "field": "Level", "operator": "Equals", "value": "Critical" }
+      ],
+      "logic": "And"
+    }
+  ],
+  "groupLogic": "Or",
+  "orderBy": "created_at",
+  "orderDirection": "DESC",
+  "limit": 100
+}
+
+### Advanced Search - Find all errors from specific machine in last 24 hours
+POST {{LoggerWebService_HostAddress}}/api/logs/advanced-search
+Content-Type: application/json
+
+{
+  "filterGroups": [
+    {
+      "conditions": [
+        { "field": "Level", "operator": "Equals", "value": "Error" },
+        { "field": "MachineName", "operator": "Equals", "value": "PROD-SERVER-01" }
+      ],
+      "logic": "And"
+    }
+  ],
+  "groupLogic": "And",
+  "createdAfter": "2025-11-16T00:00:00Z",
+  "limit": 200
+}

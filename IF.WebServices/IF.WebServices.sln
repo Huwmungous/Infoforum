@@ -1,0 +1,111 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeycloakWebService", "KeycloakWebService\KeycloakWebService.csproj", "{3B84D20B-5709-A0D2-1843-DDBE5A049101}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigWebService", "ConfigWebService\ConfigWebService.csproj", "{2537694A-DED8-3B32-0803-F1C90D8910B5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
+	ProjectSection(SolutionItems) = preProject
+		deploy-all-webservices.sh = deploy-all-webservices.sh
+		deploy-one-webservice.sh = deploy-one-webservice.sh
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerWebService", "LoggerWebService\LoggerWebService.csproj", "{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebService", "SampleWebService\SampleWebService.csproj", "{32C12310-FD0C-F7B4-3862-91FDBD861EE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NginX-Config", "NginX-Config", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		..\NginX-config\nginx.conf = ..\NginX-config\nginx.conf
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "conf.d", "conf.d", "{EA6145CF-A566-4F1B-8A9E-57A1F3606CC4}"
+	ProjectSection(SolutionItems) = preProject
+		..\NginX-config\conf.d\00-acme-http.conf = ..\NginX-config\conf.d\00-acme-http.conf
+		..\NginX-config\conf.d\00-ws-map.conf = ..\NginX-config\conf.d\00-ws-map.conf
+		..\NginX-config\conf.d\mcp-servers.inc = ..\NginX-config\conf.d\mcp-servers.inc
+		..\NginX-config\conf.d\openwebui.acme.conf.disabled = ..\NginX-config\conf.d\openwebui.acme.conf.disabled
+		..\NginX-config\conf.d\openwebui.sfddevelopment.com.conf.fullbackup = ..\NginX-config\conf.d\openwebui.sfddevelopment.com.conf.fullbackup
+		..\NginX-config\conf.d\react-apps.inc = ..\NginX-config\conf.d\react-apps.inc
+		..\NginX-config\conf.d\sfddevelopment-BLAZOR.com-ssl.conf.bak = ..\NginX-config\conf.d\sfddevelopment-BLAZOR.com-ssl.conf.bak
+		..\NginX-config\conf.d\sfddevelopment.com-ssl.conf = ..\NginX-config\conf.d\sfddevelopment.com-ssl.conf
+		..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.bak = ..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.bak
+		..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.fullbackup = ..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.fullbackup
+		..\NginX-config\conf.d\sfddevelopment.com.conf.bak = ..\NginX-config\conf.d\sfddevelopment.com.conf.bak
+		..\NginX-config\conf.d\_upfmt.conf = ..\NginX-config\conf.d\_upfmt.conf
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\csharp\IFGlobal\IFGlobal.csproj", "{2DB643E3-35DF-76F4-7A78-CBD232CC3280}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DBG|Any CPU = DBG|Any CPU
+		DEV|Any CPU = DEV|Any CPU
+		PRD|Any CPU = PRD|Any CPU
+		SIT|Any CPU = SIT|Any CPU
+		UAT|Any CPU = UAT|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.DBG|Any CPU.ActiveCfg = DBG|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.DBG|Any CPU.Build.0 = DBG|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.DEV|Any CPU.ActiveCfg = DEV|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.DEV|Any CPU.Build.0 = DEV|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.PRD|Any CPU.ActiveCfg = PRD|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.PRD|Any CPU.Build.0 = PRD|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.SIT|Any CPU.ActiveCfg = SIT|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.SIT|Any CPU.Build.0 = SIT|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.UAT|Any CPU.ActiveCfg = UAT|Any CPU
+		{3B84D20B-5709-A0D2-1843-DDBE5A049101}.UAT|Any CPU.Build.0 = UAT|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.DBG|Any CPU.ActiveCfg = Debug|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.DBG|Any CPU.Build.0 = Debug|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.DEV|Any CPU.ActiveCfg = DEV|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.DEV|Any CPU.Build.0 = DEV|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.PRD|Any CPU.ActiveCfg = PRD|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.PRD|Any CPU.Build.0 = PRD|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.SIT|Any CPU.ActiveCfg = SIT|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.SIT|Any CPU.Build.0 = SIT|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.UAT|Any CPU.ActiveCfg = UAT|Any CPU
+		{2537694A-DED8-3B32-0803-F1C90D8910B5}.UAT|Any CPU.Build.0 = UAT|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.DBG|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.DBG|Any CPU.Build.0 = Debug|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.DEV|Any CPU.ActiveCfg = DEV|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.DEV|Any CPU.Build.0 = DEV|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.PRD|Any CPU.ActiveCfg = PRD|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.PRD|Any CPU.Build.0 = PRD|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.SIT|Any CPU.ActiveCfg = SIT|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.SIT|Any CPU.Build.0 = SIT|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.UAT|Any CPU.ActiveCfg = UAT|Any CPU
+		{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}.UAT|Any CPU.Build.0 = UAT|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.DBG|Any CPU.ActiveCfg = DBG|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.DBG|Any CPU.Build.0 = DBG|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.DEV|Any CPU.ActiveCfg = DEV|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.DEV|Any CPU.Build.0 = DEV|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.PRD|Any CPU.ActiveCfg = PRD|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.PRD|Any CPU.Build.0 = PRD|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.SIT|Any CPU.ActiveCfg = SIT|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.SIT|Any CPU.Build.0 = SIT|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.UAT|Any CPU.ActiveCfg = UAT|Any CPU
+		{32C12310-FD0C-F7B4-3862-91FDBD861EE6}.UAT|Any CPU.Build.0 = UAT|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.DBG|Any CPU.ActiveCfg = Release|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.DBG|Any CPU.Build.0 = Release|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.DEV|Any CPU.ActiveCfg = Release|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.DEV|Any CPU.Build.0 = Release|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.PRD|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.PRD|Any CPU.Build.0 = Debug|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.SIT|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.SIT|Any CPU.Build.0 = Debug|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.UAT|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DB643E3-35DF-76F4-7A78-CBD232CC3280}.UAT|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EA6145CF-A566-4F1B-8A9E-57A1F3606CC4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A4127A8-F5B4-4857-B2CD-A354383C03A5}
+	EndGlobalSection
+EndGlobal

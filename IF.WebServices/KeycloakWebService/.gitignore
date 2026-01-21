@@ -1,0 +1,8 @@
+﻿bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+appsettings.*.json
+publish/

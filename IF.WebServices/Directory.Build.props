@@ -1,0 +1,28 @@
+<Project>
+
+  <!-- Shared configurations for all projects in the solution -->
+  <PropertyGroup>
+    <Configurations>Debug;Release;DEV;SIT;UAT;PRD</Configurations>
+  </PropertyGroup>
+
+  <!-- Explicit constants for each build configuration -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>$(DefineConstants);RELEASE;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'DEV'">
+    <DefineConstants>$(DefineConstants);DEV;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'SIT'">
+    <DefineConstants>$(DefineConstants);SIT;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'UAT'">
+    <DefineConstants>$(DefineConstants);UAT;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'PRD'">
+    <DefineConstants>$(DefineConstants);PRD;TRACE</DefineConstants>
+  </PropertyGroup>
+
+</Project>
