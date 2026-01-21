@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "mZ4zSY0o5pM=",
+  "dgSpecHash": "lYWXHIvQM5k=",
   "success": true,
-  "projectFilePath": "C:\\repos\\repos_source_2026-01-21_114240\\dotnet\\Tools\\CodeZip\\src\\CodeZip.Core\\CodeZip.Core.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "C:\\repos\\Infoforum\\CodeZip\\src\\CodeZip.Core\\CodeZip.Core.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\9.0.0\\microsoft.extensions.filesystemglobbing.9.0.0.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "DocumentationMcpServer": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5280"
+    }
+  }
+}

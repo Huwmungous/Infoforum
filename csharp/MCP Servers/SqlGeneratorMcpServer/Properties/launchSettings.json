@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "SqlGeneratorMcpServer": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5280"
+    }
+  }
+}

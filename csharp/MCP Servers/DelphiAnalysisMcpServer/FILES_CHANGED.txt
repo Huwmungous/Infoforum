@@ -1,0 +1,44 @@
+FILES MODIFIED IN THIS FIXED VERSION
+====================================
+
+3 files were modified to fix the statistics aggregation issue:
+
+1. Models/DatabaseEntities.cs
+   - Added ProjectStatistics class (lines 183-195)
+   - Purpose: Model to hold actual statistics from database
+
+2. Services/AnalysisRepository.cs  
+   - Added GetProjectStatisticsAsync method (inserted after line 1244)
+   - Purpose: Query database for actual counts after persistence
+
+3. Services/ProjectPersistenceService.cs
+   - Modified PersistProjectAsync method (around line 237-250)
+   - Purpose: Call GetProjectStatisticsAsync and update result
+
+UNCHANGED FILES
+===============
+
+All other files remain exactly as they were in the original version:
+- Program.cs
+- appsettings.json
+- delphi-analysis-mcp.service
+- All other service files
+- All other model files
+- Properties/
+- migrations/
+
+DEPLOYMENT
+==========
+
+See DEPLOY.md for quick 5-minute deployment guide.
+See CHANGES.md for detailed explanation of what changed and why.
+
+VERIFICATION
+===========
+
+After deployment, run DelphiDocumenter and check the summary shows:
+- Queries Found: 42 (not 0)
+- Total Units: 10 (not 0)  
+- Total Forms: 2 (not 0)
+
+This confirms the fix is working correctly.

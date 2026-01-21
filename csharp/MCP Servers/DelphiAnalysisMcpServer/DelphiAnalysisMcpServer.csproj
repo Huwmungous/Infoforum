@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Configurations>Debug;Release;SIT;DEV;PRD;UAT</Configurations>
+    <NoWarn>NETSDK1233</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql" Version="10.0.1" />
+  </ItemGroup> 
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SfD.Global\SfD.Global.csproj" />
+    <ProjectReference Include="..\SfD.Mcp.Protocol\SfD.Mcp.Protocol.csproj" />
+  </ItemGroup>
+
+</Project>
+
