@@ -17,10 +17,10 @@ using var bootstrapLoggerFactory = LoggerFactory.Create(logging =>
 });
 var logger = bootstrapLoggerFactory.CreateLogger("ConfigWebService");
 
-var clientId = Environment.GetEnvironmentVariable("SFD_CLIENT")
-    ?? throw new InvalidOperationException("SFD_CLIENT environment variable not set");
-var realm = Environment.GetEnvironmentVariable("SFD_REALM")
-    ?? throw new InvalidOperationException("SFD_REALM environment variable not set");
+var clientId = Environment.GetEnvironmentVariable("IF_CLIENT")
+    ?? throw new InvalidOperationException("IF_CLIENT environment variable not set");
+var realm = Environment.GetEnvironmentVariable("IF_REALM")
+    ?? throw new InvalidOperationException("IF_REALM environment variable not set");
 var clientSecret = Environment.GetEnvironmentVariable("IF_CLIENTSECRET")
     ?? throw new InvalidOperationException("IF_CLIENTSECRET environment variable not set");
 

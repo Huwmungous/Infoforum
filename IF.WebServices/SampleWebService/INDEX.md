@@ -16,8 +16,8 @@ This service demonstrates clean separation of concerns:
 
 ```bash
 SFD_CONFIG_SERVICE=https://longmanrd.net/config
-SFD_CLIENT=dev-login-svc
-SFD_REALM=SfdDevelopment_Dev
+IF_CLIENT=dev-login-svc
+IF_REALM=SfdDevelopment_Dev
 IF_CLIENTSECRET=your-client-secret
 ```
 

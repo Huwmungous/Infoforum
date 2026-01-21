@@ -26,4 +26,8 @@
 	  <Folder Include="Properties\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\csharp\IFGlobal\IFGlobal.csproj" />
+	</ItemGroup>
+
 </Project>

@@ -1,12 +1,14 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.2.11415.280 d18.0
+VisualStudioVersion = 18.2.11415.280
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.WebService", "IFOllama.WebService\IFOllama.WebService.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.Classes", "IFOllama.Classes\IFOllama.Classes.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebService", "..\..\IF.WebServices\SampleWebService\SampleWebService.csproj", "{342C2E67-E5CD-1B40-32BF-763381B9D7CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,8 +28,15 @@ Global
 		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{342C2E67-E5CD-1B40-32BF-763381B9D7CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{342C2E67-E5CD-1B40-32BF-763381B9D7CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{342C2E67-E5CD-1B40-32BF-763381B9D7CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{342C2E67-E5CD-1B40-32BF-763381B9D7CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {73BC4FA4-E9FF-4574-BF2A-392E657C1693}
 	EndGlobalSection
 EndGlobal

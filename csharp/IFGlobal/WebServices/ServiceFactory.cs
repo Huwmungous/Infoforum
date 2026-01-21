@@ -121,13 +121,13 @@ public static partial class ServiceFactory
             // ============================================================================
             // STANDARD MODE - Bootstrap via ConfigWebService
             // ============================================================================
-            var configServiceUrl = GetConfigValue(builder, "SfD:ConfigService", "SFD_CONFIG_SERVICE");
+            var configServiceUrl = GetConfigValue(builder, "IF:ConfigService", "IF_CONFIG_SERVICE");
             var clientSecret = Environment.GetEnvironmentVariable("IF_CLIENTSECRET")
                 ?? throw new InvalidOperationException("IF_CLIENTSECRET environment variable not set");
-            var client = Environment.GetEnvironmentVariable("SFD_CLIENT")
-                ?? throw new InvalidOperationException("SFD_CLIENT environment variable not set");
-            var realm = Environment.GetEnvironmentVariable("SFD_REALM")
-                ?? throw new InvalidOperationException("SFD_REALM environment variable not set");
+            var client = Environment.GetEnvironmentVariable("IF_CLIENT")
+                ?? throw new InvalidOperationException("IF_CLIENT environment variable not set");
+            var realm = Environment.GetEnvironmentVariable("IF_REALM")
+                ?? throw new InvalidOperationException("IF_REALM environment variable not set");
 
             Environment.SetEnvironmentVariable("CLIENT_SECRET", clientSecret);
 

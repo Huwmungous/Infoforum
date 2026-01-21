@@ -117,10 +117,10 @@ Environment=ASPNETCORE_ENVIRONMENT=$BUILD_CONFIG
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
 Environment=BRAVE_API_KEY=$BRAVE_API_KEY
 Environment=SQLITE_DB_PATH=/srv/sfddevelopment/data/migration_metadata.db
-Environment=SFD_CLIENT=${SFD_CLIENT:-dev-login}
+Environment=IF_CLIENT=${IF_CLIENT:-dev-login}
 Environment=IF_CLIENTSECRET=${IF_CLIENTSECRET}
 Environment=SFD_CONFIG_SERVICE=${SFD_CONFIG_SERVICE:-https://longmanrd.net/config}
-Environment=SFD_REALM=${SFD_REALM:-SfdDevelopment_Dev}
+Environment=IF_REALM=${IF_REALM:-SfdDevelopment_Dev}
 
 # Resource limits
 LimitNOFILE=65536
