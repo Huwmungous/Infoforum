@@ -51,7 +51,7 @@ public class McpRouterService
     {
         var allTools = new List<ToolDefinition>();
 
-        foreach (var (serverName, baseUrl) in _serverEndpoints)
+        foreach(var (serverName, baseUrl) in _serverEndpoints)
         {
             try
             {
@@ -59,7 +59,7 @@ public class McpRouterService
                 allTools.AddRange(tools);
                 _logger.LogInformation("Loaded {Count} tools from {Server}", tools.Count, serverName);
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to get tools from {Server} at {Url}", serverName, baseUrl);
             }
@@ -81,32 +81,35 @@ public class McpRouterService
 
         var response = await _httpClient.PostAsJsonAsync(endpoint, request);
         var rawContent = await response.Content.ReadAsStringAsync();
-        
-        if (!(response.Content.Headers.ContentType?.MediaType?.Contains("json") ?? false))
+
+        if(!(response.Content.Headers.ContentType?.MediaType?.Contains("json") ?? false))
         {
             _logger.LogError("Expected JSON but got: {RawContent}", rawContent);
             throw new InvalidOperationException("Non-JSON response from MCP server.");
         }
-        
+
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<McpResponse>();
 
         var tools = new List<ToolDefinition>();
 
-        if (result?.Result != null)
+        if(result?.Result != null)
         {
             var toolsJson = JsonSerializer.Serialize(result.Result);
-            var toolsList = JsonDocument.Parse(toolsJson).RootElement.GetProperty("tools");
+            var resultDoc = JsonDocument.Parse(toolsJson);
 
-            foreach (var tool in toolsList.EnumerateArray())
+            if(resultDoc.RootElement.TryGetProperty("tools", out var toolsList))
             {
-                tools.Add(new ToolDefinition
+                foreach(var tool in toolsList.EnumerateArray())
                 {
-                    ServerName = serverName,
-                    Name = tool.GetProperty("name").GetString()!,
-                    Description = tool.GetProperty("description").GetString()!,
-                    InputSchema = tool.GetProperty("inputSchema")
-                });
+                    tools.Add(new ToolDefinition
+                    {
+                        ServerName = serverName,
+                        Name = tool.GetProperty("name").GetString()!,
+                        Description = tool.GetProperty("description").GetString()!,
+                        InputSchema = tool.GetProperty("inputSchema")
+                    });
+                }
             }
         }
 
@@ -115,7 +118,7 @@ public class McpRouterService
 
     public async Task<string> CallToolAsync(string serverName, string toolName, JsonElement arguments)
     {
-        if (!_serverEndpoints.TryGetValue(serverName, out var baseUrl))
+        if(!_serverEndpoints.TryGetValue(serverName, out var baseUrl))
         {
             throw new InvalidOperationException($"Unknown server: {serverName}");
         }
@@ -138,40 +141,44 @@ public class McpRouterService
 
         var response = await _httpClient.PostAsJsonAsync(endpoint, request);
         var rawContent = await response.Content.ReadAsStringAsync();
-        
-        if (!(response.Content.Headers.ContentType?.MediaType?.Contains("json") ?? false))
+
+        if(!(response.Content.Headers.ContentType?.MediaType?.Contains("json") ?? false))
         {
             _logger.LogError("Expected JSON but got: {RawContent}", rawContent);
             throw new InvalidOperationException("Non-JSON response from MCP server.");
         }
-        
+
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<McpResponse>();
 
-        if (result?.Error != null)
+        if(result?.Error != null)
         {
-            _logger.LogError("MCP Error from {Server}.{Tool}: Code={Code}, Message={Message}", 
+            _logger.LogError("MCP Error from {Server}.{Tool}: Code={Code}, Message={Message}",
                 serverName, toolName, result.Error.Code, result.Error.Message);
             throw new InvalidOperationException($"MCP Error: {result.Error.Message}");
         }
 
         // Extract text content from MCP response
-        if (result?.Result != null)
+        if(result?.Result != null)
         {
             var resultJson = JsonSerializer.Serialize(result.Result);
             var resultDoc = JsonDocument.Parse(resultJson);
 
-            if (resultDoc.RootElement.TryGetProperty("content", out var content))
+            if(resultDoc.RootElement.TryGetProperty("content", out var content))
             {
                 var firstContent = content.EnumerateArray().FirstOrDefault();
-                if (firstContent.TryGetProperty("text", out var text))
+                if(firstContent.ValueKind != JsonValueKind.Undefined &&
+                    firstContent.TryGetProperty("text", out var text))
                 {
                     return text.GetString() ?? "{}";
                 }
             }
+
+            // Return the result as JSON if no text content found
+            return resultJson;
         }
 
-        return JsonSerializer.Serialize(result?.Result ?? new { });
+        return "{}";
     }
 
     public IReadOnlyDictionary<string, string> GetServerEndpoints() => _serverEndpoints;
