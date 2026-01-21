@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Silent Renew</title>
+</head>
+<body>
+    <script src="https://unpkg.com/oidc-client-ts@3.2.1/dist/browser/oidc-client-ts.min.js"></script>
+    <script>
+        // This page is loaded in an invisible iframe to silently renew tokens
+        // It receives the authorization response from Keycloak and sends it back to the parent window
+        
+        console.log('Silent renew page loaded');
+        
+        // Create a UserManager with just enough config to handle the callback
+        new oidc.UserManager({
+            response_mode: 'query'
+        }).signinSilentCallback()
+            .then(() => {
+                console.log('Silent renew successful');
+            })
+            .catch((error) => {
+                console.error('Silent renew failed:', error);
+            });
+    </script>
+</body>
+</html>
