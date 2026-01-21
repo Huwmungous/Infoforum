@@ -1,0 +1,10 @@
+﻿[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=inode/directory;
+Actions=codeship_zip;
+
+[Desktop Action codeship_zip]
+Name=Create CodeZip
+Icon=application-zip
+Exec=konsole -e bash -c 'codeship zip "%f"; read -p "Press Enter..."'

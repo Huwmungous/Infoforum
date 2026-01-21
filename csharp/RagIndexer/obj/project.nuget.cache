@@ -1,16 +1,16 @@
 {
   "version": 2,
-  "dgSpecHash": "hrpqX6UWxZ8=",
+  "dgSpecHash": "GwlCEAdK2wQ=",
   "success": true,
-  "projectFilePath": "D:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
+  "projectFilePath": "C:\\repos\\Infoforum\\csharp\\RagIndexer\\RagIndexer.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\hugh\\.nuget\\packages\\app.metrics.abstractions\\4.3.0\\app.metrics.abstractions.4.3.0.nupkg.sha512",
-    "C:\\Users\\hugh\\.nuget\\packages\\hnsw\\25.7.60036\\hnsw.25.7.60036.nupkg.sha512",
-    "C:\\Users\\hugh\\.nuget\\packages\\messagepack\\3.1.4\\messagepack.3.1.4.nupkg.sha512",
-    "C:\\Users\\hugh\\.nuget\\packages\\messagepack.annotations\\3.1.4\\messagepack.annotations.3.1.4.nupkg.sha512",
-    "C:\\Users\\hugh\\.nuget\\packages\\messagepackanalyzer\\3.1.4\\messagepackanalyzer.3.1.4.nupkg.sha512",
-    "C:\\Users\\hugh\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.0.0\\microsoft.bcl.asyncinterfaces.1.0.0.nupkg.sha512",
-    "C:\\Users\\hugh\\.nuget\\packages\\microsoft.net.stringtools\\17.11.4\\microsoft.net.stringtools.17.11.4.nupkg.sha512"
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\app.metrics.abstractions\\4.3.0\\app.metrics.abstractions.4.3.0.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\hnsw\\25.7.60036\\hnsw.25.7.60036.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\messagepack\\3.1.4\\messagepack.3.1.4.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\messagepack.annotations\\3.1.4\\messagepack.annotations.3.1.4.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\messagepackanalyzer\\3.1.4\\messagepackanalyzer.3.1.4.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\1.0.0\\microsoft.bcl.asyncinterfaces.1.0.0.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.net.stringtools\\17.11.4\\microsoft.net.stringtools.17.11.4.nupkg.sha512"
   ],
   "logs": []
 }

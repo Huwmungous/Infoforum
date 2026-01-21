@@ -1,0 +1,7 @@
+﻿[Nemo Action]
+Name=Create CodeZip
+Comment=Create a source-only zip file
+Exec=gnome-terminal -- bash -c 'codeship zip "%F"; read -p "Press Enter..."'
+Icon-Name=application-zip
+Selection=s
+Extensions=dir;
