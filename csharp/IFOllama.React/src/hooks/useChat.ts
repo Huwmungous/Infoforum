@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from 'react-oidc-context';
+import type { ISubscription } from '@microsoft/signalr';
 import { chatService } from '../services/chatService';
 import { apiService } from '../services/apiService';
 import type { Message } from '../types';
@@ -19,6 +20,7 @@ interface UseChatResult {
   setConversationId: (id: string | null) => void;
   clearMessages: () => void;
   loadConversation: (id: string) => Promise<void>;
+  cancelStream: () => void;
 }
 
 export function useChat(options: UseChatOptions = {}): UseChatResult {
@@ -34,6 +36,17 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
   const responseBufferRef = useRef('');
   const thinkBufferRef = useRef('');
   const insideThinkRef = useRef(false);
+  const subscriptionRef = useRef<ISubscription<string> | null>(null);
+
+  // Cleanup subscription on unmount
+  useEffect(() => {
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.dispose();
+        subscriptionRef.current = null;
+      }
+    };
+  }, []);
 
   // Connect to SignalR when authenticated
   useEffect(() => {
@@ -55,10 +68,22 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     connect();
 
     return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.dispose();
+        subscriptionRef.current = null;
+      }
       chatService.disconnect();
       setIsConnected(false);
     };
   }, [auth.isAuthenticated, auth.user?.access_token]);
+
+  const cancelStream = useCallback(() => {
+    if (subscriptionRef.current) {
+      subscriptionRef.current.dispose();
+      subscriptionRef.current = null;
+      setIsLoading(false);
+    }
+  }, []);
 
   const loadConversation = useCallback(async (id: string) => {
     if (!auth.user?.profile?.sub) return;
@@ -141,7 +166,12 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     const history = messages.map(m => `${m.role}:${m.content}`);
     history.push(`user:${content}`);
 
-    await chatService.streamChat(
+    // Cancel any existing subscription
+    if (subscriptionRef.current) {
+      subscriptionRef.current.dispose();
+    }
+
+    subscriptionRef.current = chatService.streamChat(
       model,
       history,
       currentConversationId,
@@ -182,10 +212,12 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       },
       // onComplete
       () => {
+        subscriptionRef.current = null;
         setIsLoading(false);
       },
       // onError
       (errorMsg: string) => {
+        subscriptionRef.current = null;
         setError(errorMsg);
         setIsLoading(false);
         setMessages(prev => {
@@ -213,5 +245,6 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     setConversationId,
     clearMessages,
     loadConversation,
+    cancelStream,
   };
 }

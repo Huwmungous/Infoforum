@@ -40,7 +40,7 @@ export class ChatService {
     }
   }
 
-  async streamChat(
+  streamChat(
     modelName: string,
     history: string[],
     conversationId: string,
@@ -49,31 +49,35 @@ export class ChatService {
     onToken: (token: string) => void,
     onComplete: () => void,
     onError: (error: string) => void
-  ): Promise<void> {
+  ): signalR.ISubscription<string> | null {
     if (!this.connection) {
       onError('Not connected to chat service');
-      return;
+      return null;
     }
 
-    try {
-      const stream = this.connection.stream<string>(
-        'StreamChat',
-        modelName,
-        history,
-        conversationId,
-        userId,
-        enabledTools
-      );
+    const stream = this.connection.stream<string>(
+      'StreamChat',
+      modelName,
+      history,
+      conversationId,
+      userId,
+      enabledTools
+    );
 
-      for await (const token of stream) {
+    const subscription = stream.subscribe({
+      next: (token) => {
         onToken(token);
-      }
+      },
+      complete: () => {
+        onComplete();
+      },
+      error: (error) => {
+        const message = error instanceof Error ? error.message : String(error);
+        onError(message);
+      },
+    });
 
-      onComplete();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      onError(message);
-    }
+    return subscription;
   }
 
   isConnected(): boolean {
