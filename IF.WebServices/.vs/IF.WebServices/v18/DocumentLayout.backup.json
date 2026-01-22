@@ -3,6 +3,26 @@
   "WorkspaceRootPath": "C:\\repos\\Infoforum\\IF.WebServices\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\configwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\configwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|c:\\repos\\infoforum\\if.webservices\\loggerwebservice\\loggerwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|solutionrelative:loggerwebservice\\loggerwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\configwebservice.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\configwebservice.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{2DB643E3-35DF-76F4-7A78-CBD232CC3280}|..\\csharp\\IFGlobal\\IFGlobal.csproj|c:\\repos\\infoforum\\csharp\\ifglobal\\webservices\\servicefactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -10,20 +30,8 @@
       "RelativeMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|solutionrelative:loggerwebservice\\controllers\\filterscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|c:\\repos\\infoforum\\if.webservices\\loggerwebservice\\loggerwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|solutionrelative:loggerwebservice\\loggerwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\controllers\\configcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\controllers\\configcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{2DB643E3-35DF-76F4-7A78-CBD232CC3280}|..\\csharp\\IFGlobal\\IFGlobal.csproj|c:\\repos\\infoforum\\csharp\\ifglobal\\dataaccess\\baserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
@@ -40,11 +48,36 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
+              "Title": "ConfigWebService",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeDocumentMoniker": "ConfigWebService\\ConfigWebService.csproj",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeToolTip": "ConfigWebService\\ConfigWebService.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-21T17:26:02.623Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ConfigWebService",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeDocumentMoniker": "ConfigWebService\\ConfigWebService.csproj",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeToolTip": "ConfigWebService\\ConfigWebService.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-21T17:26:35.133Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "LoggerWebService",
               "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\LoggerWebService.csproj",
               "RelativeDocumentMoniker": "LoggerWebService\\LoggerWebService.csproj",
@@ -57,7 +90,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 6,
               "Title": "FiltersController.cs",
               "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\Controllers\\FiltersController.cs",
               "RelativeDocumentMoniker": "LoggerWebService\\Controllers\\FiltersController.cs",
@@ -70,20 +103,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\appsettings.json",
               "RelativeDocumentMoniker": "ConfigWebService\\appsettings.json",
               "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\appsettings.json",
               "RelativeToolTip": "ConfigWebService\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAiAAAAAAAAAA==",
+              "ViewState": "AgIAAAMAAAAAAAAAAAD4vwsAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-01-21T17:15:10.295Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "ConfigController.cs",
               "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Controllers\\ConfigController.cs",
               "RelativeDocumentMoniker": "ConfigWebService\\Controllers\\ConfigController.cs",
@@ -96,20 +129,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Program.cs",
               "RelativeDocumentMoniker": "ConfigWebService\\Program.cs",
               "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Program.cs",
               "RelativeToolTip": "ConfigWebService\\Program.cs",
-              "ViewState": "AgIAABUAAAAAAAAAAAAAACoAAAASAAAAAAAAAA==",
+              "ViewState": "AgIAAAQAAAAAAAAAAAAYwBMAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-21T17:13:11.719Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "BaseRepository.cs",
               "DocumentMoniker": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
               "RelativeDocumentMoniker": "..\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
@@ -122,7 +155,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 5,
               "Title": "ServiceFactory.cs",
               "DocumentMoniker": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
               "RelativeDocumentMoniker": "..\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
@@ -135,7 +168,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "AccountRepository.cs",
               "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Repositories\\AccountRepository.cs",
               "RelativeDocumentMoniker": "SampleWebService\\Repositories\\AccountRepository.cs",
