@@ -1,0 +1,143 @@
+/**
+ * IF Design System - Base Styles
+ * 
+ * This file contains:
+ * - Tailwind 4 @theme colour definitions
+ * - CSS custom properties for non-Tailwind usage
+ * - Base element styles
+ * - Scrollbar styling
+ * - Dark mode support
+ */
+
+/* Tailwind 4 theme configuration */
+@theme {
+  /* Primary IF palette */
+  --color-if-light: #1d97a6;
+  --color-if-medium: #214c8c;
+  --color-if-dark: #0b2144;
+  
+  /* Highlight/accent colours */
+  --color-if-hl-light: #faa236;
+  --color-if-hl-medium: #fa7733;
+  --color-if-hl-dark: #db592e;
+  
+  /* Background colours */
+  --color-if-window: rgb(245, 245, 245);
+  --color-if-paper: rgb(252, 252, 252);
+  
+  /* Shadows */
+  --shadow-if: 0 2px 6px rgba(11, 33, 68, 0.15);
+  --shadow-if-lg: 2px 4px 6px rgba(11, 33, 68, 0.2);
+  
+  /* Border radius */
+  --radius-if-sm: 3px;
+  --radius-if-md: 5px;
+  --radius-if-lg: 10px;
+}
+
+/* CSS custom properties for non-Tailwind usage */
+:root {
+  /* Primary IF palette */
+  --if-light-colour: #1d97a6;
+  --if-medium-colour: #214c8c;
+  --if-dark-colour: #0b2144;
+  
+  /* Highlight/accent colours */
+  --if-hl-light-colour: #faa236;
+  --if-hl-medium-colour: #fa7733;
+  --if-hl-dark-colour: #db592e;
+  
+  /* Background colours */
+  --if-window-colour: rgb(245, 245, 245);
+  --if-paper-colour: rgb(252, 252, 252);
+  
+  /* Shadows */
+  --if-shadow: 0 2px 6px rgba(11, 33, 68, 0.15);
+  --if-shadow-lg: 2px 4px 6px rgba(11, 33, 68, 0.2);
+  
+  /* Border radius */
+  --if-radius-sm: 3px;
+  --if-radius-md: 5px;
+  --if-radius-lg: 10px;
+  
+  /* Typography */
+  --if-font-sans: 'Roboto', 'Helvetica Neue', sans-serif;
+  --if-font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  
+  /* Spacing */
+  --if-space-xs: 0.25rem;
+  --if-space-sm: 0.5rem;
+  --if-space-md: 1rem;
+  --if-space-lg: 1.5rem;
+  --if-space-xl: 2rem;
+  --if-space-2xl: 3rem;
+  
+  /* Transitions */
+  --if-transition-fast: 150ms ease;
+  --if-transition-normal: 250ms ease;
+}
+
+/* Enable class-based dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Base element styles */
+@layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    font-family: var(--if-font-sans);
+    background-color: var(--if-window-colour);
+    color: var(--if-dark-colour);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  body.dark {
+    background-color: var(--if-dark-colour);
+    color: var(--if-window-colour);
+  }
+
+  code, pre {
+    font-family: var(--if-font-mono);
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    outline: 2px solid var(--if-light-colour);
+    outline-offset: 2px;
+  }
+
+  /* Custom scrollbar - light mode */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--if-window-colour);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--if-medium-colour);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--if-dark-colour);
+  }
+
+  /* Custom scrollbar - dark mode */
+  .dark ::-webkit-scrollbar-track {
+    background: var(--if-dark-colour);
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: var(--if-light-colour);
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: var(--if-medium-colour);
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext, useAuth } from '@if/web-common-react';
+
 /**
  * TokenDisplay component
  * Displays authenticated user information and tokens
@@ -9,7 +10,7 @@ const TokenDisplay = () => {
   const { user, signout, renewToken } = useAuth();
   const [copiedField, setCopiedField] = useState(null);
   const [renewing, setRenewing] = useState(false);
-  
+
   // Create logger for this component
   const logger = useMemo(() => createLogger('TokenDisplay'), []);
 
@@ -25,7 +26,7 @@ const TokenDisplay = () => {
       await navigator.clipboard.writeText(text);
       setCopiedField(fieldName);
       setTimeout(() => setCopiedField(null), 2000);
-      
+
       // Log successful copy
       logger.info(`Token copied to clipboard: ${JSON.stringify({
         fieldName,
@@ -33,7 +34,7 @@ const TokenDisplay = () => {
         username: user?.profile?.preferred_username || user?.profile?.email,
         tokenLength: text?.length || 0
       })}`);
-      
+
     } catch (err) {
       console.error('Failed to copy:', err);
       logger.error(`Failed to copy token to clipboard: ${fieldName}`, err);
@@ -104,7 +105,7 @@ const TokenDisplay = () => {
 
   const CopyIcon = ({ copied }) => (
     <svg
-      className={`w-5 h-5 ${copied ? 'text-green-600' : 'text-gray-600 hover:text-gray-900'}`}
+      className={`w-5 h-5 ${copied ? 'text-green-600' : 'text-if-medium hover:text-if-dark'}`}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -126,47 +127,53 @@ const TokenDisplay = () => {
   const idTokenDecoded = user?.id_token ? decodeJWT(user.id_token) : null;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div className="min-h-screen bg-if-window">
+      {/* Header */}
+      <header className="bg-[#333] text-if-window px-6 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <img src="/IF-Logo.png" alt="IF" className="w-12 h-12" />
+          <h1 className="text-xl font-medium">Token Display</h1>
+          <span className="text-sm opacity-70">v1.0</span>
+        </div>
+        <button
+          onClick={handleRenewToken}
+          disabled={renewing}
+          className="px-4 py-2 bg-if-hl-medium text-white rounded shadow-if-lg border border-if-dark hover:bg-if-hl-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {renewing ? 'Renewing...' : 'Renew Token'}
+        </button>
+      </header>
+
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Authentication Status Card */}
+        <div className="bg-if-paper rounded-lg shadow-if border border-if-medium/30 p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold">Authentication Successful</h1>
-            <div className="flex gap-2">
-              <button
-                onClick={handleRenewToken}
-                disabled={renewing}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-300"
-              >
-                {renewing ? 'Renewing...' : 'Renew Token'}
-              </button>
-             
-            </div>
+            <h2 className="text-xl font-medium text-if-dark">Authentication Successful</h2>
           </div>
 
           {/* User Identity */}
           {user?.profile && (
-            <div className="mb-4 p-4 bg-blue-50 rounded">
-              <h3 className="font-semibold text-gray-700 mb-2">User Identity</h3>
+            <div className="mb-4 p-4 bg-if-light/10 border border-if-light/30 rounded-lg">
+              <h3 className="font-medium text-if-dark mb-2">User Identity</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div>
-                  <code className="text-gray-600">preferred_username:</code>{' '}
-                  <span className="font-medium text-gray-900">
+                  <code className="text-if-medium">preferred_username:</code>{' '}
+                  <span className="font-medium text-if-dark">
                     {user.profile.preferred_username || 'N/A'}
                   </span>
                 </div>
                 <div>
-                  <code className="text-gray-600">email:</code>{' '}
-                  <span className="font-medium text-gray-900">{user.profile.email || 'N/A'}</span>
+                  <code className="text-if-medium">email:</code>{' '}
+                  <span className="font-medium text-if-dark">{user.profile.email || 'N/A'}</span>
                 </div>
                 <div>
-                  <code className="text-gray-600">sub:</code>{' '}
-                  <span className="font-medium text-gray-900 text-xs">{user.profile.sub || 'N/A'}</span>
+                  <code className="text-if-medium">sub:</code>{' '}
+                  <span className="font-medium text-if-dark text-xs">{user.profile.sub || 'N/A'}</span>
                 </div>
                 {user.scopes && user.scopes.length > 0 && (
                   <div>
-                    <code className="text-gray-600">scope:</code>{' '}
-                    <span className="font-medium text-gray-900">{user.scopes.join(' ')}</span>
+                    <code className="text-if-medium">scope:</code>{' '}
+                    <span className="font-medium text-if-dark">{user.scopes.join(' ')}</span>
                   </div>
                 )}
               </div>
@@ -175,13 +182,13 @@ const TokenDisplay = () => {
 
           {/* SSO Session */}
           {user && (
-            <div className="mb-4 p-4 bg-purple-50 rounded">
-              <h3 className="font-semibold text-gray-700 mb-2">SSO Session</h3>
+            <div className="mb-4 p-4 bg-if-medium/10 border border-if-medium/30 rounded-lg">
+              <h3 className="font-medium text-if-dark mb-2">SSO Session</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 {(idTokenDecoded?.auth_time || accessTokenDecoded?.auth_time) && (
                   <div>
-                    <code className="text-gray-600">auth_time:</code>{' '}
-                    <span className="font-medium text-gray-900">
+                    <code className="text-if-medium">auth_time:</code>{' '}
+                    <span className="font-medium text-if-dark">
                       {new Date((idTokenDecoded?.auth_time || accessTokenDecoded?.auth_time) * 1000).toLocaleString()}
                     </span>
                   </div>
@@ -194,25 +201,19 @@ const TokenDisplay = () => {
                   const seconds = Math.floor((elapsed % 60000) / 1000);
                   return (
                     <div>
-                      <span className="text-gray-600">Session Age:</span>{' '}
-                      <span className="font-mono font-medium text-gray-900">
+                      <span className="text-if-medium">Session Duration:</span>{' '}
+                      <span className="font-mono font-medium text-if-dark">
                         {hours > 0 ? `${hours}h ${minutes}m ${seconds}s` : `${minutes}m ${seconds}s`}
                       </span>
                     </div>
                   );
                 })()}
-                {(idTokenDecoded?.sid || accessTokenDecoded?.sid) && (
-                  <div className="md:col-span-2">
-                    <code className="text-gray-600">sid:</code>{' '}
-                    <span className="font-medium text-gray-900 text-xs break-all">
-                      {idTokenDecoded?.sid || accessTokenDecoded?.sid}
+                {(idTokenDecoded?.session_state || accessTokenDecoded?.session_state) && (
+                  <div className="col-span-2">
+                    <code className="text-if-medium">session_state:</code>{' '}
+                    <span className="font-mono text-xs text-if-dark">
+                      {idTokenDecoded?.session_state || accessTokenDecoded?.session_state}
                     </span>
-                  </div>
-                )}
-                {user.session_state && (
-                  <div className="md:col-span-2">
-                    <code className="text-gray-600">session_state:</code>{' '}
-                    <span className="font-medium text-gray-900 text-xs break-all">{user.session_state}</span>
                   </div>
                 )}
               </div>
@@ -221,25 +222,25 @@ const TokenDisplay = () => {
 
           {/* Current Tokens */}
           {user && (
-            <div className="mb-4 p-4 bg-amber-50 rounded">
-              <h3 className="font-semibold text-gray-700 mb-2">Current Tokens</h3>
+            <div className="mb-4 p-4 bg-if-hl-light/10 border border-if-hl-light/30 rounded-lg">
+              <h3 className="font-medium text-if-dark mb-2">Current Tokens</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                 <div>
-                  <code className="text-gray-600">expired:</code>{' '}
-                  <span className={`font-medium ${user.expired ? 'text-red-600' : 'text-green-600'}`}>
+                  <code className="text-if-medium">expired:</code>{' '}
+                  <span className={`font-medium ${user.expired ? 'text-if-hl-dark' : 'text-green-600'}`}>
                     {user.expired ? 'true' : 'false'}
                   </span>
                 </div>
                 {user.token_type && (
                   <div>
-                    <code className="text-gray-600">token_type:</code>{' '}
-                    <span className="font-medium text-gray-900">{user.token_type}</span>
+                    <code className="text-if-medium">token_type:</code>{' '}
+                    <span className="font-medium text-if-dark">{user.token_type}</span>
                   </div>
                 )}
                 {(idTokenDecoded?.iat || accessTokenDecoded?.iat) && (
                   <div>
-                    <code className="text-gray-600">iat:</code>{' '}
-                    <span className="font-medium text-gray-900">
+                    <code className="text-if-medium">iat:</code>{' '}
+                    <span className="font-medium text-if-dark">
                       {new Date((accessTokenDecoded?.iat || idTokenDecoded?.iat) * 1000).toLocaleString()}
                     </span>
                   </div>
@@ -252,8 +253,8 @@ const TokenDisplay = () => {
                   const seconds = Math.floor((elapsed % 60000) / 1000);
                   return (
                     <div>
-                      <span className="text-gray-600">Token Age:</span>{' '}
-                      <span className="font-mono font-medium text-gray-900">
+                      <span className="text-if-medium">Token Age:</span>{' '}
+                      <span className="font-mono font-medium text-if-dark">
                         {hours > 0 ? `${hours}h ${minutes}m ${seconds}s` : `${minutes}m ${seconds}s`}
                       </span>
                     </div>
@@ -262,20 +263,20 @@ const TokenDisplay = () => {
                 {accessTokenDecoded?.exp && (() => {
                   const expInfo = formatExpiration(accessTokenDecoded.exp);
                   const statusColors = {
-                    ok: 'text-green-700',
-                    warning: 'text-yellow-600',
-                    critical: 'text-red-600 animate-pulse',
-                    expired: 'text-red-600',
-                    unknown: 'text-gray-700'
+                    ok: 'text-green-600',
+                    warning: 'text-if-hl-medium',
+                    critical: 'text-if-hl-dark animate-pulse',
+                    expired: 'text-if-hl-dark',
+                    unknown: 'text-if-dark'
                   };
                   return (
                     <>
                       <div>
-                        <code className="text-gray-600">access_token.exp:</code>{' '}
-                        <span className="font-medium text-gray-900">{expInfo.expiresAt}</span>
+                        <code className="text-if-medium">access_token.exp:</code>{' '}
+                        <span className="font-medium text-if-dark">{expInfo.expiresAt}</span>
                       </div>
                       <div>
-                        <span className="text-gray-600">Access Token Countdown:</span>{' '}
+                        <span className="text-if-medium">Access Token Countdown:</span>{' '}
                         <span className={`font-mono font-bold ${statusColors[expInfo.status]}`}>
                           {expInfo.text}
                         </span>
@@ -286,20 +287,20 @@ const TokenDisplay = () => {
                 {idTokenDecoded?.exp && (() => {
                   const expInfo = formatExpiration(idTokenDecoded.exp);
                   const statusColors = {
-                    ok: 'text-green-700',
-                    warning: 'text-yellow-600',
-                    critical: 'text-red-600 animate-pulse',
-                    expired: 'text-red-600',
-                    unknown: 'text-gray-700'
+                    ok: 'text-green-600',
+                    warning: 'text-if-hl-medium',
+                    critical: 'text-if-hl-dark animate-pulse',
+                    expired: 'text-if-hl-dark',
+                    unknown: 'text-if-dark'
                   };
                   return (
                     <>
                       <div>
-                        <code className="text-gray-600">id_token.exp:</code>{' '}
-                        <span className="font-medium text-gray-900">{expInfo.expiresAt}</span>
+                        <code className="text-if-medium">id_token.exp:</code>{' '}
+                        <span className="font-medium text-if-dark">{expInfo.expiresAt}</span>
                       </div>
                       <div>
-                        <span className="text-gray-600">ID Token Countdown:</span>{' '}
+                        <span className="text-if-medium">ID Token Countdown:</span>{' '}
                         <span className={`font-mono font-bold ${statusColors[expInfo.status]}`}>
                           {expInfo.text}
                         </span>
@@ -312,7 +313,7 @@ const TokenDisplay = () => {
           )}
 
           {/* Token Status */}
-          <div className="p-4 bg-green-50 rounded">
+          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center text-sm text-green-800">
               <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -331,27 +332,27 @@ const TokenDisplay = () => {
 
         {/* Access Token */}
         {user?.access_token && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="bg-if-paper rounded-lg shadow-if border border-if-medium/30 p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Access Token</h2>
+              <h2 className="text-xl font-medium text-if-dark">Access Token</h2>
               <button
                 onClick={() => copyToClipboard(user.access_token, 'access_token')}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-if-window hover:bg-if-light/10 border border-if-medium/30 rounded transition-colors"
                 title="Copy access token"
               >
                 <CopyIcon copied={copiedField === 'access_token'} />
-                <span className="text-sm">
+                <span className="text-sm text-if-dark">
                   {copiedField === 'access_token' ? 'Copied!' : 'Copy'}
                 </span>
               </button>
             </div>
-            <div className="bg-gray-50 p-4 rounded mb-4 overflow-x-auto">
-              <code className="text-sm break-all">{user.access_token}</code>
+            <div className="bg-if-window p-4 rounded-lg mb-4 overflow-x-auto border border-if-medium/20">
+              <code className="text-sm break-all text-if-dark">{user.access_token}</code>
             </div>
             {accessTokenDecoded && (
               <div>
-                <h3 className="font-semibold mb-2">Decoded Payload:</h3>
-                <pre className="bg-gray-50 p-4 rounded overflow-x-auto text-sm">
+                <h3 className="font-medium text-if-dark mb-2">Decoded Payload:</h3>
+                <pre className="bg-if-window p-4 rounded-lg overflow-x-auto text-sm border border-if-medium/20 text-if-dark">
                   {JSON.stringify(accessTokenDecoded, null, 2)}
                 </pre>
               </div>
@@ -361,25 +362,25 @@ const TokenDisplay = () => {
 
         {/* ID Token */}
         {user?.id_token && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <div className="bg-if-paper rounded-lg shadow-if border border-if-medium/30 p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">ID Token</h2>
+              <h2 className="text-xl font-medium text-if-dark">ID Token</h2>
               <button
                 onClick={() => copyToClipboard(user.id_token, 'id_token')}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-if-window hover:bg-if-light/10 border border-if-medium/30 rounded transition-colors"
                 title="Copy ID token"
               >
                 <CopyIcon copied={copiedField === 'id_token'} />
-                <span className="text-sm">{copiedField === 'id_token' ? 'Copied!' : 'Copy'}</span>
+                <span className="text-sm text-if-dark">{copiedField === 'id_token' ? 'Copied!' : 'Copy'}</span>
               </button>
             </div>
-            <div className="bg-gray-50 p-4 rounded mb-4 overflow-x-auto">
-              <code className="text-sm break-all">{user.id_token}</code>
+            <div className="bg-if-window p-4 rounded-lg mb-4 overflow-x-auto border border-if-medium/20">
+              <code className="text-sm break-all text-if-dark">{user.id_token}</code>
             </div>
             {idTokenDecoded && (
               <div>
-                <h3 className="font-semibold mb-2">Decoded Payload:</h3>
-                <pre className="bg-gray-50 p-4 rounded overflow-x-auto text-sm">
+                <h3 className="font-medium text-if-dark mb-2">Decoded Payload:</h3>
+                <pre className="bg-if-window p-4 rounded-lg overflow-x-auto text-sm border border-if-medium/20 text-if-dark">
                   {JSON.stringify(idTokenDecoded, null, 2)}
                 </pre>
               </div>
@@ -389,26 +390,31 @@ const TokenDisplay = () => {
 
         {/* Refresh Token */}
         {user?.refresh_token && (
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-if-paper rounded-lg shadow-if border border-if-medium/30 p-6 mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Refresh Token</h2>
+              <h2 className="text-xl font-medium text-if-dark">Refresh Token</h2>
               <button
                 onClick={() => copyToClipboard(user.refresh_token, 'refresh_token')}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                className="flex items-center gap-2 px-3 py-2 bg-if-window hover:bg-if-light/10 border border-if-medium/30 rounded transition-colors"
                 title="Copy refresh token"
               >
                 <CopyIcon copied={copiedField === 'refresh_token'} />
-                <span className="text-sm">
+                <span className="text-sm text-if-dark">
                   {copiedField === 'refresh_token' ? 'Copied!' : 'Copy'}
                 </span>
               </button>
             </div>
-            <div className="bg-gray-50 p-4 rounded overflow-x-auto">
-              <code className="text-sm break-all">{user.refresh_token}</code>
+            <div className="bg-if-window p-4 rounded-lg overflow-x-auto border border-if-medium/20">
+              <code className="text-sm break-all text-if-dark">{user.refresh_token}</code>
             </div>
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="bg-[#333] text-if-window text-center py-2 text-sm">
+        Token Display Tool
+      </footer>
     </div>
   );
 };

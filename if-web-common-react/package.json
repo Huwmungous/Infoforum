@@ -1,0 +1,57 @@
+{
+  "name": "@if/web-common-react",
+  "version": "2.0.0",
+  "description": "React bindings for @if/web-common - components, hooks, and context providers",
+  "main": "dist/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "@if/web-common": "file:../if-web-common",
+    "display-token-app": "file:../display-token-app"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.0.16",
+    "happy-dom": "^20.0.11",
+    "jsdom": "^27.4.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "react",
+    "authentication",
+    "hooks",
+    "context",
+    "oidc"
+  ],
+  "author": "IF Global",
+  "license": "MIT"
+}

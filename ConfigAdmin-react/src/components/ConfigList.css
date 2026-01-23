@@ -1,0 +1,80 @@
+.config-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--if-space-lg);
+}
+
+.config-list-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--if-space-lg);
+  flex-wrap: wrap;
+}
+
+.config-list-header h1 {
+  margin-bottom: var(--if-space-xs);
+  color: var(--if-dark-colour);
+}
+
+.config-list-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--if-space-md);
+}
+
+.config-list-actions .form-input {
+  width: 280px;
+}
+
+.config-badges {
+  display: flex;
+  gap: var(--if-space-xs);
+  flex-wrap: wrap;
+}
+
+.config-badge {
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  background: var(--if-window-colour);
+  border: 0.5px solid var(--if-medium-colour);
+  border-radius: var(--if-radius-sm);
+  color: var(--if-medium-colour);
+}
+
+.action-buttons {
+  display: flex;
+  gap: var(--if-space-sm);
+}
+
+.row-disabled {
+  opacity: 0.6;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.row-disabled:hover {
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .config-list-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .config-list-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .config-list-actions .form-input {
+    width: 100%;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+}

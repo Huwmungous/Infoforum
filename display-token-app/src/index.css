@@ -1,1 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
+@import "@if/styles";
+
+/* App-specific styles - none needed, all from @if/styles */

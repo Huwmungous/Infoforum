@@ -14,14 +14,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "dev:fresh": "rimraf node_modules/.vite && vite",
-    
-    "rebuild-lib": "npm --prefix ../if-web-common run build && npm --prefix ../if-web-common-react run build && rimraf node_modules/.vite",
-    "rebuild": "npm run rebuild:libs && npm install && npm run build",
-    "rebuild:libs": "npm --prefix ../if-web-common install && npm --prefix ../if-web-common run build && npm --prefix ../if-web-common-react install && npm --prefix ../if-web-common-react run build",
-    "rebuild:all": "npm run rebuild:libs && npm install && rimraf node_modules/.vite"
+    "rebuild-lib": "npm --prefix ../if-web-common run build && npm --prefix ../if-web-common-react run build && rimraf node_modules/.vite"
   },
   
   "dependencies": {
+    "@if/styles": "file:../IF.Styles",
     "@if/web-common": "file:../if-web-common",
     "@if/web-common-react": "file:../if-web-common-react",
     "react": "^19.2.0",

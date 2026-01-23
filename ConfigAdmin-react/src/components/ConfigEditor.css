@@ -1,0 +1,124 @@
+.config-editor {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.config-editor-header {
+  display: flex;
+  align-items: center;
+  gap: var(--if-space-lg);
+  margin-bottom: var(--if-space-lg);
+}
+
+.config-editor-header h1 {
+  margin: 0;
+  color: var(--if-dark-colour);
+}
+
+.config-editor form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--if-space-lg);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--if-space-lg);
+}
+
+@media (max-width: 640px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Toggle switch - extends IF toggle */
+.toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--if-space-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-label input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background: var(--if-window-colour);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  transition: all var(--if-transition-fast);
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: #777;
+  border-radius: 50%;
+  transition: all var(--if-transition-fast);
+}
+
+.toggle-label input:checked + .toggle-switch {
+  background: var(--if-light-colour);
+  border-color: var(--if-light-colour);
+}
+
+.toggle-label input:checked + .toggle-switch::after {
+  left: 22px;
+  background: white;
+}
+
+.toggle-label input:focus-visible + .toggle-switch {
+  outline: 2px solid var(--if-light-colour);
+  outline-offset: 2px;
+}
+
+/* Tabs - uses IF tab styling */
+.tabs {
+  display: flex;
+  gap: var(--if-space-xs);
+}
+
+.tab {
+  padding: var(--if-space-sm) var(--if-space-md);
+  font-family: var(--if-font-sans);
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  border-radius: var(--if-radius-md);
+  color: var(--if-medium-colour);
+  cursor: pointer;
+  transition: all var(--if-transition-fast);
+}
+
+.tab:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--if-dark-colour);
+}
+
+.tab.active {
+  background: var(--if-light-colour);
+  color: white;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--if-space-md);
+  padding-top: var(--if-space-md);
+  border-top: 1px solid #ddd;
+}

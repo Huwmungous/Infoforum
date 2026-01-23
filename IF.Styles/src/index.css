@@ -1,0 +1,15 @@
+/**
+ * IF Design System
+ * 
+ * Complete design system for IF applications.
+ * 
+ * Usage:
+ *   @import '@if/styles';
+ * 
+ * Or import specific parts:
+ *   @import '@if/styles/base';
+ *   @import '@if/styles/components';
+ */
+
+@import './base.css';
+@import './components.css';

@@ -1,0 +1,30 @@
+{
+  "name": "@if/styles",
+  "version": "1.0.0",
+  "description": "Shared IF design system styles for React applications",
+  "type": "module",
+  "main": "src/index.css",
+  "exports": {
+    ".": "./src/index.css",
+    "./base": "./src/base.css",
+    "./components": "./src/components.css",
+    "./tailwind-preset": "./src/tailwind-preset.js",
+    "./assets/*": "./assets/*"
+  },
+  "files": [
+    "src",
+    "assets"
+  ],
+  "keywords": [
+    "if",
+    "infoforum",
+    "styles",
+    "design-system",
+    "tailwind"
+  ],
+  "author": "Infoforum",
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "tailwindcss": "^4.0.0"
+  }
+}

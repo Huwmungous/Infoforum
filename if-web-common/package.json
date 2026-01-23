@@ -1,0 +1,75 @@
+{
+  "name": "@if/web-common",
+  "version": "2.0.0",
+  "description": "Framework-agnostic authentication, configuration, and logging library",
+  "main": "dist/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./auth": {
+      "import": "./dist/esm/auth/index.js",
+      "require": "./dist/auth/index.js",
+      "types": "./dist/auth/index.d.ts"
+    },
+    "./config": {
+      "import": "./dist/esm/config/index.js",
+      "require": "./dist/config/index.js",
+      "types": "./dist/config/index.d.ts"
+    },
+    "./logger": {
+      "import": "./dist/esm/logger/index.js",
+      "require": "./dist/logger/index.js",
+      "types": "./dist/logger/index.d.ts"
+    },
+    "./http": {
+      "import": "./dist/esm/http/index.js",
+      "require": "./dist/http/index.js",
+      "types": "./dist/http/index.d.ts"
+    },
+    "./routing": {
+      "import": "./dist/esm/routing/index.js",
+      "require": "./dist/routing/index.js",
+      "types": "./dist/routing/index.d.ts"
+    }
+  },
+  "dependencies": {
+    "display-token-app": "file:../display-token-app",
+    "oidc-client-ts": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@vitest/coverage-v8": "^4.0.16",
+    "happy-dom": "^20.0.11",
+    "jsdom": "^27.4.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.16"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc -p tsconfig.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "clean": "rimraf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "authentication",
+    "logging",
+    "configuration",
+    "oidc",
+    "keycloak",
+    "framework-agnostic",
+    "angular",
+    "react",
+    "vue"
+  ],
+  "author": "IF Global",
+  "license": "MIT"
+}
