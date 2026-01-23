@@ -13,10 +13,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 5313,
     strictPort: true,
-    allowedHosts: ['localhost', 'sfddevelopment.com'],
+    allowedHosts: ['localhost', 'ifdevelopment.com'],
     proxy: {
       '/config': {
-        target: 'https://sfddevelopment.com',
+        target: 'https://ifdevelopment.com',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useAppContext, useAuth } from '@sfd/web-common';
+import { useAppContext, useAuth } from '@if/web-common-react';
 /**
  * TokenDisplay component
  * Displays authenticated user information and tokens

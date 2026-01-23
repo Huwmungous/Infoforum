@@ -1,29 +1,37 @@
-﻿using ConfigWebService.Entities;
+using ConfigWebService.Entities;
 using ConfigWebService.Repositories;
 
 namespace ConfigWebService.Services;
 
-public class ConfigService
+public class ConfigService(ConfigRepository repo)
 {
-    private readonly ConfigRepository _repo;
+    public Task<List<ConfigEntry>> GetBatchAsync(int offset, int limit, bool includeDisabled = true)
+        => repo.GetBatchAsync(offset, limit, includeDisabled);
 
-    public ConfigService(ConfigRepository repo)
-    {
-        _repo = repo;
-    }
+    public Task<int> GetCountAsync(bool includeDisabled = true)
+        => repo.GetCountAsync(includeDisabled);
 
-    public Task<List<ConfigEntry>> GetBatchAsync(int offset, int limit)
-        => _repo.GetBatchAsync(offset, limit);
+    public Task<ConfigEntry?> GetAsync(string realm, string client, bool enabledOnly = true)
+        => repo.GetByRealmClientAsync(realm, client, enabledOnly);
 
-    public Task<ConfigEntry?> GetAsync(string realm, string client)
-        => _repo.GetByRealmClientAsync(realm, client);
+    public Task<ConfigEntry?> GetByIdxAsync(int idx)
+        => repo.GetByIdxAsync(idx);
 
     public Task<ConfigEntry> CreateAsync(ConfigEntry entry)
-        => _repo.CreateAsync(entry);
+        => repo.CreateAsync(entry);
+
+    public Task<bool> UpdateByIdxAsync(int idx, ConfigEntry entry)
+        => repo.UpdateByIdxAsync(idx, entry);
 
     public Task<bool> UpdateAsync(string realm, string client, ConfigEntry entry)
-        => _repo.UpdateAsync(realm, client, entry);
+        => repo.UpdateAsync(realm, client, entry);
+
+    public Task<bool> SetEnabledAsync(int idx, bool enabled)
+        => repo.SetEnabledAsync(idx, enabled);
 
     public Task<bool> DeleteAsync(string realm, string client)
-        => _repo.DeleteAsync(realm, client);
+        => repo.DeleteAsync(realm, client);
+
+    public Task<bool> DeleteByIdxAsync(int idx)
+        => repo.DeleteByIdxAsync(idx);
 }

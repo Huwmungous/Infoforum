@@ -1,6 +1,6 @@
 // import { StrictMode } from 'react'; // Temporarily disabled - causes double OIDC callback in dev
 import { createRoot } from 'react-dom/client';
-import { AppInitializer } from '@sfd/web-common';
+import { AppInitializer } from '@if/web-common-react';
 import App from './App.jsx';
 import './index.css';
 

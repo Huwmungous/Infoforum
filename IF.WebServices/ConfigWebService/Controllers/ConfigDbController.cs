@@ -1,37 +1,60 @@
-﻿using ConfigWebService.Entities;
+using ConfigWebService.Entities;
 using ConfigWebService.Services;
+using ConfigWebService.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace ConfigWebService.Controllers;
 
+/// <summary>
+/// Admin controller for managing configuration entries
+/// </summary>
 [ApiController]
 [Route("[controller]")]
-public class ConfigDbController : ControllerBase
+public class ConfigDbController(ConfigService service, ILogger<ConfigDbController> logger) : ControllerBase
 {
-    private readonly ConfigService _service;
-
-    public ConfigDbController(ConfigService service)
-    {
-        _service = service;
-    }
-
     // -----------------------------
     // GET ENDPOINTS
     // -----------------------------
 
+    /// <summary>
+    /// Get a paginated batch of configuration entries (includes disabled)
+    /// </summary>
     [HttpGet("batch")]
     public async Task<IActionResult> GetBatch(
         [FromQuery] int offset = 0,
-        [FromQuery] int limit = 100)
+        [FromQuery] int limit = 100,
+        [FromQuery] bool includeDisabled = true)
     {
-        var result = await _service.GetBatchAsync(offset, limit);
-        return Ok(result);
+        var entries = await service.GetBatchAsync(offset, limit, includeDisabled);
+        var total = await service.GetCountAsync(includeDisabled);
+
+        return Ok(new
+        {
+            entries,
+            total,
+            offset,
+            limit
+        });
     }
 
+    /// <summary>
+    /// Get a configuration entry by idx
+    /// </summary>
+    [HttpGet("{idx:int}")]
+    public async Task<IActionResult> GetByIdx(int idx)
+    {
+        var result = await service.GetByIdxAsync(idx);
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    /// <summary>
+    /// Get a configuration entry by realm and client
+    /// </summary>
     [HttpGet("{realm}/{client}")]
     public async Task<IActionResult> Get(string realm, string client)
     {
-        var result = await _service.GetAsync(realm, client);
+        var result = await service.GetAsync(realm, client, enabledOnly: false);
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -39,37 +62,225 @@ public class ConfigDbController : ControllerBase
     // POST ENDPOINTS
     // -----------------------------
 
+    /// <summary>
+    /// Create a new configuration entry
+    /// </summary>
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] ConfigEntry config)
+    public async Task<IActionResult> Create([FromBody] ConfigEntryDto config)
     {
         if (config is null)
-            return BadRequest();
+            return BadRequest(new ErrorResponse { Error = "Request body is required" });
 
-        var created = await _service.CreateAsync(config);
+        if (string.IsNullOrWhiteSpace(config.Realm))
+            return BadRequest(new ErrorResponse { Error = "Realm is required" });
+
+        if (string.IsNullOrWhiteSpace(config.Client))
+            return BadRequest(new ErrorResponse { Error = "Client is required" });
+
+        // Check for existing entry
+        var existing = await service.GetAsync(config.Realm, config.Client, enabledOnly: false);
+        if (existing is not null)
+            return Conflict(new ErrorResponse { Error = $"Entry already exists for realm '{config.Realm}' and client '{config.Client}'" });
+
+        var entry = new ConfigEntry
+        {
+            Realm = config.Realm,
+            Client = config.Client,
+            UserConfig = ParseJsonDocument(config.UserConfig),
+            ServiceConfig = ParseJsonDocument(config.ServiceConfig),
+            BootstrapConfig = ParseJsonDocument(config.BootstrapConfig),
+            Enabled = config.Enabled
+        };
+
+        var created = await service.CreateAsync(entry);
+
+        logger.LogInformation(
+            "Created config entry idx={Idx} for realm={Realm}, client={Client}",
+            created.Idx, created.Realm, created.Client);
+
         return CreatedAtAction(
-            nameof(Get),
-            new { realm = created.Realm, client = created.Client },
+            nameof(GetByIdx),
+            new { idx = created.Idx },
             created
         );
     }
 
+    // -----------------------------
+    // PUT ENDPOINTS
+    // -----------------------------
+
+    /// <summary>
+    /// Update an existing configuration entry by idx
+    /// </summary>
+    [HttpPut("{idx:int}")]
+    public async Task<IActionResult> UpdateByIdx(int idx, [FromBody] ConfigEntryDto config)
+    {
+        if (config is null)
+            return BadRequest(new ErrorResponse { Error = "Request body is required" });
+
+        if (string.IsNullOrWhiteSpace(config.Realm))
+            return BadRequest(new ErrorResponse { Error = "Realm is required" });
+
+        if (string.IsNullOrWhiteSpace(config.Client))
+            return BadRequest(new ErrorResponse { Error = "Client is required" });
+
+        var entry = new ConfigEntry
+        {
+            Idx = idx,
+            Realm = config.Realm,
+            Client = config.Client,
+            UserConfig = ParseJsonDocument(config.UserConfig),
+            ServiceConfig = ParseJsonDocument(config.ServiceConfig),
+            BootstrapConfig = ParseJsonDocument(config.BootstrapConfig),
+            Enabled = config.Enabled
+        };
+
+        var updated = await service.UpdateByIdxAsync(idx, entry);
+
+        if (!updated)
+            return NotFound(new ErrorResponse { Error = $"Entry with idx {idx} not found" });
+
+        logger.LogInformation(
+            "Updated config entry idx={Idx} for realm={Realm}, client={Client}",
+            idx, config.Realm, config.Client);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Update an existing configuration entry by realm and client
+    /// </summary>
     [HttpPut("{realm}/{client}")]
     public async Task<IActionResult> Update(
         string realm,
         string client,
-        [FromBody] ConfigEntry config)
+        [FromBody] ConfigEntryDto config)
     {
         if (config is null)
-            return BadRequest();
+            return BadRequest(new ErrorResponse { Error = "Request body is required" });
 
-        var updated = await _service.UpdateAsync(realm, client, config);
-        return updated ? NoContent() : NotFound();
+        var entry = new ConfigEntry
+        {
+            Realm = config.Realm ?? realm,
+            Client = config.Client ?? client,
+            UserConfig = ParseJsonDocument(config.UserConfig),
+            ServiceConfig = ParseJsonDocument(config.ServiceConfig),
+            BootstrapConfig = ParseJsonDocument(config.BootstrapConfig),
+            Enabled = config.Enabled
+        };
+
+        var updated = await service.UpdateAsync(realm, client, entry);
+
+        if (!updated)
+            return NotFound(new ErrorResponse { Error = $"Entry not found for realm '{realm}' and client '{client}'" });
+
+        logger.LogInformation(
+            "Updated config entry for realm={Realm}, client={Client}",
+            realm, client);
+
+        return NoContent();
     }
 
+    // -----------------------------
+    // PATCH ENDPOINTS
+    // -----------------------------
+
+    /// <summary>
+    /// Enable or disable a configuration entry
+    /// </summary>
+    [HttpPatch("{idx:int}/enabled")]
+    public async Task<IActionResult> SetEnabled(int idx, [FromBody] EnabledDto dto)
+    {
+        if (dto is null)
+            return BadRequest(new ErrorResponse { Error = "Request body is required" });
+
+        var success = await service.SetEnabledAsync(idx, dto.Enabled);
+
+        if (!success)
+            return NotFound(new ErrorResponse { Error = $"Entry with idx {idx} not found" });
+
+        logger.LogInformation(
+            "Set enabled={Enabled} for config entry idx={Idx}",
+            dto.Enabled, idx);
+
+        return NoContent();
+    }
+
+    // -----------------------------
+    // DELETE ENDPOINTS
+    // -----------------------------
+
+    /// <summary>
+    /// Delete a configuration entry by idx
+    /// </summary>
+    [HttpDelete("{idx:int}")]
+    public async Task<IActionResult> DeleteByIdx(int idx)
+    {
+        var deleted = await service.DeleteByIdxAsync(idx);
+
+        if (!deleted)
+            return NotFound(new ErrorResponse { Error = $"Entry with idx {idx} not found" });
+
+        logger.LogInformation("Deleted config entry idx={Idx}", idx);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Delete a configuration entry by realm and client
+    /// </summary>
     [HttpDelete("{realm}/{client}")]
     public async Task<IActionResult> Delete(string realm, string client)
     {
-        var deleted = await _service.DeleteAsync(realm, client);
-        return deleted ? NoContent() : NotFound();
+        var deleted = await service.DeleteAsync(realm, client);
+
+        if (!deleted)
+            return NotFound(new ErrorResponse { Error = $"Entry not found for realm '{realm}' and client '{client}'" });
+
+        logger.LogInformation(
+            "Deleted config entry for realm={Realm}, client={Client}",
+            realm, client);
+
+        return NoContent();
     }
+
+    // -----------------------------
+    // HELPERS
+    // -----------------------------
+
+    private static JsonDocument? ParseJsonDocument(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+
+        try
+        {
+            return JsonDocument.Parse(json);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+}
+
+/// <summary>
+/// DTO for creating/updating configuration entries
+/// </summary>
+public class ConfigEntryDto
+{
+    public string? Realm { get; set; }
+    public string? Client { get; set; }
+    public string? UserConfig { get; set; }
+    public string? ServiceConfig { get; set; }
+    public string? BootstrapConfig { get; set; }
+    public bool Enabled { get; set; } = true;
+}
+
+/// <summary>
+/// DTO for enabling/disabling entries
+/// </summary>
+public class EnabledDto
+{
+    public bool Enabled { get; set; }
 }

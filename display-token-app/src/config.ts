@@ -7,7 +7,7 @@ function getEnvVar(key: string, defaultValue: string): string {
 }
 
 export const AppConfig = {
-  configUrl: getEnvVar('VITE_SFD_CONFIG_SERVICE', 'https://sfddevelopment.com/config'),
-  realm: getEnvVar('VITE_SFD_REALM', 'SfdDevelopment_Dev'),
-  client: getEnvVar('VITE_SFD_CLIENT', 'dev-login')
+  configUrl: getEnvVar('VITE_IF_CONFIG_SERVICE', 'https://ifdevelopment.com/config'),
+  realm: getEnvVar('VITE_IF_REALM', 'IfDevelopment_Dev'),
+  client: getEnvVar('VITE_IF_CLIENT', 'dev-login')
 };

@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 namespace ConfigWebService.Entities;
 
@@ -10,21 +11,53 @@ public class ConfigEntry
     [Column("idx")]
     public int Idx { get; set; }
 
+    [Required]
     [Column("realm")]
+    [MaxLength(240)]
     public string Realm { get; set; } = null!;
 
+    [Required]
     [Column("client")]
+    [MaxLength(240)]
     public string Client { get; set; } = null!;
 
-    [Column("user_config")]
-    public string UserConfig { get; set; } = null!;
+    [Column("user_config", TypeName = "jsonb")]
+    public JsonDocument? UserConfig { get; set; }
 
-    [Column("service_config")]
-    public string ServiceConfig { get; set; } = null!;
+    [Column("service_config", TypeName = "jsonb")]
+    public JsonDocument? ServiceConfig { get; set; }
 
-    [Column("patient_config")]
-    public string PatientConfig { get; set; } = null!;
+    [Column("bootstrap_config", TypeName = "jsonb")]
+    public JsonDocument? BootstrapConfig { get; set; }
 
-    [Column("jsonb")]
-    public string JsonB { get; set; } = null!;
+    [Column("enabled")]
+    public bool Enabled { get; set; } = true;
+
+    /// <summary>
+    /// Extracts a value from the specified config column by JSON path
+    /// </summary>
+    /// <param name="configType">"user" or "service"</param>
+    /// <param name="propertyName">The JSON property name to extract (case-insensitive)</param>
+    /// <returns>The JSON element if found, null otherwise</returns>
+    public JsonElement? GetConfigValue(string configType, string propertyName)
+    {
+        var config = configType.ToLowerInvariant() switch
+        {
+            "user" => UserConfig,
+            "service" => ServiceConfig,
+            _ => null
+        };
+
+        if (config is null)
+            return null;
+
+        // Case-insensitive property lookup
+        foreach (var property in config.RootElement.EnumerateObject())
+        {
+            if (property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+                return property.Value;
+        }
+
+        return null;
+    }
 }

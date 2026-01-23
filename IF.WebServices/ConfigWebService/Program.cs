@@ -83,7 +83,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Config Web Service",
         Version = "v1",
-        Description = "Centralised configuration service for SfD microservices"
+        Description = "Centralised configuration service for IF microservices"
     });
 });
 
