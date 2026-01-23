@@ -5,8 +5,8 @@ using IFGlobal.WebServices;
 var app = await ServiceFactory.CreateWithPostgresAsync(
     serviceName: "LoggerWebService",
     databaseConfigName: "loggerdb",
-    description: "Centralised logging service for SfD applications",
-    useSfdLogger: false,
+    description: "Centralised logging service",
+    useIFLogger: false,
     useSignalR: true,
     configureServices: (services, context) =>
     {

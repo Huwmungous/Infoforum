@@ -18,21 +18,21 @@ export function ConfirmModal({
   onCancel
 }: ConfirmModalProps) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
-      <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
-        <div className="modal-header">
+    <div className="if-modal-overlay" onClick={onCancel}>
+      <div className="if-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+        <div className="if-modal-header">
           <h2>{title}</h2>
-          <button className="btn btn-ghost btn-sm" onClick={onCancel}>✕</button>
+          <button className="if-btn if-btn-ghost if-btn-sm" onClick={onCancel}>✕</button>
         </div>
-        <div className="modal-body">
+        <div className="if-modal-body">
           <p>{message}</p>
         </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onCancel}>
+        <div className="if-modal-footer">
+          <button className="if-btn if-btn-secondary" onClick={onCancel}>
             {cancelLabel}
           </button>
           <button 
-            className={`btn btn-${confirmVariant}`}
+            className={`if-btn if-btn-${confirmVariant}`}
             onClick={onConfirm}
           >
             {confirmLabel}

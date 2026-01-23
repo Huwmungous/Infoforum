@@ -64,7 +64,7 @@ public class ConfigController(
         // If cfg is 'bootstrap', allow unauthenticated access
         if (cfg == "bootstrap")
         {
-            return await GetBootstrapConfigFromDb(realm, client);
+            return await GetBootstrapConfigFromDb(realm, client, type);
         }
 
         // For all other cfg values, require authentication
@@ -79,8 +79,9 @@ public class ConfigController(
 
     /// <summary>
     /// Get Bootstrap configuration from database
+    /// Returns a transformed object with clientId based on the app type
     /// </summary>
-    private async Task<IActionResult> GetBootstrapConfigFromDb(string realm, string client)
+    private async Task<IActionResult> GetBootstrapConfigFromDb(string realm, string client, string type)
     {
         try
         {
@@ -110,10 +111,46 @@ public class ConfigController(
             }
 
             logger.LogInformation(
-                "Returning bootstrap config for realm={Realm}, client={Client}",
-                realm, client);
+                "Returning bootstrap config for realm={Realm}, client={Client}, type={Type}",
+                realm, client, type);
 
-            return Ok(entry.BootstrapConfig.RootElement);
+            // Transform the bootstrap config to return the appropriate clientId
+            var bootstrapJson = entry.BootstrapConfig.RootElement;
+            
+            // Get the appropriate clientId based on type
+            string? clientId = null;
+            if (type == "user" && bootstrapJson.TryGetProperty("userClientId", out var userClientIdElement))
+            {
+                clientId = userClientIdElement.GetString();
+            }
+            else if (type == "service" && bootstrapJson.TryGetProperty("serviceClientId", out var serviceClientIdElement))
+            {
+                clientId = serviceClientIdElement.GetString();
+            }
+            
+            // Build the response object with the computed clientId
+            var response = new Dictionary<string, object?>
+            {
+                ["clientId"] = clientId,
+                ["openIdConfig"] = bootstrapJson.TryGetProperty("openIdConfig", out var openIdConfig) 
+                    ? openIdConfig.GetString() : null,
+                ["loggerService"] = bootstrapJson.TryGetProperty("loggerService", out var loggerService) 
+                    ? loggerService.GetString() : null,
+                ["logLevel"] = bootstrapJson.TryGetProperty("logLevel", out var logLevel) 
+                    ? logLevel.GetString() : "Information",
+                ["allowedScopes"] = bootstrapJson.TryGetProperty("allowedScopes", out var allowedScopes) 
+                    ? JsonSerializer.Deserialize<string[]>(allowedScopes.GetRawText()) : new[] { "openid", "profile", "email" },
+                ["requiresRelay"] = bootstrapJson.TryGetProperty("requiresRelay", out var requiresRelay) 
+                    && requiresRelay.GetBoolean()
+            };
+
+            // For service type, also include the client secret
+            if (type == "service" && bootstrapJson.TryGetProperty("serviceClientSecret", out var serviceClientSecret))
+            {
+                response["clientSecret"] = serviceClientSecret.GetString();
+            }
+
+            return Ok(response);
         }
         catch (Exception ex)
         {

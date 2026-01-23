@@ -1,5 +1,5 @@
 ﻿import { User, UserManager, UserManagerSettings, WebStorageStateStore } from 'oidc-client-ts';
-import { ConfigService } from '../configServiceClient';
+import { ConfigService } from '../config';
 import { LoggerService } from '../logger';
 
 export interface AuthConfig {

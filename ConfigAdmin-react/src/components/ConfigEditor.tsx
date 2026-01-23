@@ -123,20 +123,20 @@ export function ConfigEditor() {
   if (loading) {
     return (
       <div className="loading">
-        <div className="spinner" />
+        <div className="if-spinner" />
       </div>
     );
   }
 
   if (error && isEditing) {
     return (
-      <div className="card">
-        <div className="card-body">
+      <div className="if-card">
+        <div className="if-card-body">
           <div className="empty-state">
             <div className="empty-state-icon">⚠️</div>
             <h3>Error Loading Configuration</h3>
-            <p className="text-muted">{error}</p>
-            <Link to="/" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+            <p className="if-text-muted">{error}</p>
+            <Link to="/" className="if-btn if-btn-primary" style={{ marginTop: '1rem' }}>
               Back to List
             </Link>
           </div>
@@ -148,38 +148,38 @@ export function ConfigEditor() {
   return (
     <div className="config-editor">
       <div className="config-editor-header">
-        <Link to="/" className="btn btn-ghost">
+        <Link to="/" className="if-btn if-btn-ghost">
           ← Back
         </Link>
         <h1>{isEditing ? 'Edit Configuration' : 'New Configuration'}</h1>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="card">
-          <div className="card-header">
+        <div className="if-card">
+          <div className="if-card-header">
             <h3>Basic Information</h3>
           </div>
-          <div className="card-body">
+          <div className="if-card-body">
             <div className="form-grid">
-              <div className="form-group">
-                <label className="form-label" htmlFor="realm">Realm *</label>
+              <div className="if-form-group">
+                <label className="if-form-label" htmlFor="realm">Realm *</label>
                 <input
                   id="realm"
                   type="text"
-                  className="form-input"
+                  className="if-form-input"
                   value={realm}
                   onChange={e => setRealm(e.target.value)}
-                  placeholder="e.g., SfdDevelopment_dev"
+                  placeholder="e.g., longmanrd_dev"
                   required
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label" htmlFor="client">Client *</label>
+              <div className="if-form-group">
+                <label className="if-form-label" htmlFor="client">Client *</label>
                 <input
                   id="client"
                   type="text"
-                  className="form-input"
+                  className="if-form-input"
                   value={client}
                   onChange={e => setClient(e.target.value)}
                   placeholder="e.g., dev-login"
@@ -188,7 +188,7 @@ export function ConfigEditor() {
               </div>
             </div>
 
-            <div className="form-group" style={{ marginTop: 'var(--space-md)' }}>
+            <div className="if-form-group" style={{ marginTop: 'var(--if-space-md)' }}>
               <label className="toggle-label">
                 <input
                   type="checkbox"
@@ -202,33 +202,33 @@ export function ConfigEditor() {
           </div>
         </div>
 
-        <div className="card">
-          <div className="card-header">
-            <div className="tabs">
+        <div className="if-card">
+          <div className="if-card-header">
+            <div className="if-tabs">
               <button
                 type="button"
-                className={`tab ${activeTab === 'bootstrap' ? 'active' : ''}`}
+                className={`if-tab ${activeTab === 'bootstrap' ? 'active' : ''}`}
                 onClick={() => setActiveTab('bootstrap')}
               >
                 Bootstrap Config
               </button>
               <button
                 type="button"
-                className={`tab ${activeTab === 'user' ? 'active' : ''}`}
+                className={`if-tab ${activeTab === 'user' ? 'active' : ''}`}
                 onClick={() => setActiveTab('user')}
               >
                 User Config
               </button>
               <button
                 type="button"
-                className={`tab ${activeTab === 'service' ? 'active' : ''}`}
+                className={`if-tab ${activeTab === 'service' ? 'active' : ''}`}
                 onClick={() => setActiveTab('service')}
               >
                 Service Config
               </button>
             </div>
           </div>
-          <div className="card-body">
+          <div className="if-card-body">
             {activeTab === 'bootstrap' && (
               <JsonEditor
                 value={bootstrapConfig}
@@ -260,10 +260,10 @@ export function ConfigEditor() {
         </div>
 
         <div className="form-actions">
-          <Link to="/" className="btn btn-secondary">
+          <Link to="/" className="if-btn if-btn-secondary">
             Cancel
           </Link>
-          <button type="submit" className="btn btn-primary btn-lg" disabled={saving}>
+          <button type="submit" className="if-btn if-btn-primary if-btn-lg" disabled={saving}>
             {saving ? 'Saving...' : (isEditing ? 'Update Configuration' : 'Create Configuration')}
           </button>
         </div>

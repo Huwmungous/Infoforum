@@ -10,7 +10,7 @@
 
 // Main entry component
 export { AppInitializer } from './AppInitializer';
-export type { AppInitializerProps, StaticConfigOverride, StaticAuthConfigOverride } from './AppInitializer';
+export type { AppInitializerProps, StaticConfigOverride, StaticAuthConfigOverride, DynamicConfigOverride } from './AppInitializer';
 
 // Contexts and hooks
 export { AppContextProvider, useAppContext, useAuth } from './contexts';

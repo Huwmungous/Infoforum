@@ -1,22 +1,28 @@
 /**
- * @sfd/web-common Public API
- *
- * This module exposes only the public contract:
- * - AppInitializer: Main entry point component
- * - useAppContext: Hook for accessing app context (config, auth, createLogger)
- * - useAuth: Convenience hook for auth-only access
- * - Types: AppContextValue, Logger, AuthUser, AppInitializerProps, StaticConfigOverride
+ * @if/web-common
+ * 
+ * Framework-agnostic library for authentication, configuration, and logging.
+ * Works with any TypeScript framework: Angular, React, Vue, etc.
+ * 
+ * Usage:
+ *   import { AuthService, ConfigService, LoggerService } from '@if/web-common';
  */
 
-// Main entry point component
-export { AppInitializer } from './AppInitializer';
-export { api } from './fetchInterceptor';
-export { LoggerService } from './logger';
-export type { AppInitializerProps, StaticConfigOverride } from './AppInitializer';
+// Authentication
+export { AuthService, authService } from './auth';
+export type { AuthConfig, UserChangeCallback } from './auth';
+export type { User } from 'oidc-client-ts';
 
-// Hooks
-export { useAppContext, useAuth } from './appContext';
+// Configuration
+export { ConfigService, EnvironmentConfig } from './config';
+export type { AppType, BootstrapConfig, ConfigServiceInitParams } from './config';
 
-// Types
-export type { AppContextValue, Logger } from './appContext';
+// Logging
+export { LoggerService, IfLogger, IfLoggerProvider, IfLoggerExtensions } from './logger';
+export type { LogLevel, IfLoggerConfiguration, IfLogEntry } from './logger';
 
+// HTTP
+export { api, setupFetchInterceptor } from './http';
+
+// Routing utilities
+export { normalizeBase, getAppBasePath, getCurrentRoutePath, buildAppUrl } from './routing';

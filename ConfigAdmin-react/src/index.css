@@ -3,100 +3,63 @@
 
 /* App-specific styles */
 
-/* Legacy class aliases for backward compatibility */
-@layer components {
-  .btn { @apply if-btn; }
-  .btn-primary { @apply if-btn-primary; }
-  .btn-secondary { @apply if-btn-secondary; }
-  .btn-success { @apply if-btn-success; }
-  .btn-danger { @apply if-btn-danger; }
-  .btn-warning { @apply if-btn-warning; }
-  .btn-ghost { @apply if-btn-ghost; }
-  .btn-sm { @apply if-btn-sm; }
-  .btn-lg { @apply if-btn-lg; }
-  
-  .card { @apply if-card; }
-  .card-header { @apply if-card-header; }
-  .card-body { @apply if-card-body; }
-  
-  .form-group { @apply if-form-group; }
-  .form-label { @apply if-form-label; }
-  .form-input { @apply if-form-input; }
-  .form-textarea {
-    @apply if-form-input;
-    min-height: 200px;
-    font-family: var(--if-font-mono);
-    font-size: 0.875rem;
-    line-height: 1.5;
-    resize: vertical;
-  }
-  
-  .table { @apply if-table; }
-  
-  .badge { @apply if-badge; }
-  .badge-enabled { @apply if-badge-enabled; }
-  .badge-disabled { @apply if-badge-disabled; }
-  
-  .modal-overlay { @apply if-modal-overlay; }
-  .modal { @apply if-modal; }
-  .modal-header { @apply if-modal-header; }
-  .modal-body { @apply if-modal-body; }
-  .modal-footer { @apply if-modal-footer; }
-  
-  .toast-container { @apply if-toast-container; }
-  .toast { @apply if-toast; }
-  .toast-success { @apply if-toast-success; }
-  .toast-error { @apply if-toast-error; }
-  .toast-info { @apply if-toast-info; }
-  
-  .header { @apply if-header; }
-  .header-inner {
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-  }
-  .logo { @apply if-header-left; }
-  .logo-icon {
-    width: 40px;
-    height: 40px;
-    background: linear-gradient(135deg, var(--if-light-colour), var(--if-medium-colour));
-    border-radius: var(--if-radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.25rem;
-    color: white;
-  }
-  
-  .container { @apply if-container; }
-  .footer { @apply if-footer; }
-  
-  .text-mono { @apply if-text-mono; }
-  .text-muted { @apply if-text-muted; }
-  .truncate { @apply if-truncate; }
-  
-  .loading { 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--if-space-2xl);
-  }
-  .spinner { @apply if-spinner; }
-  
-  .empty-state {
-    text-align: center;
-    padding: var(--if-space-2xl);
-    color: #777;
-  }
-  .empty-state-icon {
-    font-size: 3rem;
-    margin-bottom: var(--if-space-md);
-    opacity: 0.5;
-  }
+.header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--if-light-colour), var(--if-medium-colour));
+  border-radius: var(--if-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: white;
+}
+
+.form-textarea {
+  padding: var(--if-space-sm) var(--if-space-md);
+  font-family: var(--if-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: var(--if-paper-colour);
+  border: 1px solid #ddd;
+  border-radius: var(--if-radius-md);
+  color: var(--if-dark-colour);
+  min-height: 200px;
+  resize: vertical;
+}
+
+.form-textarea:focus {
+  border-color: var(--if-light-colour);
+  outline: none;
+}
+
+.loading { 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--if-space-2xl);
+}
+
+.empty-state {
+  text-align: center;
+  padding: var(--if-space-2xl);
+  color: #777;
+}
+
+.empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--if-space-md);
+  opacity: 0.5;
 }
 
 /* Animation for modals */
@@ -116,11 +79,11 @@
   }
 }
 
-.modal-overlay {
+.if-modal-overlay {
   animation: fadeIn 0.2s ease;
 }
 
-.modal {
+.if-modal {
   animation: scaleIn 0.2s ease;
 }
 
@@ -136,26 +99,26 @@
   }
 }
 
-.toast {
+.if-toast {
   animation: slideIn 0.3s ease;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .container {
+  .if-container {
     padding: var(--if-space-md);
   }
 
-  .modal {
+  .if-modal {
     max-height: 100vh;
     border-radius: 0;
   }
 
-  .modal-overlay {
+  .if-modal-overlay {
     padding: 0;
   }
 
-  .btn {
+  .if-btn {
     min-width: 100px;
   }
 }

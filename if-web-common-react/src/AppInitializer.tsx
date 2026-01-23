@@ -10,7 +10,7 @@ import { SigninCallback } from './components/SigninCallback';
 import { SignoutCallback } from './components/SignoutCallback';
 import { SilentCallback } from './components/SilentCallback';
 import { AppContextProvider } from './contexts/AppContext';
-import { getCurrentRoutePath, buildAppUrl, getAppBasePath } from "@if/web-common";
+import { getCurrentRoutePath, buildAppUrl, getAppBasePath, setDynamicBasePath } from "@if/web-common";
 
 export interface StaticConfigOverride {
   clientId: string;
@@ -29,10 +29,38 @@ export interface StaticAuthConfigOverride {
   authority?: string;
 }
 
+/**
+ * Dynamic configuration from URL parameters.
+ * When provided, realm/client come from URL instead of environment variables.
+ * This enables multi-tenant applications where the tenant is determined by URL.
+ */
+export interface DynamicConfigOverride {
+  /** URL to the config service (e.g., "https://example.com/config" or "/config") */
+  configServiceUrl: string;
+  /** Realm extracted from URL */
+  realm: string;
+  /** Client extracted from URL */
+  client: string;
+  /** Full redirect URI for signin callback (optional - will be built from base path if not provided) */
+  redirectUri?: string;
+  /** Full redirect URI for post-logout (optional - will be built from base path if not provided) */
+  postLogoutRedirectUri?: string;
+  /** Full redirect URI for silent token renewal (optional - will be built from base path if not provided) */
+  silentRedirectUri?: string;
+  /** Base path for the application (e.g., "/tokens/realm/client") - used for routing */
+  basePath?: string;
+}
+
 export interface AppInitializerProps {
   children: ReactNode;
   appType?: AppType;
   staticConfig?: StaticConfigOverride;
+  /**
+   * Dynamic configuration from URL parameters.
+   * When provided, realm/client come from URL instead of environment variables.
+   * This takes precedence over environment variables for realm/client/configServiceUrl.
+   */
+  dynamicConfig?: DynamicConfigOverride;
   /**
    * Optional auth config overrides. When using dynamic config, these values
    * override the auth settings from ConfigService. Useful for debug/testing.
@@ -47,8 +75,20 @@ export interface AppInitializerProps {
  * AppInitializer is the unified entry point for If applications.
  * It handles config, auth, and route protection internally.
  *
- * Usage:
+ * Usage (environment-based config):
  * <AppInitializer appType="user">
+ *   <App />
+ * </AppInitializer>
+ * 
+ * Usage (URL-based dynamic config):
+ * <AppInitializer 
+ *   appType="user"
+ *   dynamicConfig={{
+ *     configServiceUrl: '/config',
+ *     realm: 'MyRealm',
+ *     client: 'my-client',
+ *   }}
+ * >
  *   <App />
  * </AppInitializer>
  */
@@ -56,6 +96,7 @@ export function AppInitializer({
   children,
   appType = 'user',
   staticConfig,
+  dynamicConfig,
   staticAuthConfig,
   loadingComponent,
   errorComponent,
@@ -68,6 +109,21 @@ export function AppInitializer({
     ready: false,
     error: null
   });
+
+  // Set dynamic base path if using URL-based config
+  // This must happen before any routing decisions
+  if (dynamicConfig?.basePath) {
+    setDynamicBasePath(dynamicConfig.basePath);
+  } else if (dynamicConfig) {
+    // Infer base path from realm/client
+    // Check if we're in production with /tokens/ prefix
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    if (pathname.includes('/tokens/')) {
+      setDynamicBasePath(`/tokens/${dynamicConfig.realm}/${dynamicConfig.client}`);
+    } else {
+      setDynamicBasePath(`/${dynamicConfig.realm}/${dynamicConfig.client}`);
+    }
+  }
 
   // Detect if we're on OAuth callback routes (supports both standard and hash routing)
   const routePath = getCurrentRoutePath();
@@ -92,8 +148,12 @@ export function AppInitializer({
           return;
         }
 
+        // Determine if using dynamic URL-based config
+        const useDynamicUrlConfig = !!dynamicConfig;
+
         // Validate environment variables using EnvironmentConfig
-        const validationErrors = EnvironmentConfig.validate(!!staticConfig);
+        // Pass useDynamicUrlConfig to skip realm/client/configServiceUrl validation
+        const validationErrors = EnvironmentConfig.validate(!!staticConfig, useDynamicUrlConfig);
         if (validationErrors.length > 0) {
           EnvironmentConfig.logValidationErrors(validationErrors);
           setState({ ready: false, error: 'Configuration validation failed. Check console for details.' });
@@ -101,7 +161,7 @@ export function AppInitializer({
         }
 
         // Log all configuration values after successful validation
-        EnvironmentConfig.logConfiguration(!!staticConfig);
+        EnvironmentConfig.logConfiguration(!!staticConfig, useDynamicUrlConfig);
 
         // Setup global fetch interceptor with auth token supplier
         setupFetchInterceptor({
@@ -113,13 +173,24 @@ export function AppInitializer({
           console.log('AppInitializer: Using static config (bypassing ConfigWebService)');
           ConfigService.initializeWithStaticConfig({
             ...staticConfig,
-            realm: EnvironmentConfig.get('IF_REALM'),
+            realm: dynamicConfig?.realm ?? EnvironmentConfig.get('IF_REALM'),
             appName: EnvironmentConfig.get('IF_APP_NAME'),
             environment: EnvironmentConfig.get('IF_ENVIRONMENT'),
             appType
           });
+        } else if (dynamicConfig) {
+          // Use dynamic URL-based config
+          console.log(`AppInitializer: Using dynamic URL config - realm: ${dynamicConfig.realm}, client: ${dynamicConfig.client}`);
+          await ConfigService.initialize({
+            configServiceUrl: dynamicConfig.configServiceUrl,
+            realm: dynamicConfig.realm,
+            client: dynamicConfig.client,
+            appType,
+            appName: EnvironmentConfig.get('IF_APP_NAME'),
+            environment: EnvironmentConfig.get('IF_ENVIRONMENT')
+          });
         } else {
-          // Fetch from ConfigWebService
+          // Fetch from ConfigWebService using environment variables
           console.log(`AppInitializer: Initializing ConfigService with appType: ${appType}`);
           await ConfigService.initialize({
             configServiceUrl: EnvironmentConfig.get('IF_CONFIG_SERVICE_URL'),
@@ -145,7 +216,7 @@ export function AppInitializer({
     };
 
     initializeConfig();
-  }, [appType, staticConfig]);
+  }, [appType, staticConfig, dynamicConfig]);
 
   // Log warnings for missing optional UI components (after state is set)
   useEffect(() => {
@@ -201,13 +272,22 @@ export function AppInitializer({
   }
 
   // Build auth config from ConfigService, with optional static overrides
+  // When using dynamicConfig, use provided redirect URIs or build from base path
   const authConfig = {
-    redirectUri: buildAppUrl("signin/callback"),
-    postLogoutRedirectUri: buildAppUrl("signout/callback"),
-    silentRedirectUri: buildAppUrl("silent-callback"),
+    redirectUri: dynamicConfig?.redirectUri ?? buildAppUrl("signin/callback"),
+    postLogoutRedirectUri: dynamicConfig?.postLogoutRedirectUri ?? buildAppUrl("signout/callback"),
+    silentRedirectUri: dynamicConfig?.silentRedirectUri ?? buildAppUrl("silent-callback"),
     clientId: staticAuthConfig?.clientId ?? ConfigService.ClientId,
     authority: staticAuthConfig?.authority ?? ConfigService.OpenIdConfig,
   };
+
+  if (dynamicConfig) {
+    console.log('AppInitializer: Using dynamic URL config with redirect URIs', {
+      redirectUri: authConfig.redirectUri,
+      postLogoutRedirectUri: authConfig.postLogoutRedirectUri,
+      silentRedirectUri: authConfig.silentRedirectUri,
+    });
+  }
 
   if (staticAuthConfig) {
     console.log('AppInitializer: Using staticAuthConfig overrides', {

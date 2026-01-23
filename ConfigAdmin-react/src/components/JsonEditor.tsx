@@ -43,7 +43,7 @@ export function JsonEditor({ value, onChange, onFormat, placeholder, hint }: Jso
             </span>
           )}
         </div>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={onFormat} disabled={!isValid}>
+        <button type="button" className="if-btn if-btn-ghost if-btn-sm" onClick={onFormat} disabled={!isValid}>
           Format
         </button>
       </div>
@@ -55,7 +55,7 @@ export function JsonEditor({ value, onChange, onFormat, placeholder, hint }: Jso
           ))}
         </div>
         <textarea
-          className="form-input form-textarea json-textarea"
+          className="if-form-input form-textarea json-textarea"
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}

@@ -1,9 +1,9 @@
-﻿import { SfdLoggerProvider } from './SfdLoggerProvider';
-import { SfdLogger, SfdLoggerConfiguration, LogLevel } from './SfdLogger';
-import { ConfigService } from '../configServiceClient';
+﻿import { IfLoggerProvider } from './IfLoggerProvider';
+import { IfLogger, IfLoggerConfiguration, LogLevel } from './IfLogger';
+import { ConfigService } from '../config';
 
 export class LoggerService {
-  private logger: SfdLogger;
+  private logger: IfLogger;
   private static _configured: boolean = false;
 
   private constructor(category: string) {
@@ -12,7 +12,7 @@ export class LoggerService {
       LoggerService.autoConfigureFromConfigService();
     }
     
-    this.logger = SfdLoggerProvider.createLogger(category);
+    this.logger = IfLoggerProvider.createLogger(category);
   }
 
 /**
@@ -60,7 +60,7 @@ private static getValidLogLevel(level: string | number): LogLevel {
         const logLevel = LoggerService.getValidLogLevel(ConfigService.LogLevel);
         
         console.log(`Auto-configuring logger with URL from ConfigService: ${loggerServiceUrl || '(none)'}, LogLevel: ${logLevel}`);
-        SfdLoggerProvider.configure({
+        IfLoggerProvider.configure({
           loggerService: loggerServiceUrl || '',
           minimumLogLevel: logLevel
         });
@@ -68,7 +68,7 @@ private static getValidLogLevel(level: string | number): LogLevel {
         // This is expected during initial bootstrap - ConfigService and LoggerService
         // have a circular dependency that's resolved by using defaults initially
         // Don't warn about this as it's normal startup behaviour
-        SfdLoggerProvider.configure({
+        IfLoggerProvider.configure({
           loggerService: '',
           minimumLogLevel: 'Information'
         });
@@ -78,7 +78,7 @@ private static getValidLogLevel(level: string | number): LogLevel {
     } catch (error) {
       console.error('Failed to auto-configure logger from ConfigService:', error);
       // Fall back to default configuration
-      SfdLoggerProvider.configure({
+      IfLoggerProvider.configure({
         loggerService: '',
         minimumLogLevel: 'Information'
       });
@@ -90,8 +90,8 @@ private static getValidLogLevel(level: string | number): LogLevel {
    * Configure the global logger manually
    * This overrides any auto-configuration from ConfigService
    */
-  public static configure(config: Partial<SfdLoggerConfiguration>): void {
-    SfdLoggerProvider.configure(config);
+  public static configure(config: Partial<IfLoggerConfiguration>): void {
+    IfLoggerProvider.configure(config);
     LoggerService._configured = true;
   }
 
@@ -109,7 +109,7 @@ private static getValidLogLevel(level: string | number): LogLevel {
     const logLevel = LoggerService.getValidLogLevel(ConfigService.LogLevel);
 
     console.log(`Configuring logger with URL from ConfigService: ${loggerServiceUrl || '(none)'}, LogLevel: ${logLevel}`);
-    SfdLoggerProvider.configure({
+    IfLoggerProvider.configure({
       loggerService: loggerServiceUrl || '',
       minimumLogLevel: logLevel
     });
@@ -136,10 +136,10 @@ private static getValidLogLevel(level: string | number): LogLevel {
    */
   public static reset(): void {
     LoggerService._configured = false;
-    SfdLoggerProvider.clearLoggers();
+    IfLoggerProvider.clearLoggers();
   }
 
-  // Convenience methods that delegate to the underlying SfdLogger
+  // Convenience methods that delegate to the underlying IfLogger
   public trace(message: string, exception?: Error): void {
     this.logger.trace(message, exception);
   }

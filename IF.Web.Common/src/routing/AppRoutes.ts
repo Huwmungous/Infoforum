@@ -1,3 +1,21 @@
+// Runtime override for dynamic URL-based configuration
+let _dynamicBasePath: string | null = null;
+
+/**
+ * Set dynamic base path at runtime (for URL-based realm/client).
+ * Call this before AppInitializer renders.
+ */
+export function setDynamicBasePath(basePath: string | null): void {
+  _dynamicBasePath = basePath;
+}
+
+/**
+ * Get the current dynamic base path, if set.
+ */
+export function getDynamicBasePath(): string | null {
+  return _dynamicBasePath;
+}
+
 export function normalizeBase(base: string): string {
   if (!base) return "/";
   if (!base.startsWith("/")) base = "/" + base;
@@ -16,6 +34,9 @@ export function _setTestBasePath(base: string | null): void {
 export function getAppBasePath(): string {
   // Test override takes precedence
   if (_testBasePathOverride !== null) return normalizeBase(_testBasePathOverride);
+
+  // Dynamic base path (from URL) takes precedence over Vite base
+  if (_dynamicBasePath !== null) return normalizeBase(_dynamicBasePath);
 
   // Best source in Vite apps: this reflects the configured `base`.
   // Falls back safely if not present.
@@ -41,7 +62,7 @@ export function getCurrentRoutePath(): string {
   if (hash && hash.startsWith("#/")) return hash.slice(1);
 
   // Standard routing: strip base path so callers can compare to "/signin/callback"
-  const base = getAppBasePath(); // "/logs/" or "/"
+  const base = getAppBasePath(); // "/tokens/realm/client/" or "/"
   if (base !== "/" && pathname.startsWith(base)) {
     const rest = pathname.slice(base.length - 1); // keep leading "/"
     return rest || "/";

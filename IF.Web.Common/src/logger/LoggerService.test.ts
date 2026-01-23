@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { LoggerService } from './LoggerService';
-import { SfdLoggerProvider } from './SfdLoggerProvider';
-import { ConfigService } from '../configServiceClient';
+import { IfLoggerProvider } from './IfLoggerProvider';
+import { ConfigService } from '../config';
 
-// Mock SfdLoggerProvider for unit tests only
-vi.mock('./SfdLoggerProvider', () => ({
-  SfdLoggerProvider: {
+// Mock IfLoggerProvider for unit tests only
+vi.mock('./IfLoggerProvider', () => ({
+  IfLoggerProvider: {
     configure: vi.fn(),
     createLogger: vi.fn(() => ({
       trace: vi.fn(),
@@ -22,7 +22,7 @@ vi.mock('./SfdLoggerProvider', () => ({
 }));
 
 // Mock ConfigService
-vi.mock('../configServiceClient', () => ({
+vi.mock('../config', () => ({
   ConfigService: {
     isInitialized: false,
     LoggerService: 'https://logger.example.com/api/log',
@@ -55,7 +55,7 @@ describe('LoggerService - Unit Tests', () => {
       const logger = LoggerService.create('TestCategory');
 
       expect(logger).toBeInstanceOf(LoggerService);
-      expect(SfdLoggerProvider.createLogger).toHaveBeenCalledWith('TestCategory');
+      expect(IfLoggerProvider.createLogger).toHaveBeenCalledWith('TestCategory');
     });
 
     it('should auto-configure from ConfigService when initialized', () => {
@@ -63,7 +63,7 @@ describe('LoggerService - Unit Tests', () => {
 
       LoggerService.create('TestCategory');
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith({
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith({
         loggerService: 'https://logger.example.com/api/log',
         minimumLogLevel: 'Information',
       });
@@ -74,7 +74,7 @@ describe('LoggerService - Unit Tests', () => {
 
       LoggerService.create('TestCategory');
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith({
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith({
         loggerService: '',
         minimumLogLevel: 'Information',
       });
@@ -90,13 +90,13 @@ describe('LoggerService - Unit Tests', () => {
   });
 
   describe('configure', () => {
-    it('should configure SfdLoggerProvider with provided config', () => {
+    it('should configure IfLoggerProvider with provided config', () => {
       LoggerService.configure({
         loggerService: 'https://custom-logger.example.com',
         minimumLogLevel: 'Debug',
       });
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith({
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith({
         loggerService: 'https://custom-logger.example.com',
         minimumLogLevel: 'Debug',
       });
@@ -107,7 +107,7 @@ describe('LoggerService - Unit Tests', () => {
         minimumLogLevel: 'Error',
       });
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith({
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith({
         minimumLogLevel: 'Error',
       });
     });
@@ -129,7 +129,7 @@ describe('LoggerService - Unit Tests', () => {
 
       await LoggerService.configureFromConfigService();
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith({
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith({
         loggerService: 'https://config-logger.example.com',
         minimumLogLevel: 'Warning',
       });
@@ -141,7 +141,7 @@ describe('LoggerService - Unit Tests', () => {
 
       await LoggerService.configureFromConfigService();
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith({
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith({
         loggerService: '',
         minimumLogLevel: 'Information',
       });
@@ -161,7 +161,7 @@ describe('LoggerService - Unit Tests', () => {
 
         LoggerService.create('Test');
 
-        expect(SfdLoggerProvider.configure).toHaveBeenCalledWith(
+        expect(IfLoggerProvider.configure).toHaveBeenCalledWith(
           expect.objectContaining({ minimumLogLevel: level })
         );
       }
@@ -173,7 +173,7 @@ describe('LoggerService - Unit Tests', () => {
 
       LoggerService.create('Test');
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith(
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith(
         expect.objectContaining({ minimumLogLevel: 'Trace' })
       );
     });
@@ -184,7 +184,7 @@ describe('LoggerService - Unit Tests', () => {
 
       LoggerService.create('Test');
 
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith(
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith(
         expect.objectContaining({ minimumLogLevel: 'Information' })
       );
     });
@@ -199,7 +199,7 @@ describe('LoggerService - Unit Tests', () => {
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining("Invalid log level 'InvalidLevel'")
       );
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledWith(
+      expect(IfLoggerProvider.configure).toHaveBeenCalledWith(
         expect.objectContaining({ minimumLogLevel: 'Information' })
       );
 
@@ -218,25 +218,25 @@ describe('LoggerService - Unit Tests', () => {
       LoggerService.create('Test2');
 
       // configure should be called twice (once before reset, once after)
-      expect(SfdLoggerProvider.configure).toHaveBeenCalledTimes(2);
+      expect(IfLoggerProvider.configure).toHaveBeenCalledTimes(2);
     });
 
-    it('should call SfdLoggerProvider.clearLoggers', () => {
+    it('should call IfLoggerProvider.clearLoggers', () => {
       LoggerService.reset();
 
-      expect(SfdLoggerProvider.clearLoggers).toHaveBeenCalled();
+      expect(IfLoggerProvider.clearLoggers).toHaveBeenCalled();
     });
   });
 });
 
 /**
  * Unit tests for LoggerService convenience methods.
- * These tests verify that LoggerService correctly delegates to the underlying SfdLogger.
+ * These tests verify that LoggerService correctly delegates to the underlying IfLogger.
  *
- * Note: Actual console output is tested in SfdLogger.test.ts which doesn't mock the logger.
+ * Note: Actual console output is tested in IfLogger.test.ts which doesn't mock the logger.
  * This separation ensures we test:
  * 1. LoggerService delegation (here) - that methods call through correctly
- * 2. SfdLogger output (in SfdLogger.test.ts) - that actual logging works
+ * 2. IfLogger output (in IfLogger.test.ts) - that actual logging works
  */
 describe('LoggerService - Convenience Methods (Delegation)', () => {
   beforeEach(() => {
@@ -255,97 +255,97 @@ describe('LoggerService - Convenience Methods (Delegation)', () => {
 
   it('should delegate trace() to underlying logger with correct arguments', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
 
     logger.trace('trace message');
 
-    expect(mockSfdLogger.trace).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.trace).toHaveBeenCalledWith('trace message', undefined);
+    expect(mockIfLogger.trace).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.trace).toHaveBeenCalledWith('trace message', undefined);
   });
 
   it('should delegate trace() with exception to underlying logger', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
     const error = new Error('trace error');
 
     logger.trace('trace with error', error);
 
-    expect(mockSfdLogger.trace).toHaveBeenCalledWith('trace with error', error);
+    expect(mockIfLogger.trace).toHaveBeenCalledWith('trace with error', error);
   });
 
   it('should delegate debug() to underlying logger with correct arguments', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
 
     logger.debug('debug message');
 
-    expect(mockSfdLogger.debug).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.debug).toHaveBeenCalledWith('debug message', undefined);
+    expect(mockIfLogger.debug).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.debug).toHaveBeenCalledWith('debug message', undefined);
   });
 
   it('should delegate info() to underlying logger with correct arguments', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
 
     logger.info('info message');
 
-    expect(mockSfdLogger.info).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.info).toHaveBeenCalledWith('info message', undefined);
+    expect(mockIfLogger.info).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.info).toHaveBeenCalledWith('info message', undefined);
   });
 
   it('should delegate warn() to underlying logger with correct arguments', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
 
     logger.warn('warn message');
 
-    expect(mockSfdLogger.warn).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.warn).toHaveBeenCalledWith('warn message', undefined);
+    expect(mockIfLogger.warn).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.warn).toHaveBeenCalledWith('warn message', undefined);
   });
 
   it('should delegate error() to underlying logger with message only', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
 
     logger.error('error message');
 
-    expect(mockSfdLogger.error).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.error).toHaveBeenCalledWith('error message', undefined);
+    expect(mockIfLogger.error).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.error).toHaveBeenCalledWith('error message', undefined);
   });
 
   it('should delegate error() to underlying logger with exception', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
     const error = new Error('test error');
 
     logger.error('error message', error);
 
-    expect(mockSfdLogger.error).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.error).toHaveBeenCalledWith('error message', error);
+    expect(mockIfLogger.error).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.error).toHaveBeenCalledWith('error message', error);
   });
 
   it('should delegate critical() to underlying logger with correct arguments', () => {
     const logger = LoggerService.create('TestCategory');
-    const mockSfdLogger = (SfdLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
+    const mockIfLogger = (IfLoggerProvider.createLogger as ReturnType<typeof vi.fn>).mock.results[0].value;
 
     logger.critical('critical message');
 
-    expect(mockSfdLogger.critical).toHaveBeenCalledTimes(1);
-    expect(mockSfdLogger.critical).toHaveBeenCalledWith('critical message', undefined);
+    expect(mockIfLogger.critical).toHaveBeenCalledTimes(1);
+    expect(mockIfLogger.critical).toHaveBeenCalledWith('critical message', undefined);
   });
 
   it('should create logger with correct category', () => {
     LoggerService.create('MyCustomCategory');
 
-    expect(SfdLoggerProvider.createLogger).toHaveBeenCalledWith('MyCustomCategory');
+    expect(IfLoggerProvider.createLogger).toHaveBeenCalledWith('MyCustomCategory');
   });
 
   it('should create separate logger instances for different categories', () => {
     const logger1 = LoggerService.create('Category1');
     const logger2 = LoggerService.create('Category2');
 
-    expect(SfdLoggerProvider.createLogger).toHaveBeenCalledWith('Category1');
-    expect(SfdLoggerProvider.createLogger).toHaveBeenCalledWith('Category2');
+    expect(IfLoggerProvider.createLogger).toHaveBeenCalledWith('Category1');
+    expect(IfLoggerProvider.createLogger).toHaveBeenCalledWith('Category2');
     expect(logger1).not.toBe(logger2);
   });
 });

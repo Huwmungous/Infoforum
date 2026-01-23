@@ -17,14 +17,7 @@ using var bootstrapLoggerFactory = LoggerFactory.Create(logging =>
 });
 var logger = bootstrapLoggerFactory.CreateLogger("ConfigWebService");
 
-var clientId = Environment.GetEnvironmentVariable("IF_CLIENT")
-    ?? throw new InvalidOperationException("IF_CLIENT environment variable not set");
-var realm = Environment.GetEnvironmentVariable("IF_REALM")
-    ?? throw new InvalidOperationException("IF_REALM environment variable not set");
-var clientSecret = Environment.GetEnvironmentVariable("IF_CLIENTSECRET")
-    ?? throw new InvalidOperationException("IF_CLIENTSECRET environment variable not set");
-
-logger.LogDebug("ConfigWebService starting. ClientId={ClientId}, Realm={Realm}", clientId, realm);
+logger.LogDebug("ConfigWebService starting.");
 
 builder.Configuration
     .SetBasePath(Directory.GetCurrentDirectory())

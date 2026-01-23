@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom';
 import { vi, beforeEach, afterEach } from 'vitest';
 
 // Mock import.meta.env
@@ -51,8 +50,8 @@ const locationMock = {
 
 vi.stubGlobal('location', locationMock);
 
-// Mock window.__SFD_CONFIG__
-(window as any).__SFD_CONFIG__ = undefined;
+// Mock window.__IF_CONFIG__
+(globalThis as any).__IF_CONFIG__ = undefined;
 
 // Mock fetch
 const mockFetch = vi.fn();
@@ -81,7 +80,7 @@ export function clearMockEnv() {
 
 // Helper to set window runtime config
 export function setRuntimeConfig(config: Record<string, string> | undefined) {
-  (window as any).__SFD_CONFIG__ = config;
+  (globalThis as any).__IF_CONFIG__ = config;
 }
 
 // Helper to get mock fetch

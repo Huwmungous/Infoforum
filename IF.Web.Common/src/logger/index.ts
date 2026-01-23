@@ -1,9 +1,12 @@
 /**
- * @sfd/web-common/logger
- *
- * Low-level logger API for direct LoggerService access.
- * For most apps, prefer using useAppContext().createLogger(category) instead.
+ * @if/web-common/core - Logging
+ * 
+ * Framework-agnostic logging services.
  */
 
 export { LoggerService } from './LoggerService';
-export type { LogLevel, SfdLoggerConfiguration, SfdLogEntry } from './SfdLogger';
+export { IfLogger } from './IfLogger';
+export { IfLoggerProvider } from './IfLoggerProvider';
+export { IfLoggerExtensions } from './IfLoggerExtensions';
+
+export type { LogLevel, IfLoggerConfiguration, IfLogEntry } from './IfLogger';

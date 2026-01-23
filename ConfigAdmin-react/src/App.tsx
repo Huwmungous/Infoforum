@@ -9,7 +9,7 @@ function App() {
     <ToastProvider>
       <div className="app">
         <Header />
-        <main className="container">
+        <main className="if-container">
           <Routes>
             <Route path="/" element={<ConfigList />} />
             <Route path="/new" element={<ConfigEditor />} />

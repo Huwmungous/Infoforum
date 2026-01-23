@@ -70,8 +70,8 @@ public static partial class ServiceFactory
                 throw new InvalidOperationException("UseStaticConfig=true requires StaticRealm to be set");
             if (!string.IsNullOrEmpty(options.DatabaseConfigName) && string.IsNullOrEmpty(options.StaticDatabaseConnectionString))
                 throw new InvalidOperationException("UseStaticConfig=true with DatabaseConfigName requires StaticDatabaseConnectionString to be set");
-            if (options.UseSfdLogger)
-                throw new InvalidOperationException("UseStaticConfig=true requires UseSfdLogger=false (no LoggerService URL available in static mode)");
+            if (options.UseIFLogger)
+                throw new InvalidOperationException("UseStaticConfig=true requires UseIFLogger=false (no LoggerService URL available in static mode)");
         }
 
         // ============================================================================
@@ -205,7 +205,7 @@ public static partial class ServiceFactory
         builder.Logging.AddConsole();
 
         SfdLogger? sfdLogger = null;
-        if (options.UseSfdLogger)
+        if (options.UseIFLogger)
         {
 #if DEBUG
             var loggerServiceUrl = builder.Configuration["ServiceUrls:LoggerService"]
@@ -486,7 +486,7 @@ public static partial class ServiceFactory
             DatabaseConfigName = "firebirddb",
             DatabaseConfigType = typeof(FBConnectionConfig),
             UseAuthentication = useAuthentication,
-            UseSfdLogger = useSfdLogger,
+            UseIFLogger = useSfdLogger,
             PathBase = pathBase,
             AuthType = authType,
             ConfigureServices = configureServices,
@@ -502,7 +502,7 @@ public static partial class ServiceFactory
         string databaseConfigName,
         string? description = null,
         bool useAuthentication = true,
-        bool useSfdLogger = true,
+        bool useIFLogger = true,
         bool useSignalR = false,
         string? pathBase = null,
         Action<IServiceCollection, ServiceFactoryContext>? configureServices = null,
@@ -515,7 +515,7 @@ public static partial class ServiceFactory
             DatabaseConfigName = databaseConfigName,
             DatabaseConfigType = typeof(PGConnectionConfig),
             UseAuthentication = useAuthentication,
-            UseSfdLogger = useSfdLogger,
+            UseIFLogger = useIFLogger,
             UseSignalR = useSignalR,
             PathBase = pathBase,
             ConfigureServices = configureServices,
@@ -541,7 +541,7 @@ public static partial class ServiceFactory
             ServiceName = serviceName,
             Description = description,
             UseAuthentication = useAuthentication,
-            UseSfdLogger = useSfdLogger,
+            UseIFLogger = useSfdLogger,
             UseSignalR = useSignalR,
             PathBase = pathBase,
             ConfigureServices = configureServices,

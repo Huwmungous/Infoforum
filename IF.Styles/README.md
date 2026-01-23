@@ -33,6 +33,20 @@ This imports:
 - Base styles (body, scrollbars, focus states)
 - Component classes
 
+**Important: @apply Limitation**
+
+In Tailwind CSS 4, you cannot use `@apply` with custom component classes (like `if-btn`, `if-card`, etc.) from imported packages. Use the classes directly in your HTML/JSX instead:
+
+```jsx
+// ✓ Correct - use classes directly
+<button className="if-btn if-btn-primary">Click me</button>
+
+// ✗ Won't work in Tailwind 4
+.my-button { @apply if-btn if-btn-primary; }
+```
+
+If you need custom variations, write the CSS properties directly using the IF CSS variables.
+
 ### Importing Specific Parts
 
 You can import only what you need:

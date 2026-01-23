@@ -76,20 +76,20 @@ export function ConfigList() {
   if (loading) {
     return (
       <div className="loading">
-        <div className="spinner" />
+        <div className="if-spinner" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="card">
-        <div className="card-body">
+      <div className="if-card">
+        <div className="if-card-body">
           <div className="empty-state">
             <div className="empty-state-icon">⚠️</div>
             <h3>Error Loading Configurations</h3>
-            <p className="text-muted">{error}</p>
-            <button className="btn btn-primary" onClick={loadEntries} style={{ marginTop: '1rem' }}>
+            <p className="if-text-muted">{error}</p>
+            <button className="if-btn if-btn-primary" onClick={loadEntries} style={{ marginTop: '1rem' }}>
               Retry
             </button>
           </div>
@@ -103,33 +103,33 @@ export function ConfigList() {
       <div className="config-list-header">
         <div>
           <h1>Configurations</h1>
-          <p className="text-secondary">{total} entries total</p>
+          <p className="if-text-muted">{total} entries total</p>
         </div>
         <div className="config-list-actions">
           <input
             type="text"
-            className="form-input"
+            className="if-form-input"
             placeholder="Filter by realm or client..."
             value={filter}
             onChange={e => setFilter(e.target.value)}
           />
-          <Link to="/new" className="btn btn-primary">
+          <Link to="/new" className="if-btn if-btn-primary">
             + New Entry
           </Link>
         </div>
       </div>
 
       {filteredEntries.length === 0 ? (
-        <div className="card">
-          <div className="card-body">
+        <div className="if-card">
+          <div className="if-card-body">
             <div className="empty-state">
               <div className="empty-state-icon">📋</div>
               <h3>No configurations found</h3>
-              <p className="text-muted">
+              <p className="if-text-muted">
                 {filter ? 'No entries match your filter.' : 'Create your first configuration entry.'}
               </p>
               {!filter && (
-                <Link to="/new" className="btn btn-primary" style={{ marginTop: '1rem' }}>
+                <Link to="/new" className="if-btn if-btn-primary" style={{ marginTop: '1rem' }}>
                   Create Entry
                 </Link>
               )}
@@ -137,8 +137,8 @@ export function ConfigList() {
           </div>
         </div>
       ) : (
-        <div className="card table-container">
-          <table className="table">
+        <div className="if-card table-container">
+          <table className="if-table">
             <thead>
               <tr>
                 <th>Status</th>
@@ -152,15 +152,15 @@ export function ConfigList() {
               {filteredEntries.map(entry => (
                 <tr key={entry.idx} className={!entry.enabled ? 'row-disabled' : ''}>
                   <td>
-                    <span className={`badge ${entry.enabled ? 'badge-enabled' : 'badge-disabled'}`}>
+                    <span className={`if-badge ${entry.enabled ? 'if-badge-enabled' : 'if-badge-disabled'}`}>
                       {entry.enabled ? '● Enabled' : '○ Disabled'}
                     </span>
                   </td>
                   <td>
-                    <code className="text-mono">{entry.realm}</code>
+                    <code className="if-text-mono">{entry.realm}</code>
                   </td>
                   <td>
-                    <code className="text-mono">{entry.client}</code>
+                    <code className="if-text-mono">{entry.client}</code>
                   </td>
                   <td>
                     <div className="config-badges">
@@ -171,17 +171,17 @@ export function ConfigList() {
                   </td>
                   <td>
                     <div className="action-buttons">
-                      <Link to={`/edit/${entry.idx}`} className="btn btn-ghost btn-sm">
+                      <Link to={`/edit/${entry.idx}`} className="if-btn if-btn-ghost if-btn-sm">
                         Edit
                       </Link>
                       <button 
-                        className={`btn btn-sm ${entry.enabled ? 'btn-secondary' : 'btn-success'}`}
+                        className={`if-btn if-btn-sm ${entry.enabled ? 'if-btn-secondary' : 'if-btn-success'}`}
                         onClick={() => handleToggleEnabled(entry)}
                       >
                         {entry.enabled ? 'Disable' : 'Enable'}
                       </button>
                       <button 
-                        className="btn btn-danger btn-sm"
+                        className="if-btn if-btn-danger if-btn-sm"
                         onClick={() => setDeleteTarget(entry)}
                       >
                         Delete

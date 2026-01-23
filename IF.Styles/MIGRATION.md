@@ -35,11 +35,9 @@ Copy `IF-Logo.png` from the package to your `public/` folder:
 cp node_modules/@if/styles/assets/IF-Logo.png public/
 ```
 
-## Step 4: Update component classes (optional)
+## Step 4: Update component classes
 
-The package uses `if-` prefixed classes. You can either:
-
-### Option A: Use the new class names
+The package uses `if-` prefixed classes. Update your components to use the new class names:
 
 ```jsx
 // Before
@@ -49,20 +47,24 @@ The package uses `if-` prefixed classes. You can either:
 <button className="if-btn if-btn-primary">Save</button>
 ```
 
-### Option B: Keep existing class names
-
-Add aliases in your app's CSS:
+**Important**: In Tailwind CSS 4, you cannot use `@apply` with custom component classes from imported packages. You must use the classes directly in your HTML/JSX.
 
 ```css
-@import "tailwindcss";
-@import "@if/styles";
+/* ✗ This won't work in Tailwind 4 */
+.btn { @apply if-btn; }
+.btn-primary { @apply if-btn-primary; }
 
-/* Aliases for backward compatibility */
-@layer components {
-  .btn { @apply if-btn; }
-  .btn-primary { @apply if-btn-primary; }
-  .btn-secondary { @apply if-btn-secondary; }
-  .btn-warning { @apply if-btn-warning; }
+/* ✓ Instead, use the if-* classes directly in your components */
+```
+
+If you need custom variations, write the CSS properties directly using the IF CSS variables:
+
+```css
+.my-custom-button {
+  padding: var(--if-space-sm) var(--if-space-md);
+  background: var(--if-light-colour);
+  color: white;
+  border-radius: var(--if-radius-md);
   /* etc. */
 }
 ```
@@ -90,7 +92,7 @@ Add aliases in your app's CSS:
 .json-editor { ... }
 ```
 
-## Example: SfdLogViewer Migration
+## Example: IFLogViewer Migration
 
 ### Before (src/index.css)
 
@@ -112,10 +114,8 @@ Add aliases in your app's CSS:
 @import "@if/styles";
 
 /* App-specific classes only */
-@layer components {
-  .log-table { ... }
-  .badge-production { ... }
-}
+.log-table { ... }
+.badge-production { ... }
 ```
 
 ## Project Structure
@@ -138,7 +138,7 @@ repos/
 │   └── src/
 │       └── index.css       # @import "@if/styles";
 │
-├── SfdLogViewer/
+├── IFLogViewer/
 │   ├── package.json        # "@if/styles": "file:../IF.Styles"
 │   └── src/
 │       └── index.css       # @import "@if/styles";

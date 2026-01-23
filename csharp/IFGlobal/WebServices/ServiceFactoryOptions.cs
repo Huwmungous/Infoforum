@@ -38,7 +38,7 @@ public class ServiceFactoryOptions
     /// Set to false for LoggerWebService to avoid circular dependency.
     /// Default is true.
     /// </summary>
-    public bool UseSfdLogger { get; set; } = true;
+    public bool UseIFLogger { get; set; } = true;
 
     /// <summary>
     /// Whether to add SignalR services.
@@ -173,7 +173,7 @@ public class ServiceFactoryContext
     public object? DatabaseConfig { get; init; }
 
     /// <summary>
-    /// The SfdLogger instance (if UseSfdLogger is true).
+    /// The SfdLogger instance (if UseIFLogger is true).
     /// </summary>
     public SfdLogger? Logger { get; init; }
 

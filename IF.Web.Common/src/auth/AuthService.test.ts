@@ -92,7 +92,7 @@ vi.mock('oidc-client-ts', () => ({
 }));
 
 // Mock ConfigService
-vi.mock('../configServiceClient', () => ({
+vi.mock('../config', () => ({
   ConfigService: {
     isInitialized: true,
     ClientId: 'test-client-id',
@@ -178,7 +178,7 @@ describe('AuthService', () => {
     });
 
     it('should throw when ConfigService is not initialized', async () => {
-      const { ConfigService } = await import('../configServiceClient');
+      const { ConfigService } = await import('../config');
       (ConfigService as any).isInitialized = false;
 
       AuthService.reset();
