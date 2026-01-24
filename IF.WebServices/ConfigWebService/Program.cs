@@ -30,7 +30,14 @@ builder.Configuration
 var keycloakUrl = builder.Configuration["OidcConfig:Authority"]
     ?? throw new InvalidOperationException("OidcConfig:Authority not configured in appsettings.json");
 
+var realm = builder.Configuration["OidcConfig:Realm:Name"]
+    ?? throw new InvalidOperationException("OidcConfig:Realm:Name not configured in appsettings.json");
+
+var clientId = builder.Configuration["OidcConfig:Realm:service:ClientId"]
+    ?? throw new InvalidOperationException("OidcConfig:Realm:service:ClientId not configured in appsettings.json");
+
 logger.LogDebug("KeycloakUrl: {KeycloakUrl}", keycloakUrl);
+logger.LogDebug("Realm: {Realm}", realm);
 
 // Use PortResolver for consistent port assignment
 int port = PortResolver.GetPort();
@@ -96,8 +103,6 @@ builder.Services.AddCors(options =>
 var logConnectionString = builder.Configuration.GetConnectionString("LogDatabase")
     ?? throw new InvalidOperationException("ConnectionStrings:LogDatabase not configured");
 var loggerServiceUrl = builder.Configuration["LoggerService"];
-var serviceClientId = builder.Configuration["OidcConfig:Realm:service:ClientId"]
-    ?? throw new InvalidOperationException("OidcConfig:Realm:service:ClientId not configured");
 var openIdConfig = $"{keycloakUrl}/auth/realms/{realm}";
 
 // Parse connection string to PGConnectionConfig
@@ -122,7 +127,7 @@ var directTryLogService = new DirectTryLogService(
     logEntryService,
     httpClient,
     openIdConfig,
-    serviceClientId,
+    clientId,
     loggerServiceUrl,
     bootstrapLoggerFactory.CreateLogger<DirectTryLogService>());
 

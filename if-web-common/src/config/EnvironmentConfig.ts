@@ -1,6 +1,10 @@
 /**
  * EnvironmentConfig reads environment variables from import.meta.env (Vite).
  * All config values must be provided via VITE_* environment variables.
+ * 
+ * Supports two modes:
+ * 1. Standard mode: realm/client from environment variables
+ * 2. Dynamic mode: realm/client passed at runtime (from URL)
  */
 export class EnvironmentConfig {
   private static readonly VALID_ENVIRONMENTS = ['DBG', 'DEV', 'SIT', 'UAT', 'PRD'];
@@ -38,13 +42,24 @@ export class EnvironmentConfig {
 
   /**
    * Validate required env vars.
+   * 
+   * @param useStaticConfig - true if using static config (bypasses ConfigWebService)
+   * @param useDynamicUrlConfig - true if realm/client come from URL (not env vars)
    */
-  public static validate(useStaticConfig: boolean): string[] {
+  public static validate(useStaticConfig: boolean, useDynamicUrlConfig: boolean = false): string[] {
     const errors: string[] = [];
 
-    const requiredForAll = ['IF_REALM', 'IF_CLIENT', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
+    // When using dynamic URL config, realm/client are NOT required from env vars
+    const requiredForAll = useDynamicUrlConfig 
+      ? ['IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL']
+      : ['IF_REALM', 'IF_CLIENT', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
+    
     const requiredForDynamic = ['IF_CONFIG_SERVICE_URL'];
     const requiredForStatic = ['AUTH_CLIENT_ID', 'AUTH_AUTHORITY', 'LOG_SERVICE_URL'];
+
+    // When using dynamic URL config, config service URL is also optional from env
+    // (it will be passed in via props)
+    const skipConfigServiceUrl = useDynamicUrlConfig;
 
     for (const key of requiredForAll) {
       if (!this.get(key)) {
@@ -64,7 +79,7 @@ export class EnvironmentConfig {
           errors.push(`Missing: ${key}`);
         }
       }
-    } else {
+    } else if (!skipConfigServiceUrl) {
       for (const key of requiredForDynamic) {
         if (!this.get(key)) {
           errors.push(`Missing: ${key}`);
@@ -85,14 +100,21 @@ export class EnvironmentConfig {
   /**
    * Log all configuration values to console
    */
-  public static logConfiguration(useStaticConfig: boolean): void {
-    const commonKeys = ['IF_REALM', 'IF_CLIENT', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
+  public static logConfiguration(useStaticConfig: boolean, useDynamicUrlConfig: boolean = false): void {
+    const commonKeys = useDynamicUrlConfig
+      ? ['IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL']
+      : ['IF_REALM', 'IF_CLIENT', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
     const dynamicKeys = ['IF_CONFIG_SERVICE_URL'];
     const staticKeys = ['AUTH_CLIENT_ID', 'AUTH_AUTHORITY', 'LOG_SERVICE_URL'];
 
-    const keysToLog = useStaticConfig
-      ? [...commonKeys, ...staticKeys]
-      : [...commonKeys, ...dynamicKeys];
+    let keysToLog: string[];
+    if (useStaticConfig) {
+      keysToLog = [...commonKeys, ...staticKeys];
+    } else if (useDynamicUrlConfig) {
+      keysToLog = commonKeys; // Config service URL comes from props
+    } else {
+      keysToLog = [...commonKeys, ...dynamicKeys];
+    }
 
     const configValues = keysToLog.map(key => `  ${key}: ${this.get(key) || '(not set)'}`).join('\n');
 

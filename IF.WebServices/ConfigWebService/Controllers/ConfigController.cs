@@ -13,7 +13,6 @@ namespace ConfigWebService.Controllers;
 [Route("[controller]")]
 public class ConfigController(
     ILogger<ConfigController> logger,
-    IConfiguration configuration,
     ConfigService configService) : ControllerBase
 {
     /// <summary>

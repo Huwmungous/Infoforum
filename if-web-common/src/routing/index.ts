@@ -9,5 +9,7 @@ export {
   getAppBasePath, 
   getCurrentRoutePath, 
   buildAppUrl,
+  setDynamicBasePath,
+  getDynamicBasePath,
   _setTestBasePath 
 } from './AppRoutes';
