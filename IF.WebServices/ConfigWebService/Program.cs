@@ -1,3 +1,4 @@
+using ConfigWebService.Authentication;
 using ConfigWebService.Data;
 using ConfigWebService.Repositories;
 using ConfigWebService.Services;
@@ -30,14 +31,15 @@ builder.Configuration
 var keycloakUrl = builder.Configuration["OidcConfig:Authority"]
     ?? throw new InvalidOperationException("OidcConfig:Authority not configured in appsettings.json");
 
-var realm = builder.Configuration["OidcConfig:Realm:Name"]
+// For logging service authentication - uses a specific realm
+var defaultRealm = builder.Configuration["OidcConfig:Realm:Name"]
     ?? throw new InvalidOperationException("OidcConfig:Realm:Name not configured in appsettings.json");
 
-var clientId = builder.Configuration["OidcConfig:Realm:service:ClientId"]
+var serviceClientId = builder.Configuration["OidcConfig:Realm:service:ClientId"]
     ?? throw new InvalidOperationException("OidcConfig:Realm:service:ClientId not configured in appsettings.json");
 
 logger.LogDebug("KeycloakUrl: {KeycloakUrl}", keycloakUrl);
-logger.LogDebug("Realm: {Realm}", realm);
+logger.LogDebug("Default Realm (for logging): {Realm}", defaultRealm);
 
 // Use PortResolver for consistent port assignment
 int port = PortResolver.GetPort();
@@ -50,16 +52,46 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+// ============================================================================
+// DYNAMIC MULTI-REALM JWT AUTHENTICATION
+// Accepts tokens from any realm under the configured Keycloak authority
+// ============================================================================
+var dynamicJwtValidation = new DynamicJwtValidation(
+    keycloakUrl,
+    bootstrapLoggerFactory.CreateLogger<DynamicJwtValidation>());
+
+builder.Services.AddSingleton(dynamicJwtValidation);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = $"{keycloakUrl}/auth/realms/{realm}";
+        // Use dynamic token validation for multi-realm support
+        options.TokenValidationParameters = dynamicJwtValidation.CreateTokenValidationParameters();
+        
+        // Disable automatic metadata retrieval - we handle it dynamically
         options.RequireHttpsMetadata = false;
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        
+        // Don't set Authority - we validate issuer dynamically
+        // options.Authority = ... // NOT SET
+        
+        options.Events = new JwtBearerEvents
         {
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = true
+            OnAuthenticationFailed = context =>
+            {
+                logger.LogWarning(
+                    "Authentication failed: {Error}",
+                    context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                var issuer = context.Principal?.FindFirst("iss")?.Value;
+                var sub = context.Principal?.FindFirst("sub")?.Value;
+                logger.LogDebug(
+                    "Token validated - Issuer: {Issuer}, Subject: {Subject}",
+                    issuer, sub);
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -103,7 +135,7 @@ builder.Services.AddCors(options =>
 var logConnectionString = builder.Configuration.GetConnectionString("LogDatabase")
     ?? throw new InvalidOperationException("ConnectionStrings:LogDatabase not configured");
 var loggerServiceUrl = builder.Configuration["LoggerService"];
-var openIdConfig = $"{keycloakUrl}/auth/realms/{realm}";
+var openIdConfig = $"{keycloakUrl}/auth/realms/{defaultRealm}";
 
 // Parse connection string to PGConnectionConfig
 var connParts = logConnectionString.Split(';')
@@ -127,7 +159,7 @@ var directTryLogService = new DirectTryLogService(
     logEntryService,
     httpClient,
     openIdConfig,
-    clientId,
+    serviceClientId,
     loggerServiceUrl,
     bootstrapLoggerFactory.CreateLogger<DirectTryLogService>());
 
@@ -140,8 +172,8 @@ builder.Services.AddHttpClient();
 var minLogLevel = builder.Configuration.GetValue("Logging:LogLevel:Default", LogLevel.Information);
 builder.Logging.AddProvider(new DirectTryLoggerProvider(
     () => directTryLogService,
-    realm,
-    clientId,
+    defaultRealm,
+    serviceClientId,
     builder.Environment.ApplicationName,
     builder.Environment.EnvironmentName,
     minLogLevel));
@@ -172,6 +204,8 @@ app.MapControllers();
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
 logger.LogInformation("ConfigWebService starting on port {Port}", port);
-logger.LogDebug("OIDC Authority: {Authority}", $"{keycloakUrl}/auth/realms/{realm}");
+logger.LogInformation("Keycloak Authority Base: {Authority}", keycloakUrl);
+logger.LogInformation("Multi-realm authentication enabled - accepting tokens from any realm under {Authority}", keycloakUrl);
+logger.LogDebug("Default realm (for internal logging): {Realm}", defaultRealm);
 
 app.Run();
