@@ -48,3 +48,4 @@ node_modules
 /IF.WebServices/ConfigWebService/obj
 /IF.WebServices/LoggerWebService/obj
 /IF.WebServices/SampleWebService/obj
+.vs
