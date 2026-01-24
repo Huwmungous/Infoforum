@@ -16,27 +16,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggerWebService", "LoggerW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebService", "SampleWebService\SampleWebService.csproj", "{32C12310-FD0C-F7B4-3862-91FDBD861EE6}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NginX-Config", "NginX-Config", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
-	ProjectSection(SolutionItems) = preProject
-		..\NginX-config\nginx.conf = ..\NginX-config\nginx.conf
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "conf.d", "conf.d", "{EA6145CF-A566-4F1B-8A9E-57A1F3606CC4}"
-	ProjectSection(SolutionItems) = preProject
-		..\NginX-config\conf.d\00-acme-http.conf = ..\NginX-config\conf.d\00-acme-http.conf
-		..\NginX-config\conf.d\00-ws-map.conf = ..\NginX-config\conf.d\00-ws-map.conf
-		..\NginX-config\conf.d\mcp-servers.inc = ..\NginX-config\conf.d\mcp-servers.inc
-		..\NginX-config\conf.d\openwebui.acme.conf.disabled = ..\NginX-config\conf.d\openwebui.acme.conf.disabled
-		..\NginX-config\conf.d\openwebui.sfddevelopment.com.conf.fullbackup = ..\NginX-config\conf.d\openwebui.sfddevelopment.com.conf.fullbackup
-		..\NginX-config\conf.d\react-apps.inc = ..\NginX-config\conf.d\react-apps.inc
-		..\NginX-config\conf.d\sfddevelopment-BLAZOR.com-ssl.conf.bak = ..\NginX-config\conf.d\sfddevelopment-BLAZOR.com-ssl.conf.bak
-		..\NginX-config\conf.d\sfddevelopment.com-ssl.conf = ..\NginX-config\conf.d\sfddevelopment.com-ssl.conf
-		..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.bak = ..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.bak
-		..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.fullbackup = ..\NginX-config\conf.d\sfddevelopment.com-ssl.conf.fullbackup
-		..\NginX-config\conf.d\sfddevelopment.com.conf.bak = ..\NginX-config\conf.d\sfddevelopment.com.conf.bak
-		..\NginX-config\conf.d\_upfmt.conf = ..\NginX-config\conf.d\_upfmt.conf
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\csharp\IFGlobal\IFGlobal.csproj", "{2DB643E3-35DF-76F4-7A78-CBD232CC3280}"
 EndProject
 Global
@@ -119,9 +98,6 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{EA6145CF-A566-4F1B-8A9E-57A1F3606CC4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9A4127A8-F5B4-4857-B2CD-A354383C03A5}

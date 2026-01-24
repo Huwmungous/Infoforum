@@ -13,10 +13,12 @@ namespace IFGlobal
         {
             switch (appname)
             {
-                // Core applications (5000-5011)
-                case "BreakTackle": return 5000;
-                case "BreakTackleAPI": return 5001;
-                case "JibberJabber": return 5002;
+                // IF WebServices (5030-5039)
+                case "ConfigWebService": return 5000;
+                case "LoggerWebService": return 5001;
+                case "KeycloakWebService": return 5002;
+
+                // Core applications 
                 case "BTAuthenticator": return 5003;
                 case "IFAuthenticator": return 5004;
                 case "SvgApi": return 5005;
@@ -26,11 +28,11 @@ namespace IFGlobal
                 case "File-Manager": return 5009;
                 case "ClipboardSyncService": return 5010;
                 case "OllamaMcpServer": return 5011;
+                case "BreakTackle": return 5012;
+                case "BreakTackleAPI": return 5013;
+                case "JibberJabber": return 5014;
 
-                // MCP Servers (5012-5027)
-                case "BraveSearchMcpServer": return 5012;
-                case "CodeAnalysisMcpServer": return 5013;
-                case "CodeFormatterMcpServer": return 5014;
+                // MCP Servers 
                 case "ConfigManagementMcpServer": return 5015;
                 case "DatabaseCompareMcpServer": return 5016;
                 case "DocumentationMcpServer": return 5017;
@@ -44,15 +46,15 @@ namespace IFGlobal
                 case "SqliteMcpServer": return 5025;
                 case "TestGeneratorMcpServer": return 5026;
                 case "UiComponentConverterMcpServer": return 5027;
+                case "BraveSearchMcpServer": return 5028;
+                case "CodeAnalysisMcpServer": return 5029;
+                case "CodeFormatterMcpServer": return 5030;
 
-                // IFOllama WebService and React server (5028-5029)
-                case "IFOllama.WebService": return 5028;
-                case "IFOllama.React": return 5029;
+                // IFOllama WebService and React server  
+                case "IFOllama.WebService": return 5031;
+                case "IFOllama.React": return 5032;
 
-                // IF WebServices (5030-5039)
-                case "ConfigWebService": return 5030;
-                case "LoggerWebService": return 5031;
-                case "KeycloakWebService": return 5032;
+
 
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";
