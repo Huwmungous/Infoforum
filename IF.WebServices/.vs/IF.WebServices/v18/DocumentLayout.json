@@ -1,0 +1,273 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\repos\\Infoforum\\IF.WebServices\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\configwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\configwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{32C12310-FD0C-F7B4-3862-91FDBD861EE6}|SampleWebService\\SampleWebService.csproj|c:\\repos\\infoforum\\if.webservices\\samplewebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{32C12310-FD0C-F7B4-3862-91FDBD861EE6}|SampleWebService\\SampleWebService.csproj|solutionrelative:samplewebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DB643E3-35DF-76F4-7A78-CBD232CC3280}|..\\csharp\\IFGlobal\\IFGlobal.csproj|c:\\repos\\infoforum\\csharp\\ifglobal\\webservices\\servicefactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|c:\\repos\\infoforum\\if.webservices\\loggerwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|solutionrelative:loggerwebservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\controllers\\configcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\controllers\\configcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|c:\\repos\\infoforum\\if.webservices\\loggerwebservice\\loggerwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|solutionrelative:loggerwebservice\\loggerwebservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|c:\\repos\\infoforum\\if.webservices\\configwebservice\\configwebservice.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{2537694A-DED8-3B32-0803-F1C90D8910B5}|ConfigWebService\\ConfigWebService.csproj|solutionrelative:configwebservice\\configwebservice.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|c:\\repos\\infoforum\\if.webservices\\loggerwebservice\\controllers\\filterscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{4EBCFD1B-17A3-493F-BF18-0DD31FC124AC}|LoggerWebService\\LoggerWebService.csproj|solutionrelative:loggerwebservice\\controllers\\filterscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2DB643E3-35DF-76F4-7A78-CBD232CC3280}|..\\csharp\\IFGlobal\\IFGlobal.csproj|c:\\repos\\infoforum\\csharp\\ifglobal\\dataaccess\\baserepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{32C12310-FD0C-F7B4-3862-91FDBD861EE6}|SampleWebService\\SampleWebService.csproj|c:\\repos\\infoforum\\if.webservices\\samplewebservice\\repositories\\accountrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{32C12310-FD0C-F7B4-3862-91FDBD861EE6}|SampleWebService\\SampleWebService.csproj|solutionrelative:samplewebservice\\repositories\\accountrepository.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 9,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:130:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Program.cs",
+              "RelativeDocumentMoniker": "SampleWebService\\Program.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Program.cs",
+              "RelativeToolTip": "SampleWebService\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-23T14:07:18.414Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\Program.cs",
+              "RelativeDocumentMoniker": "LoggerWebService\\Program.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\Program.cs",
+              "RelativeToolTip": "LoggerWebService\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAnAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-23T14:02:46.863Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "FiltersController.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\Controllers\\FiltersController.cs",
+              "RelativeDocumentMoniker": "LoggerWebService\\Controllers\\FiltersController.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\Controllers\\FiltersController.cs",
+              "RelativeToolTip": "LoggerWebService\\Controllers\\FiltersController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T17:22:14.048Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\appsettings.json",
+              "RelativeDocumentMoniker": "ConfigWebService\\appsettings.json",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\appsettings.json",
+              "RelativeToolTip": "ConfigWebService\\appsettings.json",
+              "ViewState": "AgIAAAMAAAAAAAAAAAD4vwsAAAA4AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-21T17:15:10.295Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ConfigController.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Controllers\\ConfigController.cs",
+              "RelativeDocumentMoniker": "ConfigWebService\\Controllers\\ConfigController.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Controllers\\ConfigController.cs",
+              "RelativeToolTip": "ConfigWebService\\Controllers\\ConfigController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAATAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T17:14:36.109Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Program.cs",
+              "RelativeDocumentMoniker": "ConfigWebService\\Program.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\Program.cs",
+              "RelativeToolTip": "ConfigWebService\\Program.cs",
+              "ViewState": "AgIAACAAAAAAAAAAAAAMwDcAAAAKAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T17:13:11.719Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ConfigWebService.csproj",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeDocumentMoniker": "ConfigWebService\\ConfigWebService.csproj",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeToolTip": "ConfigWebService\\ConfigWebService.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-21T17:26:02.623Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "ServiceFactory.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "RelativeDocumentMoniker": "..\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "RelativeToolTip": "..\\csharp\\IFGlobal\\WebServices\\ServiceFactory.cs",
+              "ViewState": "AgIAALgBAAAAAAAAAAAQwAUCAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T15:59:29.503Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "LoggerWebService.csproj",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\LoggerWebService.csproj",
+              "RelativeDocumentMoniker": "LoggerWebService\\LoggerWebService.csproj",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\LoggerWebService\\LoggerWebService.csproj",
+              "RelativeToolTip": "LoggerWebService\\LoggerWebService.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-21T17:21:54.117Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ConfigWebService",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeDocumentMoniker": "ConfigWebService\\ConfigWebService.csproj",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\ConfigWebService\\ConfigWebService.csproj",
+              "RelativeToolTip": "ConfigWebService\\ConfigWebService.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-01-21T17:26:35.133Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "BaseRepository.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "RelativeDocumentMoniker": "..\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "RelativeToolTip": "..\\csharp\\IFGlobal\\DataAccess\\BaseRepository.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAIwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T16:01:09.162Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "AccountRepository.cs",
+              "DocumentMoniker": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Repositories\\AccountRepository.cs",
+              "RelativeDocumentMoniker": "SampleWebService\\Repositories\\AccountRepository.cs",
+              "ToolTip": "C:\\repos\\Infoforum\\IF.WebServices\\SampleWebService\\Repositories\\AccountRepository.cs",
+              "RelativeToolTip": "SampleWebService\\Repositories\\AccountRepository.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-21T15:58:44.899Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 442,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{004be353-6879-467c-9d1e-9ac23cdf6d49}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 114,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c64b9c2-e352-428e-a56d-0ace190b99a6}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

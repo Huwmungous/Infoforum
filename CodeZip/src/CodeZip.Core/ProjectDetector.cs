@@ -32,7 +32,7 @@ public static class ProjectDetector
     {
         var detectedTypes = ProjectType.None;
 
-        if (!Directory.Exists(rootPath))
+        if(!Directory.Exists(rootPath))
         {
             return ProjectType.Generic;
         }
@@ -41,7 +41,7 @@ public static class ProjectDetector
         var searchPaths = new List<string> { rootPath };
         searchPaths.AddRange(Directory.GetDirectories(rootPath).Take(50));
 
-        foreach (var searchPath in searchPaths)
+        foreach(var searchPath in searchPaths)
         {
             detectedTypes |= DetectInDirectory(searchPath);
         }
@@ -58,22 +58,22 @@ public static class ProjectDetector
 
         try
         {
-            foreach (var file in Directory.GetFiles(directory))
+            foreach(var file in Directory.GetFiles(directory))
             {
                 var fileName = Path.GetFileName(file);
                 var extension = Path.GetExtension(file);
 
-                if (FileMarkers.TryGetValue(fileName, out var typeByName))
+                if(FileMarkers.TryGetValue(fileName, out var typeByName))
                 {
                     detected |= typeByName;
                 }
-                else if (FileMarkers.TryGetValue(extension, out var typeByExt))
+                else if(FileMarkers.TryGetValue(extension, out var typeByExt))
                 {
                     detected |= typeByExt;
                 }
             }
         }
-        catch (UnauthorizedAccessException)
+        catch(UnauthorizedAccessException)
         {
             // Skip directories we can't access
         }
@@ -83,8 +83,31 @@ public static class ProjectDetector
 
     private static ProjectType DetectFromPackageJson(string rootPath)
     {
-        var packageJsonPath = Path.Combine(rootPath, "package.json");
-        if (!File.Exists(packageJsonPath))
+        var detected = ProjectType.None;
+
+        // Check root and immediate subdirectories (same as DetectInDirectory)
+        var searchPaths = new List<string> { rootPath };
+        try
+        {
+            searchPaths.AddRange(Directory.GetDirectories(rootPath).Take(50));
+        }
+        catch(UnauthorizedAccessException)
+        {
+            // Skip if we can't access subdirectories
+        }
+
+        foreach(var searchPath in searchPaths)
+        {
+            detected |= DetectPackageJsonInDirectory(searchPath);
+        }
+
+        return detected;
+    }
+
+    private static ProjectType DetectPackageJsonInDirectory(string directory)
+    {
+        var packageJsonPath = Path.Combine(directory, "package.json");
+        if(!File.Exists(packageJsonPath))
         {
             return ProjectType.None;
         }
@@ -95,19 +118,19 @@ public static class ProjectDetector
         {
             var content = File.ReadAllText(packageJsonPath);
 
-            if (content.Contains("\"react\"", StringComparison.OrdinalIgnoreCase) ||
+            if(content.Contains("\"react\"", StringComparison.OrdinalIgnoreCase) ||
                 content.Contains("\"next\"", StringComparison.OrdinalIgnoreCase) ||
                 content.Contains("\"gatsby\"", StringComparison.OrdinalIgnoreCase))
             {
                 detected |= ProjectType.React;
             }
 
-            if (content.Contains("\"@angular/core\"", StringComparison.OrdinalIgnoreCase))
+            if(content.Contains("\"@angular/core\"", StringComparison.OrdinalIgnoreCase))
             {
                 detected |= ProjectType.Angular;
             }
 
-            if (File.Exists(Path.Combine(rootPath, "angular.json")))
+            if(File.Exists(Path.Combine(directory, "angular.json")))
             {
                 detected |= ProjectType.Angular;
             }
@@ -125,19 +148,19 @@ public static class ProjectDetector
     /// </summary>
     public static string GetDescription(ProjectType types)
     {
-        if (types == ProjectType.None || types == ProjectType.Generic)
+        if(types == ProjectType.None || types == ProjectType.Generic)
         {
             return "Generic";
         }
 
         var descriptions = new List<string>();
 
-        if (types.HasFlag(ProjectType.Delphi)) descriptions.Add("Delphi");
-        if (types.HasFlag(ProjectType.CSharp)) descriptions.Add("C#/.NET");
-        if (types.HasFlag(ProjectType.Angular)) descriptions.Add("Angular");
-        else if (types.HasFlag(ProjectType.React)) descriptions.Add("React");
-        else if (types.HasFlag(ProjectType.Node)) descriptions.Add("Node.js");
-        if (types.HasFlag(ProjectType.TypeScript) && !types.HasFlag(ProjectType.Angular) && !types.HasFlag(ProjectType.React))
+        if(types.HasFlag(ProjectType.Delphi)) descriptions.Add("Delphi");
+        if(types.HasFlag(ProjectType.CSharp)) descriptions.Add("C#/.NET");
+        if(types.HasFlag(ProjectType.Angular)) descriptions.Add("Angular");
+        else if(types.HasFlag(ProjectType.React)) descriptions.Add("React");
+        else if(types.HasFlag(ProjectType.Node)) descriptions.Add("Node.js");
+        if(types.HasFlag(ProjectType.TypeScript) && !types.HasFlag(ProjectType.Angular) && !types.HasFlag(ProjectType.React))
         {
             descriptions.Add("TypeScript");
         }
