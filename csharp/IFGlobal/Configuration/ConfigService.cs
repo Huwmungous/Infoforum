@@ -51,6 +51,12 @@ public partial class ConfigService(
     public string ServiceClientId => _bootstrapConfig?.ClientId
         ?? throw new InvalidOperationException("ConfigService not initialized. Call InitializeAsync first.");
 
+    /// <summary>
+    /// Returns the client secret for service authentication.
+    /// Only available when bootstrapped as service type.
+    /// </summary>
+    public string? ClientSecret => _bootstrapConfig?.ClientSecret;
+
     public string OpenIdConfig => _bootstrapConfig?.OpenIdConfig
         ?? throw new InvalidOperationException("ConfigService not initialized. Call InitializeAsync first.");
 

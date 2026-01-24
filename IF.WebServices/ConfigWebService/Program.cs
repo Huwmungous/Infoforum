@@ -137,6 +137,14 @@ var logConnectionString = builder.Configuration.GetConnectionString("LogDatabase
 var loggerServiceUrl = builder.Configuration["LoggerService"];
 var openIdConfig = $"{keycloakUrl}/auth/realms/{defaultRealm}";
 
+// ConfigWebService is special - it can't bootstrap from itself, so it needs
+// its own service client secret from config or environment variable
+var serviceClientSecret = builder.Configuration["OidcConfig:Realm:service:ClientSecret"]
+    ?? Environment.GetEnvironmentVariable("IF_CLIENTSECRET")
+    ?? throw new InvalidOperationException(
+        "Service client secret not configured. Set OidcConfig:Realm:service:ClientSecret in appsettings.json " +
+        "or IF_CLIENTSECRET environment variable.");
+
 // Parse connection string to PGConnectionConfig
 var connParts = logConnectionString.Split(';')
     .Select(p => p.Split('=', 2))
@@ -160,6 +168,7 @@ var directTryLogService = new DirectTryLogService(
     httpClient,
     openIdConfig,
     serviceClientId,
+    serviceClientSecret,
     loggerServiceUrl,
     bootstrapLoggerFactory.CreateLogger<DirectTryLogService>());
 

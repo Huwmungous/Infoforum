@@ -69,54 +69,6 @@ public class ServiceFactoryOptions
     /// </summary>
     public string? PathBase { get; set; }
 
-    // ============================================================================
-    // STATIC CONFIGURATION (Decoupled Mode)
-    // When UseStaticConfig=true, the service bypasses ConfigWebService and uses
-    // the static values below. This is intended for services that must start
-    // independently (e.g., LoggerWebService when Config is unavailable).
-    // ============================================================================
-
-    /// <summary>
-    /// When true, bypasses ConfigWebService and uses static configuration.
-    /// Requires StaticOpenIdConfig, StaticClientId, and StaticRealm to be set.
-    /// Default is false (uses ConfigWebService bootstrap).
-    /// <para>
-    /// <b>Validation (Commit 2):</b> ServiceFactory.CreateAsync must throw a clear
-    /// startup exception if UseStaticConfig=true but required fields are null.
-    /// </para>
-    /// </summary>
-    public bool UseStaticConfig { get; set; } = false;
-
-    /// <summary>
-    /// The OpenID Connect authority URL for JWT validation.
-    /// Example: "https://sfddevelopment.com/auth/realms/SfdDevelopment_Dev"
-    /// Only used when UseStaticConfig is true.
-    /// </summary>
-    public string? StaticOpenIdConfig { get; set; }
-
-    /// <summary>
-    /// The client ID for JWT audience validation (e.g., "dev-login-svc").
-    /// Only used when UseStaticConfig is true.
-    /// </summary>
-    public string? StaticClientId { get; set; }
-
-    /// <summary>
-    /// The realm name for logging context (e.g., "SfdDevelopment_Dev").
-    /// Only used when UseStaticConfig is true.
-    /// </summary>
-    public string? StaticRealm { get; set; }
-
-    /// <summary>
-    /// The database connection string for services that bypass ConfigWebService.
-    /// Only used when UseStaticConfig is true and DatabaseConfigName is set.
-    /// <para>
-    /// <b>Important:</b> This property exists solely for decoupled-mode services
-    /// (e.g., LoggerWebService). Do not use this for services that can rely on
-    /// ConfigWebService—use the standard DatabaseConfigName approach instead.
-    /// </para>
-    /// </summary>
-    public string? StaticDatabaseConnectionString { get; set; }
-
     /// <summary>
     /// Callback to configure additional services after standard configuration.
     /// Use this for synchronous service registration.
@@ -162,7 +114,6 @@ public class ServiceFactoryContext
 
     /// <summary>
     /// The authenticated access token for fetching additional config.
-    /// Null when UseStaticConfig=true (no Keycloak authentication at startup).
     /// </summary>
     public string? AccessToken { get; init; }
 

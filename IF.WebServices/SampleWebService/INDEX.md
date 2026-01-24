@@ -12,14 +12,21 @@ This service demonstrates clean separation of concerns:
    - Direct Firebird connection or Relay mode selection
    - Connection management and disposal
 
-## Environment Variables
+## Configuration
 
-```bash
-SFD_CONFIG_SERVICE=https://longmanrd.net/config
-IF_CLIENT=dev-login-svc
-IF_REALM=SfdDevelopment_Dev
-IF_CLIENTSECRET=your-client-secret
+All configuration is in `appsettings.json`:
+
+```json
+{
+  "IF": {
+    "ConfigService": "https://longmanrd.net/config",
+    "Realm": "SfdDevelopment_Dev",
+    "Client": "dev-login"
+  }
+}
 ```
+
+**No environment variables required!** The client secret is fetched securely from the ConfigWebService bootstrap endpoint.
 
 ## How Data Access Works
 
@@ -46,7 +53,7 @@ This means **Program.cs doesn't need to know about data access configuration**.
 ## Running
 
 ```bash
-# Set environment variables first, then:
+# Just run - no environment variables needed!
 dotnet run
 ```
 

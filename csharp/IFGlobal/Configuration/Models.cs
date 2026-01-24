@@ -14,6 +14,7 @@ public enum AuthType
 public class BootstrapConfig
 {
     public string ClientId { get; set; } = string.Empty;
+    public string? ClientSecret { get; set; }
     public string OpenIdConfig { get; set; } = string.Empty;
     public string LoggerService { get; set; } = string.Empty;
 
@@ -50,6 +51,5 @@ public class SfdConfiguration
     public string Realm { get; set; } = "SfdDevelopment_Dev";
     public string Client { get; set; } = "dev-login";
 
-    public string ClientSecret { get; set; } = string.Empty;
     public AuthType AppType { get; set; } = AuthType.User;
 }

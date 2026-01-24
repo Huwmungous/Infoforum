@@ -17,6 +17,12 @@ public interface IConfigService
     /// </summary>
     string ServiceClientId { get; }
 
+    /// <summary>
+    /// The client secret for service authentication.
+    /// Only available for service type bootstrap requests.
+    /// </summary>
+    string? ClientSecret { get; }
+
     string OpenIdConfig { get; }
     string? LoggerService { get; }
     LogLevel LogLevel { get; }

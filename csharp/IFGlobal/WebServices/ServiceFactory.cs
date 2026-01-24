@@ -58,80 +58,15 @@ public static partial class ServiceFactory
 #endif
 
         // ============================================================================
-        // STATIC CONFIG VALIDATION
+        // BOOTSTRAP VIA CONFIGWEBSERVICE
         // ============================================================================
-        if (options.UseStaticConfig)
-        {
-            if (string.IsNullOrEmpty(options.StaticOpenIdConfig))
-                throw new InvalidOperationException("UseStaticConfig=true requires StaticOpenIdConfig to be set");
-            if (string.IsNullOrEmpty(options.StaticClientId))
-                throw new InvalidOperationException("UseStaticConfig=true requires StaticClientId to be set");
-            if (string.IsNullOrEmpty(options.StaticRealm))
-                throw new InvalidOperationException("UseStaticConfig=true requires StaticRealm to be set");
-            if (!string.IsNullOrEmpty(options.DatabaseConfigName) && string.IsNullOrEmpty(options.StaticDatabaseConnectionString))
-                throw new InvalidOperationException("UseStaticConfig=true with DatabaseConfigName requires StaticDatabaseConnectionString to be set");
-            if (options.UseIFLogger)
-                throw new InvalidOperationException("UseStaticConfig=true requires UseIFLogger=false (no LoggerService URL available in static mode)");
-        }
+        // Configuration from appsettings.json (IF: section)
+        var configServiceUrl = GetConfigValue(builder, "IF:ConfigService");
+        var realm = GetConfigValue(builder, "IF:Realm");
+        var client = GetConfigValue(builder, "IF:Client");
 
-        // ============================================================================
-        // BOOTSTRAP: Static vs ConfigWebService
-        // ============================================================================
-        IConfigService configService;
-        string? accessToken = null;
-        object? databaseConfig = null;
-
-        if (options.UseStaticConfig)
-        {
-            // ============================================================================
-            // STATIC CONFIG MODE - No ConfigWebService dependency
-            // ============================================================================
-            LogUsingStaticConfig(bootstrapLogger, serviceName);
-
-            configService = new StaticConfigService(
-                options.StaticOpenIdConfig!,
-                options.StaticClientId!,
-                options.StaticRealm!
-            );
-
-            // No access token in static mode - service doesn't authenticate with Keycloak at startup
-            // (JWT validation still works - we just don't acquire a service token)
-
-            // Database config from static connection string
-            if (!string.IsNullOrEmpty(options.DatabaseConfigName) && options.DatabaseConfigType != null)
-            {
-                LogUsingStaticDatabaseConfig(bootstrapLogger, serviceName);
-
-                if (options.DatabaseConfigType == typeof(PGConnectionConfig))
-                {
-                    databaseConfig = ParsePostgresConnectionString(options.StaticDatabaseConnectionString!);
-                    LogDatabaseConfig(bootstrapLogger, serviceName, databaseConfig);
-                    builder.Services.AddSingleton(options.DatabaseConfigType, databaseConfig);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Static config mode only supports PGConnectionConfig. " +
-                        $"Requested: {options.DatabaseConfigType.Name}");
-                }
-            }
-        }
-        else
-        {
-            // ============================================================================
-            // STANDARD MODE - Bootstrap via ConfigWebService
-            // ============================================================================
-            var configServiceUrl = GetConfigValue(builder, "IF:ConfigService", "IF_CONFIG_SERVICE");
-            var clientSecret = Environment.GetEnvironmentVariable("IF_CLIENTSECRET")
-                ?? throw new InvalidOperationException("IF_CLIENTSECRET environment variable not set");
-            var client = Environment.GetEnvironmentVariable("IF_CLIENT")
-                ?? throw new InvalidOperationException("IF_CLIENT environment variable not set");
-            var realm = Environment.GetEnvironmentVariable("IF_REALM")
-                ?? throw new InvalidOperationException("IF_REALM environment variable not set");
-
-            Environment.SetEnvironmentVariable("CLIENT_SECRET", clientSecret);
-
-            LogConfigServiceUrl(bootstrapLogger, serviceName, configServiceUrl);
+        LogConfigServiceUrl(bootstrapLogger, serviceName, configServiceUrl);
+        LogRealmAndClient(bootstrapLogger, serviceName, realm, client);
 
         var authTypeString = options.AuthType.ToString();
 
@@ -140,56 +75,54 @@ public static partial class ServiceFactory
             [$"{SfdConfiguration.SectionName}:ConfigService"] = configServiceUrl,
             [$"{SfdConfiguration.SectionName}:Client"] = client,
             [$"{SfdConfiguration.SectionName}:Realm"] = realm,
-            [$"{SfdConfiguration.SectionName}:ClientSecret"] = clientSecret,
             [$"{SfdConfiguration.SectionName}:AppType"] = authTypeString
         });
 
-            builder.Services.Configure<SfdConfiguration>(
-                builder.Configuration.GetSection(SfdConfiguration.SectionName));
-            builder.Services.AddHttpClient();
+        builder.Services.Configure<SfdConfiguration>(
+            builder.Configuration.GetSection(SfdConfiguration.SectionName));
+        builder.Services.AddHttpClient();
 
-            var bootstrappedConfigService = await BootstrapConfigServiceAsync(builder);
-            configService = bootstrappedConfigService;
+        var configService = await BootstrapConfigServiceAsync(builder);
 
         LogConfigServiceInitialised(bootstrapLogger, serviceName, configService.ClientId, configService.Realm, authTypeString);
 
-            LogAuthenticating(bootstrapLogger, serviceName);
-            accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(bootstrappedConfigService);
-            LogAuthenticatedSuccessfully(bootstrapLogger, serviceName);
+        LogAuthenticating(bootstrapLogger, serviceName);
+        var accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(configService);
+        LogAuthenticatedSuccessfully(bootstrapLogger, serviceName);
 
-            // Fire-and-forget remote bootstrap log
-            _ = LogBootstrapToRemoteAsync(
-                configService.LoggerService,
-                serviceName,
-                configService.Realm,
-                configService.ClientId,
-                accessToken,
-                bootstrapLogger);
+        // Fire-and-forget remote bootstrap log
+        _ = LogBootstrapToRemoteAsync(
+            configService.LoggerService,
+            serviceName,
+            configService.Realm,
+            configService.ClientId,
+            accessToken,
+            bootstrapLogger);
 
-            // Database config from ConfigService
-            if (!string.IsNullOrEmpty(options.DatabaseConfigName) && options.DatabaseConfigType != null)
+        // Database config from ConfigService
+        object? databaseConfig = null;
+        if (!string.IsNullOrEmpty(options.DatabaseConfigName) && options.DatabaseConfigType != null)
+        {
+            var configName = options.DatabaseConfigName;
+            LogFetchingConfig(bootstrapLogger, serviceName, configName);
+
+            var method = typeof(IConfigService).GetMethod(nameof(IConfigService.GetConfigAsync));
+            var genericMethod = method!.MakeGenericMethod(options.DatabaseConfigType);
+
+            var task = (Task)genericMethod.Invoke(configService, [options.DatabaseConfigName, accessToken, CancellationToken.None])!;
+            await task;
+
+            var resultProperty = task.GetType().GetProperty("Result");
+            databaseConfig = resultProperty!.GetValue(task);
+
+            if (databaseConfig == null)
             {
-                var configName = options.DatabaseConfigName;
-                LogFetchingConfig(bootstrapLogger, serviceName, configName);
-
-                var method = typeof(IConfigService).GetMethod(nameof(IConfigService.GetConfigAsync));
-                var genericMethod = method!.MakeGenericMethod(options.DatabaseConfigType);
-
-                var task = (Task)genericMethod.Invoke(configService, [options.DatabaseConfigName, accessToken, CancellationToken.None])!;
-                await task;
-
-                var resultProperty = task.GetType().GetProperty("Result");
-                databaseConfig = resultProperty!.GetValue(task);
-
-                if (databaseConfig == null)
-                {
-                    throw new InvalidOperationException($"Failed to fetch {options.DatabaseConfigName} configuration");
-                }
-
-                LogDatabaseConfig(bootstrapLogger, serviceName, databaseConfig);
-
-                builder.Services.AddSingleton(options.DatabaseConfigType, databaseConfig);
+                throw new InvalidOperationException($"Failed to fetch {options.DatabaseConfigName} configuration");
             }
+
+            LogDatabaseConfig(bootstrapLogger, serviceName, databaseConfig);
+
+            builder.Services.AddSingleton(options.DatabaseConfigType, databaseConfig);
         }
 
         // ============================================================================
@@ -412,17 +345,27 @@ public static partial class ServiceFactory
     }
 
     /// <summary>
-    /// Gets a configuration value, preferring appsettings in Debug and env vars in Release.
+    /// Gets a configuration value from appsettings, with optional env var fallback.
     /// </summary>
-    private static string GetConfigValue(WebApplicationBuilder builder, string configKey, string envVarName)
+    private static string GetConfigValue(WebApplicationBuilder builder, string configKey, string? envVarName = null)
     {
-#if DEBUG
+        // Always prefer appsettings.json
         var value = builder.Configuration[configKey];
         if (!string.IsNullOrEmpty(value))
             return value;
-#endif
-        return Environment.GetEnvironmentVariable(envVarName)
-            ?? throw new InvalidOperationException($"{envVarName} environment variable not set");
+
+        // Fallback to environment variable if provided
+        if (!string.IsNullOrEmpty(envVarName))
+        {
+            value = Environment.GetEnvironmentVariable(envVarName);
+            if (!string.IsNullOrEmpty(value))
+                return value;
+        }
+
+        throw new InvalidOperationException(
+            envVarName != null
+                ? $"Configuration '{configKey}' not found in appsettings and '{envVarName}' environment variable not set"
+                : $"Configuration '{configKey}' not found in appsettings");
     }
 
     /// <summary>
@@ -642,6 +585,9 @@ public static partial class ServiceFactory
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: ConfigService URL: {ConfigServiceUrl}")]
     private static partial void LogConfigServiceUrl(ILogger logger, string serviceName, string configServiceUrl);
 
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: Realm={Realm}, Client={Client}")]
+    private static partial void LogRealmAndClient(ILogger logger, string serviceName, string realm, string client);
+
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: ConfigService initialised. ClientId={ClientId}, Realm={Realm}, AppType={AppType}")]
     private static partial void LogConfigServiceInitialised(ILogger logger, string serviceName, string clientId, string realm, string appType);
 
@@ -680,97 +626,4 @@ public static partial class ServiceFactory
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: Could not send bootstrap log: {Error}")]
     private static partial void LogBootstrapError(ILogger logger, string serviceName, string error);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "{ServiceName}: Using STATIC configuration (ConfigWebService bypassed)")]
-    private static partial void LogUsingStaticConfig(ILogger logger, string serviceName);
-
-    [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: Using static database connection string")]
-    private static partial void LogUsingStaticDatabaseConfig(ILogger logger, string serviceName);
-
-    // ============================================================================
-    // HELPER METHODS
-    // ============================================================================
-
-    /// <summary>
-    /// Parses a PostgreSQL connection string into a PGConnectionConfig.
-    /// Private helper for static config mode - keeps the change contained to ServiceFactory.
-    /// </summary>
-    private static PGConnectionConfig ParsePostgresConnectionString(string connectionString)
-    {
-        var config = new PGConnectionConfig();
-        var parts = connectionString.Split(';', StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var part in parts)
-        {
-            var keyValue = part.Split('=', 2);
-            if (keyValue.Length != 2) continue;
-
-            var key = keyValue[0].Trim().ToLowerInvariant();
-            var value = keyValue[1].Trim();
-
-            switch (key)
-            {
-                case "host":
-                case "server":
-                    config.Host = value;
-                    break;
-                case "port":
-                    if (int.TryParse(value, out var port))
-                        config.Port = port;
-                    break;
-                case "database":
-                    config.Database = value;
-                    break;
-                case "username":
-                case "user id":
-                case "uid":
-                    config.UserName = value;
-                    break;
-                case "password":
-                case "pwd":
-                    config.Password = value;
-                    break;
-            }
-        }
-
-        return config;
-    }
-
-    // ============================================================================
-    // STATIC CONFIG SERVICE (for decoupled mode)
-    // ============================================================================
-
-    /// <summary>
-    /// A minimal IConfigService implementation for static config mode.
-    /// Does not call ConfigWebService - all values are provided at construction.
-    /// </summary>
-    private sealed class StaticConfigService : IConfigService
-    {
-        public StaticConfigService(string openIdConfig, string clientId, string realm)
-        {
-            OpenIdConfig = openIdConfig;
-            ClientId = clientId;
-            ServiceClientId = clientId; // Same as ClientId in static mode
-            Realm = realm;
-        }
-
-        public string ClientId { get; }
-        public string ServiceClientId { get; }
-        public string OpenIdConfig { get; }
-        public string? LoggerService => null; // Not available in static mode
-        public LogLevel LogLevel => LogLevel.Information;
-        public string Realm { get; }
-        public bool IsInitialized => true;
-
-        public Task InitializeAsync(CancellationToken cancellationToken = default)
-            => Task.CompletedTask;
-
-        public Task<T?> GetConfigAsync<T>(string configName, string accessToken, CancellationToken cancellationToken = default)
-            where T : class
-        {
-            throw new NotSupportedException(
-                $"GetConfigAsync is not supported in static config mode. " +
-                $"Requested config: {configName}");
-        }
-    }
 }

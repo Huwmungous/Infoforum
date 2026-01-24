@@ -6,33 +6,47 @@ namespace IFGlobal.Auth;
 public static class ServiceAuthenticator
 {
     /// <summary>
-    /// Authenticate a service account and get an access token using the ClientSecret from environment variable.
+    /// Authenticate a service account and get an access token using the ClientSecret from ConfigService.
     /// Uses ServiceClientId (not ClientId) to ensure we authenticate as the service account,
     /// even when the service is configured to validate patient tokens.
     /// </summary>
     public static async Task<string> GetServiceAccessTokenAsync(IConfigService configService)
     {
-        return await GetServiceAccessTokenAsync(configService.IsInitialized, configService. OpenIdConfig, configService. ServiceClientId);
-    }
-    public static async Task<string> GetServiceAccessTokenAsync(bool IsInitialized, string OpenIdConfig, string ServiceClientId)
-    {
-        if (!IsInitialized)
+        if (!configService.IsInitialized)
         {
             throw new InvalidOperationException("ConfigService must be initialized first");
         }
 
+        var clientSecret = configService.ClientSecret;
+        if (string.IsNullOrEmpty(clientSecret))
+        {
+            throw new InvalidOperationException(
+                "ClientSecret not available from ConfigService. " +
+                "Ensure bootstrap was requested with type=service.");
+        }
+
+        return await GetServiceAccessTokenAsync(
+            configService.OpenIdConfig, 
+            configService.ServiceClientId,
+            clientSecret);
+    }
+
+    /// <summary>
+    /// Authenticate a service account with explicit credentials.
+    /// </summary>
+    public static async Task<string> GetServiceAccessTokenAsync(
+        string openIdConfig, 
+        string serviceClientId,
+        string clientSecret)
+    {
         using var httpClient = new HttpClient();
 
-        var tokenEndpoint = $"{OpenIdConfig}/protocol/openid-connect/token";
-
-        var clientSecret = Environment.GetEnvironmentVariable("IF_CLIENTSECRET");
-        if (string.IsNullOrEmpty(clientSecret))
-            throw new InvalidOperationException("Environment variable 'IF_CLIENTSECRET' is not set.");
+        var tokenEndpoint = $"{openIdConfig}/protocol/openid-connect/token";
 
         var formData = new Dictionary<string, string>
         {
             { "grant_type", "client_credentials" },
-            { "client_id", ServiceClientId },  // Use ServiceClientId for service auth
+            { "client_id", serviceClientId },
             { "client_secret", clientSecret }
         };
 

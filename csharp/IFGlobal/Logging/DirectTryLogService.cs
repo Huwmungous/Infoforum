@@ -17,6 +17,7 @@ public class DirectTryLogService
     private readonly HttpClient _httpClient;
     private readonly string _openIdConfig;
     private readonly string _serviceClientId;
+    private readonly string _clientSecret;
     private readonly string? _loggerServiceUrl;
     private readonly ILogger<DirectTryLogService> _logger;
 
@@ -25,6 +26,7 @@ public class DirectTryLogService
         HttpClient httpClient,
         string openIdConfig,
         string serviceClientId,
+        string clientSecret,
         string? loggerServiceUrl,
         ILogger<DirectTryLogService> logger)
     {
@@ -32,6 +34,7 @@ public class DirectTryLogService
         _httpClient = httpClient;
         _openIdConfig = openIdConfig;
         _serviceClientId = serviceClientId;
+        _clientSecret = clientSecret;
         _loggerServiceUrl = loggerServiceUrl;
         _logger = logger;
     }
@@ -39,9 +42,7 @@ public class DirectTryLogService
     /// <summary>
     /// Log an entry directly to the database and notify SignalR clients.
     /// </summary>
-    /// <param name="realm">The realm/tenant identifier.</param>
-    /// <param name="client">The client application identifier.</param>
-    /// <param name="logData">The log data as JSON.</param>
+    /// <param name="logEntry">The log entry request.</param>
     /// <returns>The created log entry index.</returns>
     public async Task<int> LogAsync(LogEntryRequest logEntry)
     {
@@ -58,7 +59,7 @@ public class DirectTryLogService
 
         try
         {
-            var accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(true, _openIdConfig, _serviceClientId);
+            var accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(_openIdConfig, _serviceClientId, _clientSecret);
             var logEntryResponse = new LogEntryResponse(idx, logEntry.Realm, logEntry.Client, logEntry.LogData, createdAt);
 
             var notifyUrl = $"{_loggerServiceUrl.TrimEnd('/')}/notify";
