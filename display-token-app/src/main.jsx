@@ -10,7 +10,7 @@ import './index.css';
 // Extract realm and client from URL
 const urlConfig = getConfigFromUrl();
 
-// Get the config service URL from environment (this is the only env var we need)
+// Get the config service URL from environment
 const configServiceUrl = import.meta.env.VITE_IF_CONFIG_SERVICE_URL || '/config';
 
 const root = createRoot(document.getElementById('root'));

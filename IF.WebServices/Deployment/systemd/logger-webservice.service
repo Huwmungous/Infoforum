@@ -1,0 +1,28 @@
+[Unit]
+Description=IF LoggerWebService
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/if-webservices/LoggerWebService
+ExecStart=/opt/if-webservices/LoggerWebService/LoggerWebService
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=LoggerWebService
+
+[Install]
+WantedBy=multi-user.target

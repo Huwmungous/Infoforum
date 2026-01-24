@@ -49,6 +49,11 @@ namespace IFGlobal
                 case "IFOllama.WebService": return 5028;
                 case "IFOllama.React": return 5029;
 
+                // IF WebServices (5030-5039)
+                case "ConfigWebService": return 5030;
+                case "LoggerWebService": return 5031;
+                case "KeycloakWebService": return 5032;
+
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";
 

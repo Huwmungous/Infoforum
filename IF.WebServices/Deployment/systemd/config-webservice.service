@@ -1,0 +1,29 @@
+[Unit]
+Description=IF ConfigWebService
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/if-webservices/ConfigWebService
+ExecStart=/opt/if-webservices/ConfigWebService/ConfigWebService
+Restart=always
+RestartSec=10
+
+# Environment
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ConfigWebService
+
+[Install]
+WantedBy=multi-user.target
