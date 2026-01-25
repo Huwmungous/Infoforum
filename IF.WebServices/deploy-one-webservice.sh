@@ -39,15 +39,14 @@ fi
 # Navigate to server directory
 cd "$SERVER_PATH"
 
-# Clean and publish
+# Clean and publish (run as original user if invoked via sudo)
 echo "    Building $SERVER_NAME..."
-dotnet clean --configuration $BUILD_CONFIG > /dev/null 2>&1
-dotnet publish --configuration $BUILD_CONFIG --output "./publish" --self-contained false --runtime linux-x64
-
-if [ $? -ne 0 ]; then
-    echo -e "${RED}[ERROR] Build failed for $SERVER_NAME${NC}"
-    cd - > /dev/null
-    exit 1
+if [ "$EUID" -eq 0 ] && [ -n "$SUDO_USER" ]; then
+    sudo -u "$SUDO_USER" dotnet clean --configuration $BUILD_CONFIG > /dev/null 2>&1
+    sudo -u "$SUDO_USER" dotnet publish --configuration $BUILD_CONFIG --output "./publish" --self-contained false --runtime linux-x64
+else
+    dotnet clean --configuration $BUILD_CONFIG > /dev/null 2>&1
+    dotnet publish --configuration $BUILD_CONFIG --output "./publish" --self-contained false --runtime linux-x64
 fi
 
 echo -e "${GREEN}[OK] $SERVER_NAME cleaned and built${NC}"
