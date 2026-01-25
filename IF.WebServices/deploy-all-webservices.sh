@@ -113,6 +113,10 @@ LOGGER_SYSTEMD="logger-ws"
 # Other services that depend on ConfigWebService
 DEPENDENT_SERVICES=(
     "SampleWebService" 
+<<<<<<< HEAD
+=======
+    "PpsWebService" 
+>>>>>>> b66868887fc62b059a05e6d2109b8590a8ceaa2f
 )
 declare -A SERVERS=(
     ["SampleWebService"]="sample-ws"
@@ -134,6 +138,7 @@ SKIPPED_SERVICES=()
 # ============================================================================
 echo "======================================"
 echo -e "${BLUE}  Phase 1: ConfigWebService${NC}"
+echo "$SCRIPT_DIR/$CONFIG_SERVICE"
 echo "======================================"
 echo ""
 
@@ -373,28 +378,6 @@ ALL_SERVICES=("$CONFIG_SERVICE" "$LOGGER_SERVICE" "${DEPENDENT_SERVICES[@]}")
 declare -A ALL_SERVERS=(
     ["LoggerWebService"]="logger-ws"
     ["ConfigWebService"]="config-ws"
-    ["KeycloakWebService"]="keycloak-ws"
-    ["PaymentsWebService"]="payments-ws"
-    ["SampleWebService"]="sample-ws"
-    ["PpsWebService"]="pps-ws"
-    ["PatientKeycloakSync"]="patient-sync-ws"
-    ["MonitorWebService"]="monitor-ws"
-    ["DelphiDocBrowserService"]="delphi-doc-browser-ws" 
-    ["SfD.Admin.WebService"]="sfd.admin.ws"
-    ["SfD.Appointment.WebService"]="sfd.appointment.ws"
-    ["SfD.Billing.WebService"]="sfd.billing.ws"
-    ["SfD.Clinical.WebService"]="sfd.clinical.ws"
-    ["SfD.Communication.WebService"]="sfd.communication.ws"
-    ["SfD.Document.WebService"]="sfd.document.ws"
-    ["SfD.General.WebService"]="sfd.general.ws"
-    ["SfD.Insurance.WebService"]="sfd.insurance.ws"
-    ["SfD.Inventory.WebService"]="sfd.inventory.ws"
-    ["SfD.Lookup.WebService"]="sfd.lookup.ws"
-    ["SfD.Patient.WebService"]="sfd.patient.ws"
-    ["SfD.Provider.WebService"]="sfd.provider.ws"
-    ["SfD.Referral.WebService"]="sfd.referral.ws"
-    ["SfD.Report.WebService"]="sfd.report.ws"
-    ["SFD_FDB.WebService"]="sfd.fdb.ws"
 )
 
 for SERVER_NAME in "${ALL_SERVICES[@]}"; do
