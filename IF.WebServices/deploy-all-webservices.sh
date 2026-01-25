@@ -113,10 +113,6 @@ LOGGER_SYSTEMD="logger-ws"
 # Other services that depend on ConfigWebService
 DEPENDENT_SERVICES=(
     "SampleWebService" 
-<<<<<<< HEAD
-=======
-    "PpsWebService" 
->>>>>>> b66868887fc62b059a05e6d2109b8590a8ceaa2f
 )
 declare -A SERVERS=(
     ["SampleWebService"]="sample-ws"
