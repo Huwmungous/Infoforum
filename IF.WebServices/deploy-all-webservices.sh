@@ -1,17 +1,15 @@
 #!/bin/bash
 set -e
 
-# Usage:    ./deploy-all-webservices.sh [DEV|SIT|UAT|PRD]
+# Usage:    ./deploy-all-webservices.sh
 
 DEPLOY_ROOT="/srv/Infoforum/WebServices"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-BUILD_CONFIG=${1:-PRD}  # Default to PRD if not specified
 
 echo "======================================"
 echo "  Web Services Deployment"
 echo "======================================"
 echo "User:          $USER"
-echo "Build Config:  $BUILD_CONFIG"
 echo "Deploy Root:   $DEPLOY_ROOT"
 echo ""
 
@@ -28,31 +26,9 @@ if [[ $EUID -ne 0 ]] && ! sudo -n true 2>/dev/null; then
     echo ""
 fi
 
-# Calculate port based on build config
-get_config_port() {
-    case "$BUILD_CONFIG" in
-        DEV)   echo 5300 ;;
-        SIT)   echo 5200 ;;
-        UAT)   echo 5100 ;;
-        PRD)   echo 5000 ;;
-        Debug) echo 5300 ;;
-        *)     echo 5000 ;;
-    esac
-}
-
-get_logger_port() {
-    case "$BUILD_CONFIG" in
-        DEV)   echo 5301 ;;
-        SIT)   echo 5201 ;;
-        UAT)   echo 5101 ;;
-        PRD)   echo 5001 ;;
-        Debug) echo 5301 ;;
-        *)     echo 5001 ;;
-    esac
-}
-
-CONFIG_PORT=$(get_config_port)
-LOGGER_PORT=$(get_logger_port)
+# Ports are defined by PortResolver in the services themselves
+CONFIG_PORT=5000
+LOGGER_PORT=5001
 
 # Wait for LoggerWebService to be healthy
 wait_for_logger_service() {
@@ -142,7 +118,7 @@ SERVER_PATH="$SCRIPT_DIR/$CONFIG_SERVICE"
 
 if [ -d "$SERVER_PATH" ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    if "$SCRIPT_DIR/deploy-one-webservice.sh" "$SERVER_PATH" "$CONFIG_SYSTEMD" "$DEPLOY_ROOT" "$BUILD_CONFIG"; then
+    if "$SCRIPT_DIR/deploy-one-webservice.sh" "$SERVER_PATH" "$CONFIG_SYSTEMD" "$DEPLOY_ROOT"; then
         DEPLOYED_SERVICES+=("$CONFIG_SERVICE:$CONFIG_SYSTEMD")
         echo -e "${GREEN}[SUCCESS] $CONFIG_SERVICE deployed${NC}"
     else
@@ -199,7 +175,7 @@ SERVER_PATH="$SCRIPT_DIR/$LOGGER_SERVICE"
 
 if [ -d "$SERVER_PATH" ]; then
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-    if "$SCRIPT_DIR/deploy-one-webservice.sh" "$SERVER_PATH" "$LOGGER_SYSTEMD" "$DEPLOY_ROOT" "$BUILD_CONFIG"; then
+    if "$SCRIPT_DIR/deploy-one-webservice.sh" "$SERVER_PATH" "$LOGGER_SYSTEMD" "$DEPLOY_ROOT"; then
         DEPLOYED_SERVICES+=("$LOGGER_SERVICE:$LOGGER_SYSTEMD")
         echo -e "${GREEN}[SUCCESS] $LOGGER_SERVICE deployed${NC}"
     else
@@ -258,7 +234,7 @@ for SERVER_NAME in "${DEPENDENT_SERVICES[@]}"; do
     
     if [ -d "$SERVER_PATH" ]; then
         echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-        if "$SCRIPT_DIR/deploy-one-webservice.sh" "$SERVER_PATH" "$SERVICE_NAME" "$DEPLOY_ROOT" "$BUILD_CONFIG"; then
+        if "$SCRIPT_DIR/deploy-one-webservice.sh" "$SERVER_PATH" "$SERVICE_NAME" "$DEPLOY_ROOT"; then
             DEPLOYED_SERVICES+=("$SERVER_NAME:$SERVICE_NAME")
             echo -e "${GREEN}[SUCCESS] $SERVER_NAME deployed${NC}"
         else
@@ -327,9 +303,8 @@ echo -e "${GREEN}  Deployment Summary${NC}"
 echo "======================================"
 echo ""
 echo "Deployed to: $DEPLOY_ROOT"
-echo "Build Config: $BUILD_CONFIG"
-echo "LoggerService Port: $LOGGER_PORT"
 echo "ConfigService Port: $CONFIG_PORT"
+echo "LoggerService Port: $LOGGER_PORT"
 echo ""
 
 # Show deployment results
@@ -339,9 +314,9 @@ if [ ${#DEPLOYED_SERVICES[@]} -gt 0 ]; then
         IFS=':' read -r SERVER_NAME SERVICE_NAME <<< "$SERVICE_INFO"
         STATUS=$(systemctl is-active "$SERVICE_NAME" 2>/dev/null || echo "inactive")
         if [ "$STATUS" = "active" ]; then
-            echo -e "  ${GREEN}✓${NC} $SERVER_NAME ($SERVICE_NAME) - ${GREEN}running${NC}"
+            echo -e "  ${GREEN}✔${NC} $SERVER_NAME ($SERVICE_NAME) - ${GREEN}running${NC}"
         else
-            echo -e "  ${YELLOW}✓${NC} $SERVER_NAME ($SERVICE_NAME) - ${YELLOW}deployed but not running${NC}"
+            echo -e "  ${YELLOW}✔${NC} $SERVER_NAME ($SERVICE_NAME) - ${YELLOW}deployed but not running${NC}"
         fi
     done
     echo ""
@@ -369,14 +344,14 @@ echo "  Service Status"
 echo "======================================"
 echo ""
 
-# Include Config and Logger in the status display (in correct dependency order)
-ALL_SERVICES=("$CONFIG_SERVICE" "$LOGGER_SERVICE" "${DEPENDENT_SERVICES[@]}")
+# Include Config and Logger in the status display
 declare -A ALL_SERVERS=(
-    ["LoggerWebService"]="logger-ws"
     ["ConfigWebService"]="config-ws"
+    ["LoggerWebService"]="logger-ws"
+    ["SampleWebService"]="sample-ws"
 )
 
-for SERVER_NAME in "${ALL_SERVICES[@]}"; do
+for SERVER_NAME in "ConfigWebService" "LoggerWebService" "${DEPENDENT_SERVICES[@]}"; do
     SERVICE_NAME="${ALL_SERVERS[$SERVER_NAME]}"
     
     # Check if service exists
@@ -409,9 +384,6 @@ echo "  sudo systemctl status <service-name>"
 echo "  sudo systemctl restart <service-name>"
 echo "  sudo systemctl stop <service-name>"
 echo "  sudo systemctl start <service-name>"
-echo ""
-echo "Deploy single service:"
-echo "  ./deploy-one-webservice.sh <ServerPath> <service-name> $DEPLOY_ROOT $BUILD_CONFIG"
 echo ""
 
 # Exit with error if any deployments failed
