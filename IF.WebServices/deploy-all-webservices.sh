@@ -3,7 +3,7 @@ set -e
 
 # Usage:    ./deploy-all-webservices.sh [DEV|SIT|UAT|PRD]
 
-DEPLOY_ROOT="/srv/sfddevelopment/WebServices"
+DEPLOY_ROOT="/srv/Infoforum/WebServices"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_CONFIG=${1:-PRD}  # Default to PRD if not specified
 
@@ -112,52 +112,10 @@ LOGGER_SYSTEMD="logger-ws"
 
 # Other services that depend on ConfigWebService
 DEPENDENT_SERVICES=(
-    "KeycloakWebService" 
-    "PaymentsWebService" 
     "SampleWebService" 
-    "PpsWebService" 
-    "PatientKeycloakSync" 
-    "MonitorWebService" 
-    "DelphiDocBrowserService" 
-    "SfD.Admin.WebService" 
-    "SfD.Appointment.WebService" 
-    "SfD.Billing.WebService" 
-    "SfD.Clinical.WebService" 
-    "SfD.Communication.WebService" 
-    "SfD.Document.WebService" 
-    "SfD.General.WebService" 
-    "SfD.Insurance.WebService" 
-    "SfD.Inventory.WebService" 
-    "SfD.Lookup.WebService" 
-    "SfD.Patient.WebService" 
-    "SfD.Provider.WebService" 
-    "SfD.Referral.WebService" 
-    "SfD.Report.WebService" 
-    "SFD_FDB.WebService"
 )
 declare -A SERVERS=(
-    ["KeycloakWebService"]="keycloak-ws"
-    ["PaymentsWebService"]="payments-ws"
     ["SampleWebService"]="sample-ws"
-    ["PpsWebService"]="pps-ws"
-    ["PatientKeycloakSync"]="patient-sync-ws"
-    ["MonitorWebService"]="monitor-ws"
-    ["DelphiDocBrowserService"]="delphi-doc-browser-ws" 
-    ["SfD.Admin.WebService"]="sfd.admin.ws"
-    ["SfD.Appointment.WebService"]="sfd.appointment.ws"
-    ["SfD.Billing.WebService"]="sfd.billing.ws"
-    ["SfD.Clinical.WebService"]="sfd.clinical.ws"
-    ["SfD.Communication.WebService"]="sfd.communication.ws"
-    ["SfD.Document.WebService"]="sfd.document.ws"
-    ["SfD.General.WebService"]="sfd.general.ws"
-    ["SfD.Insurance.WebService"]="sfd.insurance.ws"
-    ["SfD.Inventory.WebService"]="sfd.inventory.ws"
-    ["SfD.Lookup.WebService"]="sfd.lookup.ws"
-    ["SfD.Patient.WebService"]="sfd.patient.ws"
-    ["SfD.Provider.WebService"]="sfd.provider.ws"
-    ["SfD.Referral.WebService"]="sfd.referral.ws"
-    ["SfD.Report.WebService"]="sfd.report.ws"
-    ["SFD_FDB.WebService"]="sfd.fdb.ws"
 )
 
 # Ensure deploy root exists
