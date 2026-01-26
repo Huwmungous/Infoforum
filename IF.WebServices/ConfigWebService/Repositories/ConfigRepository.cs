@@ -29,6 +29,7 @@ public class ConfigRepository : BaseRepository
         {
             Idx = reader.GetInt32(reader.GetOrdinal("idx")),
             AppDomain = reader.GetString(reader.GetOrdinal("app_domain")),
+            Type = reader.GetString(reader.GetOrdinal("type")),
             Config = reader.IsDBNull(reader.GetOrdinal("config"))
                 ? null
                 : JsonDocument.Parse(reader.GetString(reader.GetOrdinal("config")))

@@ -9,7 +9,7 @@ export interface BootstrapConfig {
   clientId: string;
   openIdConfig: string;
   loggerService: string;
-  logLevel: string;
+  logLevel?: string;  // Optional - comes from user/service record if needed
 }
 
 export interface ConfigServiceInitParams {
