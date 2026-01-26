@@ -113,21 +113,14 @@ public class ConfigController(
                 "Returning bootstrap config for realm={Realm}, client={Client}, type={Type}",
                 realm, client, type);
 
-            // Transform the bootstrap config to return the appropriate clientId
+            // Transform the bootstrap config to return the appropriate values
             var bootstrapJson = entry.BootstrapConfig.RootElement;
             
-            // Get the appropriate clientId based on type
-            string? clientId = null;
-            if (type == "user" && bootstrapJson.TryGetProperty("userClientId", out var userClientIdElement))
-            {
-                clientId = userClientIdElement.GetString();
-            }
-            else if (type == "service" && bootstrapJson.TryGetProperty("serviceClientId", out var serviceClientIdElement))
-            {
-                clientId = serviceClientIdElement.GetString();
-            }
+            // Get clientId from JSONB
+            string? clientId = bootstrapJson.TryGetProperty("clientId", out var clientIdElement)
+                ? clientIdElement.GetString() : null;
             
-            // Build the response object with the computed clientId
+            // Build the response object
             var response = new Dictionary<string, object?>
             {
                 ["clientId"] = clientId,
@@ -142,12 +135,6 @@ public class ConfigController(
                 ["requiresRelay"] = bootstrapJson.TryGetProperty("requiresRelay", out var requiresRelay) 
                     && requiresRelay.GetBoolean()
             };
-
-            // For service type, also include the client secret
-            if (type == "service" && bootstrapJson.TryGetProperty("serviceClientSecret", out var serviceClientSecret))
-            {
-                response["clientSecret"] = serviceClientSecret.GetString();
-            }
 
             return Ok(response);
         }

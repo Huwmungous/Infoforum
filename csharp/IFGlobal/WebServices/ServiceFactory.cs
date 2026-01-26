@@ -64,6 +64,9 @@ public static partial class ServiceFactory
         var configServiceUrl = GetConfigValue(builder, "IF:ConfigService");
         var realm = GetConfigValue(builder, "IF:Realm");
         var client = GetConfigValue(builder, "IF:Client");
+        
+        // ClientSecret is optional - only needed for Service AppType
+        var clientSecret = GetOptionalConfigValue(builder, "IF:ClientSecret", "IF_CLIENTSECRET");
 
         LogConfigServiceUrl(bootstrapLogger, serviceName, configServiceUrl);
         LogRealmAndClient(bootstrapLogger, serviceName, realm, client);
@@ -72,14 +75,15 @@ public static partial class ServiceFactory
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            [$"{IFConfiguration.SectionName}:ConfigService"] = configServiceUrl,
-            [$"{IFConfiguration.SectionName}:Client"] = client,
-            [$"{IFConfiguration.SectionName}:Realm"] = realm,
-            [$"{IFConfiguration.SectionName}:AppType"] = authTypeString
+            [$"{SfdConfiguration.SectionName}:ConfigService"] = configServiceUrl,
+            [$"{SfdConfiguration.SectionName}:Client"] = client,
+            [$"{SfdConfiguration.SectionName}:Realm"] = realm,
+            [$"{SfdConfiguration.SectionName}:AppType"] = authTypeString,
+            [$"{SfdConfiguration.SectionName}:ClientSecret"] = clientSecret
         });
 
-        builder.Services.Configure<IFConfiguration>(
-            builder.Configuration.GetSection(IFConfiguration.SectionName));
+        builder.Services.Configure<SfdConfiguration>(
+            builder.Configuration.GetSection(SfdConfiguration.SectionName));
         builder.Services.AddHttpClient();
 
         var configService = await BootstrapConfigServiceAsync(builder);
@@ -368,20 +372,38 @@ public static partial class ServiceFactory
                 : $"Configuration '{configKey}' not found in appsettings");
     }
 
+    private static string? GetOptionalConfigValue(WebApplicationBuilder builder, string configKey, string? envVarName = null)
+    {
+        // Always prefer appsettings.json
+        var value = builder.Configuration[configKey];
+        if (!string.IsNullOrEmpty(value))
+            return value;
+
+        // Fallback to environment variable if provided
+        if (!string.IsNullOrEmpty(envVarName))
+        {
+            value = Environment.GetEnvironmentVariable(envVarName);
+            if (!string.IsNullOrEmpty(value))
+                return value;
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Bootstraps the ConfigService using a temporary service provider.
     /// </summary>
     private static async Task<ConfigService> BootstrapConfigServiceAsync(WebApplicationBuilder builder)
     {
         var tempServices = new ServiceCollection();
-        tempServices.Configure<IFConfiguration>(
-            builder.Configuration.GetSection(IFConfiguration.SectionName));
+        tempServices.Configure<SfdConfiguration>(
+            builder.Configuration.GetSection(SfdConfiguration.SectionName));
         tempServices.AddHttpClient();
         tempServices.AddLogging();
 
         using var tempProvider = tempServices.BuildServiceProvider();
 
-        var sfdOptions = tempProvider.GetRequiredService<IOptions<IFConfiguration>>();
+        var sfdOptions = tempProvider.GetRequiredService<IOptions<SfdConfiguration>>();
         var httpClientFactory = tempProvider.GetRequiredService<IHttpClientFactory>();
         var configServiceLogger = tempProvider.GetRequiredService<ILogger<ConfigService>>();
 

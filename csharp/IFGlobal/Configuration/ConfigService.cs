@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace IFGlobal.Configuration;
 
 public partial class ConfigService(
-    IOptions<IFConfiguration> options,
+    IOptions<SfdConfiguration> options,
     IHttpClientFactory httpClientFactory,
     ILogger<ConfigService> logger) : IConfigService
 {
@@ -14,7 +14,7 @@ public partial class ConfigService(
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly IFConfiguration _config = options.Value;
+    private readonly SfdConfiguration _config = options.Value;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly ILogger<ConfigService> _logger = logger;
     private BootstrapConfig? _bootstrapConfig;
@@ -53,9 +53,10 @@ public partial class ConfigService(
 
     /// <summary>
     /// Returns the client secret for service authentication.
-    /// Only available when bootstrapped as service type.
+    /// Comes from appsettings.json or IF_CLIENTSECRET environment variable.
+    /// Only required for Service AppType.
     /// </summary>
-    public string? ClientSecret => _bootstrapConfig?.ClientSecret;
+    public string? ClientSecret => _config.ClientSecret;
 
     public string OpenIdConfig => _bootstrapConfig?.OpenIdConfig
         ?? throw new InvalidOperationException("ConfigService not initialized. Call InitializeAsync first.");

@@ -14,7 +14,6 @@ public enum AuthType
 public class BootstrapConfig
 {
     public string ClientId { get; set; } = string.Empty;
-    public string? ClientSecret { get; set; }
     public string OpenIdConfig { get; set; } = string.Empty;
     public string LoggerService { get; set; } = string.Empty;
 
@@ -43,13 +42,20 @@ public class FlexibleLogLevelConverter : JsonConverter<string>
     }
 }
 
-public class IFConfiguration
+public class SfdConfiguration
 {
     public const string SectionName = "SfD";
 
     public string ConfigService { get; set; } = "http://localhost:5000/config";
-    public string Realm { get; set; } = "LongmanRd";
+    public string Realm { get; set; } = "SfdDevelopment_Dev";
     public string Client { get; set; } = "dev-login";
+    
+    /// <summary>
+    /// Client secret for service authentication. 
+    /// Set via appsettings.json or IF_CLIENTSECRET environment variable.
+    /// Only required for Service AppType.
+    /// </summary>
+    public string? ClientSecret { get; set; }
 
     public AuthType AppType { get; set; } = AuthType.User;
 }
