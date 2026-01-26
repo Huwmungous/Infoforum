@@ -13,10 +13,12 @@ namespace IFGlobal
         {
             switch (appname)
             {
+                case "ConfigWebService": return 5000;
+                case "LoggerWebService": return 5001;
+                case "KeycloakWebService": return 5002;
+
                 // Core applications (5000-5011)
-                case "BreakTackle": return 5000;
-                case "BreakTackleAPI": return 5001;
-                case "JibberJabber": return 5002;
+
                 case "BTAuthenticator": return 5003;
                 case "IFAuthenticator": return 5004;
                 case "SvgApi": return 5005;
@@ -49,10 +51,12 @@ namespace IFGlobal
                 case "IFOllama.WebService": return 5028;
                 case "IFOllama.React": return 5029;
 
+                case "BreakTackle": return 5030;
+                case "BreakTackleAPI": return 5031;
+                case "JibberJabber": return 5032;
+
                 // IF WebServices (5030-5039)
-                case "ConfigWebService": return 5030;
-                case "LoggerWebService": return 5031;
-                case "KeycloakWebService": return 5032;
+
 
                 default:
                     string msg = $"PortResolver Does Not Recognise '{appname}'";
