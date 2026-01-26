@@ -16,15 +16,6 @@ public class ConfigEntry
     [MaxLength(240)]
     public string AppDomain { get; set; } = null!;
 
-    // Keep these for backwards compatibility during migration, but they're deprecated
-    [Column("realm")]
-    [MaxLength(240)]
-    public string? Realm { get; set; }
-
-    [Column("client")]
-    [MaxLength(240)]
-    public string? Client { get; set; }
-
     [Column("user_config", TypeName = "jsonb")]
     public JsonDocument? UserConfig { get; set; }
 
