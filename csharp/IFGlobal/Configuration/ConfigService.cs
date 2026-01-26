@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace IFGlobal.Configuration;
 
 public partial class ConfigService(
-    IOptions<SfdConfiguration> options,
+    IOptions<IFConfiguration> options,
     IHttpClientFactory httpClientFactory,
     ILogger<ConfigService> logger) : IConfigService
 {
@@ -14,7 +14,7 @@ public partial class ConfigService(
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly SfdConfiguration _config = options.Value;
+    private readonly IFConfiguration _config = options.Value;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly ILogger<ConfigService> _logger = logger;
     private BootstrapConfig? _bootstrapConfig;

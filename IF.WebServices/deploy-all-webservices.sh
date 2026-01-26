@@ -59,7 +59,7 @@ wait_for_config_service() {
     local max_attempts=30
     local attempt=1
     local wait_seconds=2
-    local url="http://localhost:${CONFIG_PORT}/Config?cfg=bootstrap&type=service&realm=SfdDevelopment_Dev&client=dev-login"
+    local url="http://localhost:${CONFIG_PORT}/health"
     
     echo -e "${YELLOW}Waiting for ConfigWebService to be ready on port ${CONFIG_PORT}...${NC}"
     

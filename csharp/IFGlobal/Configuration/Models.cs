@@ -43,12 +43,12 @@ public class FlexibleLogLevelConverter : JsonConverter<string>
     }
 }
 
-public class SfdConfiguration
+public class IFConfiguration
 {
     public const string SectionName = "SfD";
 
     public string ConfigService { get; set; } = "http://localhost:5000/config";
-    public string Realm { get; set; } = "SfdDevelopment_Dev";
+    public string Realm { get; set; } = "LongmanRd";
     public string Client { get; set; } = "dev-login";
 
     public AuthType AppType { get; set; } = AuthType.User;

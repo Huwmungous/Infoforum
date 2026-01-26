@@ -72,14 +72,14 @@ public static partial class ServiceFactory
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            [$"{SfdConfiguration.SectionName}:ConfigService"] = configServiceUrl,
-            [$"{SfdConfiguration.SectionName}:Client"] = client,
-            [$"{SfdConfiguration.SectionName}:Realm"] = realm,
-            [$"{SfdConfiguration.SectionName}:AppType"] = authTypeString
+            [$"{IFConfiguration.SectionName}:ConfigService"] = configServiceUrl,
+            [$"{IFConfiguration.SectionName}:Client"] = client,
+            [$"{IFConfiguration.SectionName}:Realm"] = realm,
+            [$"{IFConfiguration.SectionName}:AppType"] = authTypeString
         });
 
-        builder.Services.Configure<SfdConfiguration>(
-            builder.Configuration.GetSection(SfdConfiguration.SectionName));
+        builder.Services.Configure<IFConfiguration>(
+            builder.Configuration.GetSection(IFConfiguration.SectionName));
         builder.Services.AddHttpClient();
 
         var configService = await BootstrapConfigServiceAsync(builder);
@@ -374,14 +374,14 @@ public static partial class ServiceFactory
     private static async Task<ConfigService> BootstrapConfigServiceAsync(WebApplicationBuilder builder)
     {
         var tempServices = new ServiceCollection();
-        tempServices.Configure<SfdConfiguration>(
-            builder.Configuration.GetSection(SfdConfiguration.SectionName));
+        tempServices.Configure<IFConfiguration>(
+            builder.Configuration.GetSection(IFConfiguration.SectionName));
         tempServices.AddHttpClient();
         tempServices.AddLogging();
 
         using var tempProvider = tempServices.BuildServiceProvider();
 
-        var sfdOptions = tempProvider.GetRequiredService<IOptions<SfdConfiguration>>();
+        var sfdOptions = tempProvider.GetRequiredService<IOptions<IFConfiguration>>();
         var httpClientFactory = tempProvider.GetRequiredService<IHttpClientFactory>();
         var configServiceLogger = tempProvider.GetRequiredService<ILogger<ConfigService>>();
 

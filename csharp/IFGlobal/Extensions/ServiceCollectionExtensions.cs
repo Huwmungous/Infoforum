@@ -19,9 +19,9 @@ public static class ServiceCollectionExtensions
         string applicationName,
         string environmentName = "")
     {
-        // Register SfdConfiguration
-        services.Configure<SfdConfiguration>(
-            configuration.GetSection(SfdConfiguration.SectionName));
+        // Register IFConfiguration
+        services.Configure<IFConfiguration>(
+            configuration.GetSection(IFConfiguration.SectionName));
 
         // Register HttpClientFactory
         services.AddHttpClient();
