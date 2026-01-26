@@ -4,7 +4,9 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
 
-  base: mode === 'production' ? '/tokens/' : '/',
+  // No static base - the appDomain in /{appDomain}/tokens/ is dynamic
+  // The app extracts appDomain from the URL at runtime
+  base: '/',
 
   resolve: {
     dedupe: ['react', 'react-dom']
@@ -13,12 +15,12 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 5313,
     strictPort: true,
-    allowedHosts: ['localhost', 'ifdevelopment.com'],
+    allowedHosts: ['localhost', 'longmanrd.net'],
     proxy: {
       '/config': {
-        target: 'https://ifdevelopment.com',
+        target: 'http://localhost:5000',
         changeOrigin: true,
-        secure: true,
+        secure: false,
         rewrite: (path) => path
       }
     }

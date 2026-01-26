@@ -31,23 +31,21 @@ export interface StaticAuthConfigOverride {
 
 /**
  * Dynamic configuration from URL parameters.
- * When provided, realm/client come from URL instead of environment variables.
+ * When provided, appDomain comes from URL instead of environment variables.
  * This enables multi-tenant applications where the tenant is determined by URL.
  */
 export interface DynamicConfigOverride {
   /** URL to the config service (e.g., "https://example.com/config" or "/config") */
   configServiceUrl: string;
-  /** Realm extracted from URL */
-  realm: string;
-  /** Client extracted from URL */
-  client: string;
+  /** Application domain extracted from URL (e.g., 'Infoforum', 'BreakTackle') */
+  appDomain: string;
   /** Full redirect URI for signin callback (optional - will be built from base path if not provided) */
   redirectUri?: string;
   /** Full redirect URI for post-logout (optional - will be built from base path if not provided) */
   postLogoutRedirectUri?: string;
   /** Full redirect URI for silent token renewal (optional - will be built from base path if not provided) */
   silentRedirectUri?: string;
-  /** Base path for the application (e.g., "/tokens/realm/client") - used for routing */
+  /** Base path for the application (e.g., "/infoforum/tokens") - used for routing */
   basePath?: string;
 }
 
@@ -57,8 +55,8 @@ export interface AppInitializerProps {
   staticConfig?: StaticConfigOverride;
   /**
    * Dynamic configuration from URL parameters.
-   * When provided, realm/client come from URL instead of environment variables.
-   * This takes precedence over environment variables for realm/client/configServiceUrl.
+   * When provided, appDomain comes from URL instead of environment variables.
+   * This takes precedence over environment variables for appDomain/configServiceUrl.
    */
   dynamicConfig?: DynamicConfigOverride;
   /**
@@ -85,8 +83,7 @@ export interface AppInitializerProps {
  *   appType="user"
  *   dynamicConfig={{
  *     configServiceUrl: '/config',
- *     realm: 'MyRealm',
- *     client: 'my-client',
+ *     appDomain: 'Infoforum',
  *   }}
  * >
  *   <App />
@@ -114,15 +111,6 @@ export function AppInitializer({
   // This must happen before any routing decisions
   if (dynamicConfig?.basePath) {
     setDynamicBasePath(dynamicConfig.basePath);
-  } else if (dynamicConfig) {
-    // Infer base path from realm/client
-    // Check if we're in production with /tokens/ prefix
-    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
-    if (pathname.includes('/tokens/')) {
-      setDynamicBasePath(`/tokens/${dynamicConfig.realm}/${dynamicConfig.client}`);
-    } else {
-      setDynamicBasePath(`/${dynamicConfig.realm}/${dynamicConfig.client}`);
-    }
   }
 
   // Detect if we're on OAuth callback routes (supports both standard and hash routing)
@@ -152,7 +140,7 @@ export function AppInitializer({
         const useDynamicUrlConfig = !!dynamicConfig;
 
         // Validate environment variables using EnvironmentConfig
-        // Pass useDynamicUrlConfig to skip realm/client/configServiceUrl validation
+        // Pass useDynamicUrlConfig to skip appDomain/configServiceUrl validation
         const validationErrors = EnvironmentConfig.validate(!!staticConfig, useDynamicUrlConfig);
         if (validationErrors.length > 0) {
           EnvironmentConfig.logValidationErrors(validationErrors);
@@ -173,18 +161,17 @@ export function AppInitializer({
           console.log('AppInitializer: Using static config (bypassing ConfigWebService)');
           ConfigService.initializeWithStaticConfig({
             ...staticConfig,
-            realm: dynamicConfig?.realm ?? EnvironmentConfig.get('IF_REALM'),
+            appDomain: dynamicConfig?.appDomain ?? EnvironmentConfig.get('IF_APP_DOMAIN'),
             appName: EnvironmentConfig.get('IF_APP_NAME'),
             environment: EnvironmentConfig.get('IF_ENVIRONMENT'),
             appType
           });
         } else if (dynamicConfig) {
           // Use dynamic URL-based config
-          console.log(`AppInitializer: Using dynamic URL config - realm: ${dynamicConfig.realm}, client: ${dynamicConfig.client}`);
+          console.log(`AppInitializer: Using dynamic URL config - appDomain: ${dynamicConfig.appDomain}`);
           await ConfigService.initialize({
             configServiceUrl: dynamicConfig.configServiceUrl,
-            realm: dynamicConfig.realm,
-            client: dynamicConfig.client,
+            appDomain: dynamicConfig.appDomain,
             appType,
             appName: EnvironmentConfig.get('IF_APP_NAME'),
             environment: EnvironmentConfig.get('IF_ENVIRONMENT')
@@ -194,8 +181,7 @@ export function AppInitializer({
           console.log(`AppInitializer: Initializing ConfigService with appType: ${appType}`);
           await ConfigService.initialize({
             configServiceUrl: EnvironmentConfig.get('IF_CONFIG_SERVICE_URL'),
-            realm: EnvironmentConfig.get('IF_REALM'),
-            client: EnvironmentConfig.get('IF_CLIENT'),
+            appDomain: EnvironmentConfig.get('IF_APP_DOMAIN'),
             appType,
             appName: EnvironmentConfig.get('IF_APP_NAME'),
             environment: EnvironmentConfig.get('IF_ENVIRONMENT')

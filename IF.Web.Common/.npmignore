@@ -1,7 +1,0 @@
-﻿src/
-*.ts
-*.tsx
-!*.d.ts
-tsconfig*.json
-node_modules/
-*.log

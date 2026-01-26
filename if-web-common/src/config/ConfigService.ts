@@ -5,6 +5,7 @@ import { EnvironmentConfig } from './EnvironmentConfig';
 export type AppType = 'user' | 'service';
 
 export interface BootstrapConfig {
+  realm: string;
   clientId: string;
   openIdConfig: string;
   loggerService: string;
@@ -13,8 +14,8 @@ export interface BootstrapConfig {
 
 export interface ConfigServiceInitParams {
   configServiceUrl: string;
-  realm: string;
-  client: string;
+  /** Application domain (e.g., 'Infoforum', 'BreakTackle') - used to fetch config from ConfigWebService */
+  appDomain: string;
   appType: AppType;
   appName: string;
   environment: string;
@@ -30,6 +31,7 @@ export class ConfigService {
   private static _loggerService: string | null = null;
   private static _logLevel: string = '';
   private static _realm: string | null = null;
+  private static _appDomain: string | null = null;
   private static _appName: string | null = null;
   private static _environment: string | null = null;
   private static _initialized: boolean = false;
@@ -75,6 +77,10 @@ export class ConfigService {
     return this._realm;
   }
 
+  public static get AppDomain(): string | null {
+    return this._appDomain;
+  }
+
   public static get AppName(): string | null {
     return this._appName;
   }
@@ -110,7 +116,8 @@ export class ConfigService {
 
   private static async performInitialization(params: ConfigServiceInitParams): Promise<void> {
     try {
-      const url = `${params.configServiceUrl}/Config?cfg=bootstrap&type=${params.appType}&realm=${params.realm}&client=${params.client}`;
+      // Use appDomain to fetch bootstrap config - realm comes from the response
+      const url = `${params.configServiceUrl}/Config?cfg=bootstrap&type=${params.appType}&appDomain=${params.appDomain}`;
       this.logger.debug(`Fetching bootstrap configuration: ${url}`);
 
       console.log('ConfigService fetch URL:', url);
@@ -123,19 +130,23 @@ export class ConfigService {
 
       const bootstrapConfig: BootstrapConfig = await response.json();
 
-      if (!bootstrapConfig.clientId || !bootstrapConfig.openIdConfig) {
-        throw new Error('Invalid bootstrap configuration: missing clientId or openIdConfig');
+      if (!bootstrapConfig.clientId || !bootstrapConfig.openIdConfig || !bootstrapConfig.realm) {
+        throw new Error('Invalid bootstrap configuration: missing clientId, openIdConfig, or realm');
       }
 
       this._clientId = bootstrapConfig.clientId;
-      this._openIdConfig = `${bootstrapConfig.openIdConfig}/${params.realm}`;
+      // Construct authority URL: base openIdConfig + realm from response
+      this._openIdConfig = `${bootstrapConfig.openIdConfig}/${bootstrapConfig.realm}`;
       this._loggerService = bootstrapConfig.loggerService || null;
       this._logLevel = bootstrapConfig.logLevel || '';
-      this._realm = params.realm;
+      this._realm = bootstrapConfig.realm;
+      this._appDomain = params.appDomain;
       this._appName = params.appName;
       this._environment = params.environment;
 
       this.logger.info('Bootstrap configuration loaded successfully');
+      this.logger.debug(`AppDomain: ${this._appDomain}`);
+      this.logger.debug(`Realm: ${this._realm}`);
       this.logger.debug(`ClientId: ${this._clientId}`);
       this.logger.debug(`Authority: ${this._openIdConfig}`);
       if (this._loggerService) {
@@ -159,6 +170,7 @@ export class ConfigService {
     loggerService?: string | null;
     logLevel?: string;
     realm?: string;
+    appDomain?: string;
     appName?: string;
     environment?: string;
     appType?: AppType;
@@ -170,6 +182,7 @@ export class ConfigService {
     this._loggerService = config.loggerService || null;
     this._logLevel = config.logLevel || this._logLevel; // Keep existing value if not provided
     this._realm = config.realm || null;
+    this._appDomain = config.appDomain || null;
     this._appName = config.appName || null;
     this._environment = config.environment || null;
     this._appType = config.appType || 'user';
@@ -190,6 +203,7 @@ export class ConfigService {
     this._loggerService = null;
     this._logLevel = '';
     this._realm = null;
+    this._appDomain = null;
     this._appName = null;
     this._environment = null;
     this._initialized = false;

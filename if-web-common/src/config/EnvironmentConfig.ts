@@ -3,8 +3,8 @@
  * All config values must be provided via VITE_* environment variables.
  * 
  * Supports two modes:
- * 1. Standard mode: realm/client from environment variables
- * 2. Dynamic mode: realm/client passed at runtime (from URL)
+ * 1. Standard mode: appDomain from environment variables
+ * 2. Dynamic mode: appDomain passed at runtime (from URL)
  */
 export class EnvironmentConfig {
   private static readonly VALID_ENVIRONMENTS = ['DBG', 'DEV', 'SIT', 'UAT', 'PRD'];
@@ -44,15 +44,15 @@ export class EnvironmentConfig {
    * Validate required env vars.
    * 
    * @param useStaticConfig - true if using static config (bypasses ConfigWebService)
-   * @param useDynamicUrlConfig - true if realm/client come from URL (not env vars)
+   * @param useDynamicUrlConfig - true if appDomain comes from URL (not env vars)
    */
   public static validate(useStaticConfig: boolean, useDynamicUrlConfig: boolean = false): string[] {
     const errors: string[] = [];
 
-    // When using dynamic URL config, realm/client are NOT required from env vars
+    // When using dynamic URL config, appDomain is NOT required from env vars
     const requiredForAll = useDynamicUrlConfig 
       ? ['IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL']
-      : ['IF_REALM', 'IF_CLIENT', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
+      : ['IF_APP_DOMAIN', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
     
     const requiredForDynamic = ['IF_CONFIG_SERVICE_URL'];
     const requiredForStatic = ['AUTH_CLIENT_ID', 'AUTH_AUTHORITY', 'LOG_SERVICE_URL'];
@@ -103,7 +103,7 @@ export class EnvironmentConfig {
   public static logConfiguration(useStaticConfig: boolean, useDynamicUrlConfig: boolean = false): void {
     const commonKeys = useDynamicUrlConfig
       ? ['IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL']
-      : ['IF_REALM', 'IF_CLIENT', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
+      : ['IF_APP_DOMAIN', 'IF_APP_NAME', 'IF_ENVIRONMENT', 'LOG_LEVEL'];
     const dynamicKeys = ['IF_CONFIG_SERVICE_URL'];
     const staticKeys = ['AUTH_CLIENT_ID', 'AUTH_AUTHORITY', 'LOG_SERVICE_URL'];
 
