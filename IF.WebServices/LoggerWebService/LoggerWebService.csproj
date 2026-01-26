@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="dentistry.ico" />
     <Content Include="if-icon.ico" />
   </ItemGroup>
 
