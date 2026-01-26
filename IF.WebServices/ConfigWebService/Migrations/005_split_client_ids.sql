@@ -38,13 +38,30 @@ VALUES (
     }'::jsonb
 );
 
--- Step 5: Insert Infoforum service config (service-specific settings)
+-- Step 5: Insert Infoforum service config (service-specific settings including database configs)
+-- Note: Property names match IFGlobal.Models.PGConnectionConfig (UserName with capital N)
 INSERT INTO public.usr_svc_settings (app_domain, type, config)
 VALUES (
     'Infoforum',
     'service',
     '{
-        "logLevel": "Information"
+        "logLevel": "Information",
+        "loggerdb": {
+            "Host": "intelligence",
+            "Port": 5432,
+            "Database": "Sfd_Log",
+            "UserName": "hugh",
+            "Password": "CHANGEME",
+            "RequiresRelay": false
+        },
+        "firebirddb": {
+            "Host": "intelligence", 
+            "Port": 3050,
+            "Database": "/data/InfoForum.ib",
+            "UserName": "SYSDBA",
+            "Password": "CHANGEME",
+            "RequiresRelay": false
+        }
     }'::jsonb
 );
 
