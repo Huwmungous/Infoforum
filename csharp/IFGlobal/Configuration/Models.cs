@@ -7,12 +7,12 @@ public enum AuthType
 {
     User,
     Service,
-    Registered, // for future use
-    Patient
+    Registered
 }
 
 public class BootstrapConfig
 {
+    public string Realm { get; set; } = string.Empty;
     public string ClientId { get; set; } = string.Empty;
     public string OpenIdConfig { get; set; } = string.Empty;
     public string LoggerService { get; set; } = string.Empty;
@@ -44,11 +44,14 @@ public class FlexibleLogLevelConverter : JsonConverter<string>
 
 public class SfdConfiguration
 {
-    public const string SectionName = "SfD";
+    public const string SectionName = "IF";
 
-    public string ConfigService { get; set; } = "http://localhost:5000/config";
-    public string Realm { get; set; } = "SfdDevelopment_Dev";
-    public string Client { get; set; } = "dev-login";
+    public string ConfigService { get; set; } = "http://localhost:5000";
+    
+    /// <summary>
+    /// Application domain identifier (e.g., 'Infoforum', 'BreakTackle')
+    /// </summary>
+    public string AppDomain { get; set; } = "Infoforum";
     
     /// <summary>
     /// Client secret for service authentication. 

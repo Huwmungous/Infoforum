@@ -14,8 +14,7 @@ public class ConfigRepository(ConfigDbContext db)
         limit = Math.Min(limit, 100);
 
         var entries = await db.ConfigEntries.AsNoTracking()
-            .OrderBy(x => x.Realm)
-            .ThenBy(x => x.Client)
+            .OrderBy(x => x.AppDomain)
             .ToListAsync();
 
         if (!includeDisabled)
@@ -41,12 +40,12 @@ public class ConfigRepository(ConfigDbContext db)
     }
 
     /// <summary>
-    /// Get a configuration entry by realm and client (only enabled by default)
+    /// Get a configuration entry by app domain (only enabled by default)
     /// </summary>
-    public async Task<ConfigEntry?> GetByRealmClientAsync(string realm, string client, bool enabledOnly = true)
+    public async Task<ConfigEntry?> GetByAppDomainAsync(string appDomain, bool enabledOnly = true)
     {
         var entry = await db.ConfigEntries.AsNoTracking()
-            .Where(x => x.Realm == realm && x.Client == client)
+            .Where(x => x.AppDomain == appDomain)
             .SingleOrDefaultAsync();
 
         if (entry is null)
@@ -89,8 +88,7 @@ public class ConfigRepository(ConfigDbContext db)
         if (existing is null)
             return false;
 
-        existing.Realm = updated.Realm;
-        existing.Client = updated.Client;
+        existing.AppDomain = updated.AppDomain;
         existing.UserConfig = updated.UserConfig;
         existing.ServiceConfig = updated.ServiceConfig;
         existing.BootstrapConfig = updated.BootstrapConfig;
@@ -100,18 +98,17 @@ public class ConfigRepository(ConfigDbContext db)
     }
 
     /// <summary>
-    /// Update an existing configuration entry by realm and client
+    /// Update an existing configuration entry by app domain
     /// </summary>
-    public async Task<bool> UpdateAsync(string realm, string client, ConfigEntry updated)
+    public async Task<bool> UpdateByAppDomainAsync(string appDomain, ConfigEntry updated)
     {
         var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.Realm == realm && x.Client == client);
+            .SingleOrDefaultAsync(x => x.AppDomain == appDomain);
 
         if (existing is null)
             return false;
 
-        existing.Realm = updated.Realm;
-        existing.Client = updated.Client;
+        existing.AppDomain = updated.AppDomain;
         existing.UserConfig = updated.UserConfig;
         existing.ServiceConfig = updated.ServiceConfig;
         existing.BootstrapConfig = updated.BootstrapConfig;
@@ -121,12 +118,12 @@ public class ConfigRepository(ConfigDbContext db)
     }
 
     /// <summary>
-    /// Delete a configuration entry
+    /// Delete a configuration entry by app domain
     /// </summary>
-    public async Task<bool> DeleteAsync(string realm, string client)
+    public async Task<bool> DeleteByAppDomainAsync(string appDomain)
     {
         var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.Realm == realm && x.Client == client);
+            .SingleOrDefaultAsync(x => x.AppDomain == appDomain);
 
         if (existing is null)
             return false;

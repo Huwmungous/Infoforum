@@ -49,12 +49,12 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
     }
 
     /// <summary>
-    /// Get a configuration entry by realm and client
+    /// Get a configuration entry by app domain
     /// </summary>
-    [HttpGet("{realm}/{client}")]
-    public async Task<IActionResult> Get(string realm, string client)
+    [HttpGet("{appDomain}")]
+    public async Task<IActionResult> Get(string appDomain)
     {
-        var result = await service.GetAsync(realm, client, enabledOnly: false);
+        var result = await service.GetByAppDomainAsync(appDomain, enabledOnly: false);
         return result is null ? NotFound() : Ok(result);
     }
 
@@ -71,21 +71,17 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
         if (config is null)
             return BadRequest(new ErrorResponse { Error = "Request body is required" });
 
-        if (string.IsNullOrWhiteSpace(config.Realm))
-            return BadRequest(new ErrorResponse { Error = "Realm is required" });
-
-        if (string.IsNullOrWhiteSpace(config.Client))
-            return BadRequest(new ErrorResponse { Error = "Client is required" });
+        if (string.IsNullOrWhiteSpace(config.AppDomain))
+            return BadRequest(new ErrorResponse { Error = "AppDomain is required" });
 
         // Check for existing entry
-        var existing = await service.GetAsync(config.Realm, config.Client, enabledOnly: false);
+        var existing = await service.GetByAppDomainAsync(config.AppDomain, enabledOnly: false);
         if (existing is not null)
-            return Conflict(new ErrorResponse { Error = $"Entry already exists for realm '{config.Realm}' and client '{config.Client}'" });
+            return Conflict(new ErrorResponse { Error = $"Entry already exists for appDomain '{config.AppDomain}'" });
 
         var entry = new ConfigEntry
         {
-            Realm = config.Realm,
-            Client = config.Client,
+            AppDomain = config.AppDomain,
             UserConfig = ParseJsonDocument(config.UserConfig),
             ServiceConfig = ParseJsonDocument(config.ServiceConfig),
             BootstrapConfig = BuildBootstrapConfig(config.BootstrapConfig, !config.Enabled)
@@ -94,8 +90,8 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
         var created = await service.CreateAsync(entry);
 
         logger.LogInformation(
-            "Created config entry idx={Idx} for realm={Realm}, client={Client}",
-            created.Idx, created.Realm, created.Client);
+            "Created config entry idx={Idx} for appDomain={AppDomain}",
+            created.Idx, created.AppDomain);
 
         return CreatedAtAction(
             nameof(GetByIdx),
@@ -117,17 +113,13 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
         if (config is null)
             return BadRequest(new ErrorResponse { Error = "Request body is required" });
 
-        if (string.IsNullOrWhiteSpace(config.Realm))
-            return BadRequest(new ErrorResponse { Error = "Realm is required" });
-
-        if (string.IsNullOrWhiteSpace(config.Client))
-            return BadRequest(new ErrorResponse { Error = "Client is required" });
+        if (string.IsNullOrWhiteSpace(config.AppDomain))
+            return BadRequest(new ErrorResponse { Error = "AppDomain is required" });
 
         var entry = new ConfigEntry
         {
             Idx = idx,
-            Realm = config.Realm,
-            Client = config.Client,
+            AppDomain = config.AppDomain,
             UserConfig = ParseJsonDocument(config.UserConfig),
             ServiceConfig = ParseJsonDocument(config.ServiceConfig),
             BootstrapConfig = BuildBootstrapConfig(config.BootstrapConfig, !config.Enabled)
@@ -139,19 +131,18 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
             return NotFound(new ErrorResponse { Error = $"Entry with idx {idx} not found" });
 
         logger.LogInformation(
-            "Updated config entry idx={Idx} for realm={Realm}, client={Client}",
-            idx, config.Realm, config.Client);
+            "Updated config entry idx={Idx} for appDomain={AppDomain}",
+            idx, config.AppDomain);
 
         return NoContent();
     }
 
     /// <summary>
-    /// Update an existing configuration entry by realm and client
+    /// Update an existing configuration entry by app domain
     /// </summary>
-    [HttpPut("{realm}/{client}")]
+    [HttpPut("{appDomain}")]
     public async Task<IActionResult> Update(
-        string realm,
-        string client,
+        string appDomain,
         [FromBody] ConfigEntryDto config)
     {
         if (config is null)
@@ -159,21 +150,20 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
 
         var entry = new ConfigEntry
         {
-            Realm = config.Realm ?? realm,
-            Client = config.Client ?? client,
+            AppDomain = config.AppDomain ?? appDomain,
             UserConfig = ParseJsonDocument(config.UserConfig),
             ServiceConfig = ParseJsonDocument(config.ServiceConfig),
             BootstrapConfig = BuildBootstrapConfig(config.BootstrapConfig, !config.Enabled)
         };
 
-        var updated = await service.UpdateAsync(realm, client, entry);
+        var updated = await service.UpdateByAppDomainAsync(appDomain, entry);
 
         if (!updated)
-            return NotFound(new ErrorResponse { Error = $"Entry not found for realm '{realm}' and client '{client}'" });
+            return NotFound(new ErrorResponse { Error = $"Entry not found for appDomain '{appDomain}'" });
 
         logger.LogInformation(
-            "Updated config entry for realm={Realm}, client={Client}",
-            realm, client);
+            "Updated config entry for appDomain={AppDomain}",
+            appDomain);
 
         return NoContent();
     }
@@ -224,19 +214,19 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
     }
 
     /// <summary>
-    /// Delete a configuration entry by realm and client
+    /// Delete a configuration entry by app domain
     /// </summary>
-    [HttpDelete("{realm}/{client}")]
-    public async Task<IActionResult> Delete(string realm, string client)
+    [HttpDelete("{appDomain}")]
+    public async Task<IActionResult> Delete(string appDomain)
     {
-        var deleted = await service.DeleteAsync(realm, client);
+        var deleted = await service.DeleteByAppDomainAsync(appDomain);
 
         if (!deleted)
-            return NotFound(new ErrorResponse { Error = $"Entry not found for realm '{realm}' and client '{client}'" });
+            return NotFound(new ErrorResponse { Error = $"Entry not found for appDomain '{appDomain}'" });
 
         logger.LogInformation(
-            "Deleted config entry for realm={Realm}, client={Client}",
-            realm, client);
+            "Deleted config entry for appDomain={AppDomain}",
+            appDomain);
 
         return NoContent();
     }
@@ -304,8 +294,7 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
 /// </summary>
 public class ConfigEntryDto
 {
-    public string? Realm { get; set; }
-    public string? Client { get; set; }
+    public string? AppDomain { get; set; }
     public string? UserConfig { get; set; }
     public string? ServiceConfig { get; set; }
     public string? BootstrapConfig { get; set; }

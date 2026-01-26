@@ -11,8 +11,8 @@ public class ConfigService(ConfigRepository repo)
     public Task<int> GetCountAsync(bool includeDisabled = true)
         => repo.GetCountAsync(includeDisabled);
 
-    public Task<ConfigEntry?> GetAsync(string realm, string client, bool enabledOnly = true)
-        => repo.GetByRealmClientAsync(realm, client, enabledOnly);
+    public Task<ConfigEntry?> GetByAppDomainAsync(string appDomain, bool enabledOnly = true)
+        => repo.GetByAppDomainAsync(appDomain, enabledOnly);
 
     public Task<ConfigEntry?> GetByIdxAsync(int idx)
         => repo.GetByIdxAsync(idx);
@@ -23,8 +23,8 @@ public class ConfigService(ConfigRepository repo)
     public Task<bool> UpdateByIdxAsync(int idx, ConfigEntry entry)
         => repo.UpdateByIdxAsync(idx, entry);
 
-    public Task<bool> UpdateAsync(string realm, string client, ConfigEntry entry)
-        => repo.UpdateAsync(realm, client, entry);
+    public Task<bool> UpdateByAppDomainAsync(string appDomain, ConfigEntry entry)
+        => repo.UpdateByAppDomainAsync(appDomain, entry);
 
     /// <summary>
     /// Set enabled/disabled status by modifying JSONB
@@ -33,8 +33,8 @@ public class ConfigService(ConfigRepository repo)
     public Task<bool> SetEnabledAsync(int idx, bool enabled)
         => repo.SetDisabledAsync(idx, !enabled);
 
-    public Task<bool> DeleteAsync(string realm, string client)
-        => repo.DeleteAsync(realm, client);
+    public Task<bool> DeleteByAppDomainAsync(string appDomain)
+        => repo.DeleteByAppDomainAsync(appDomain);
 
     public Task<bool> DeleteByIdxAsync(int idx)
         => repo.DeleteByIdxAsync(idx);

@@ -59,8 +59,8 @@ wait_for_config_service() {
     local max_attempts=30
     local attempt=1
     local wait_seconds=2
-    # Use bootstrap endpoint since /Health has DI issues
-    local url="http://localhost:${CONFIG_PORT}/Config?cfg=bootstrap&type=service&realm=LongmanRd&client=dev-login"
+    # Use bootstrap endpoint with appDomain parameter
+    local url="http://localhost:${CONFIG_PORT}/Config?cfg=bootstrap&type=service&appDomain=Infoforum"
     
     echo -e "${YELLOW}Waiting for ConfigWebService to be ready on port ${CONFIG_PORT}...${NC}"
     

@@ -62,22 +62,20 @@ public static partial class ServiceFactory
         // ============================================================================
         // Configuration from appsettings.json (IF: section)
         var configServiceUrl = GetConfigValue(builder, "IF:ConfigService");
-        var realm = GetConfigValue(builder, "IF:Realm");
-        var client = GetConfigValue(builder, "IF:Client");
+        var appDomain = GetConfigValue(builder, "IF:AppDomain");
         
         // ClientSecret is optional - only needed for Service AppType
         var clientSecret = GetOptionalConfigValue(builder, "IF:ClientSecret", "IF_CLIENTSECRET");
 
         LogConfigServiceUrl(bootstrapLogger, serviceName, configServiceUrl);
-        LogRealmAndClient(bootstrapLogger, serviceName, realm, client);
+        LogAppDomain(bootstrapLogger, serviceName, appDomain);
 
         var authTypeString = options.AuthType.ToString();
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             [$"{SfdConfiguration.SectionName}:ConfigService"] = configServiceUrl,
-            [$"{SfdConfiguration.SectionName}:Client"] = client,
-            [$"{SfdConfiguration.SectionName}:Realm"] = realm,
+            [$"{SfdConfiguration.SectionName}:AppDomain"] = appDomain,
             [$"{SfdConfiguration.SectionName}:AppType"] = authTypeString,
             [$"{SfdConfiguration.SectionName}:ClientSecret"] = clientSecret
         });
@@ -607,8 +605,8 @@ public static partial class ServiceFactory
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: ConfigService URL: {ConfigServiceUrl}")]
     private static partial void LogConfigServiceUrl(ILogger logger, string serviceName, string configServiceUrl);
 
-    [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: Realm={Realm}, Client={Client}")]
-    private static partial void LogRealmAndClient(ILogger logger, string serviceName, string realm, string client);
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: AppDomain={AppDomain}")]
+    private static partial void LogAppDomain(ILogger logger, string serviceName, string appDomain);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ServiceName}: ConfigService initialised. ClientId={ClientId}, Realm={Realm}, AppType={AppType}")]
     private static partial void LogConfigServiceInitialised(ILogger logger, string serviceName, string clientId, string realm, string appType);

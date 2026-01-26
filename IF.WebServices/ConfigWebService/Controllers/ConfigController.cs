@@ -20,8 +20,7 @@ public class ConfigController(
     /// </summary>
     /// <param name="cfg">Configuration type (e.g., 'oidc', 'bootstrap', 'loggerdb')</param>
     /// <param name="type">Client type: 'user' or 'service'</param>
-    /// <param name="realm">Realm name</param>
-    /// <param name="client">Client base name</param>
+    /// <param name="appDomain">Application domain (e.g., 'Infoforum', 'BreakTackle')</param>
     /// <returns>Configuration object appropriate for the request</returns>
     /// <response code="200">Returns the requested configuration</response>
     /// <response code="400">If cfg or type parameter is missing or invalid</response>
@@ -37,8 +36,7 @@ public class ConfigController(
     public async Task<IActionResult> Get(
         [FromQuery] string cfg,
         [FromQuery] string type,
-        [FromQuery] string realm,
-        [FromQuery] string client)
+        [FromQuery] string appDomain)
     {
         // Validate required parameters
         if (string.IsNullOrWhiteSpace(cfg))
@@ -47,11 +45,8 @@ public class ConfigController(
         if (string.IsNullOrWhiteSpace(type))
             return BadRequest(new ErrorResponse { Error = "Parameter 'type' is required" });
 
-        if (string.IsNullOrWhiteSpace(realm))
-            return BadRequest(new ErrorResponse { Error = "Parameter 'realm' is required" });
-
-        if (string.IsNullOrWhiteSpace(client))
-            return BadRequest(new ErrorResponse { Error = "Parameter 'client' is required" });
+        if (string.IsNullOrWhiteSpace(appDomain))
+            return BadRequest(new ErrorResponse { Error = "Parameter 'appDomain' is required" });
 
         // Normalise to lowercase for case-insensitive comparison
         cfg = cfg.ToLowerInvariant();
@@ -63,7 +58,7 @@ public class ConfigController(
         // If cfg is 'bootstrap', allow unauthenticated access
         if (cfg == "bootstrap")
         {
-            return await GetBootstrapConfigFromDb(realm, client, type);
+            return await GetBootstrapConfigFromDb(appDomain);
         }
 
         // For all other cfg values, require authentication
@@ -73,56 +68,59 @@ public class ConfigController(
         }
 
         // Query the database for the configuration
-        return await GetConfigValueFromDb(realm, client, type, cfg);
+        return await GetConfigValueFromDb(appDomain, type, cfg);
     }
 
     /// <summary>
     /// Get Bootstrap configuration from database
-    /// Returns a transformed object with clientId based on the app type
+    /// Returns configuration including realm, clientId, openIdConfig etc.
     /// </summary>
-    private async Task<IActionResult> GetBootstrapConfigFromDb(string realm, string client, string type)
+    private async Task<IActionResult> GetBootstrapConfigFromDb(string appDomain)
     {
         try
         {
             // Only return enabled entries for config requests
-            var entry = await configService.GetAsync(realm, client, enabledOnly: true);
+            var entry = await configService.GetByAppDomainAsync(appDomain, enabledOnly: true);
 
             if (entry is null)
             {
                 logger.LogWarning(
-                    "Configuration entry not found or disabled for realm={Realm}, client={Client}",
-                    realm, client);
+                    "Configuration entry not found or disabled for appDomain={AppDomain}",
+                    appDomain);
                 return NotFound(new ErrorResponse
                 {
-                    Error = $"Configuration not found for realm '{realm}' and client '{client}'"
+                    Error = $"Configuration not found for appDomain '{appDomain}'"
                 });
             }
 
             if (entry.BootstrapConfig is null)
             {
                 logger.LogWarning(
-                    "Bootstrap config is null for realm={Realm}, client={Client}",
-                    realm, client);
+                    "Bootstrap config is null for appDomain={AppDomain}",
+                    appDomain);
                 return NotFound(new ErrorResponse
                 {
-                    Error = $"Bootstrap configuration not set for realm '{realm}' and client '{client}'"
+                    Error = $"Bootstrap configuration not set for appDomain '{appDomain}'"
                 });
             }
 
             logger.LogInformation(
-                "Returning bootstrap config for realm={Realm}, client={Client}, type={Type}",
-                realm, client, type);
+                "Returning bootstrap config for appDomain={AppDomain}",
+                appDomain);
 
             // Transform the bootstrap config to return the appropriate values
             var bootstrapJson = entry.BootstrapConfig.RootElement;
             
-            // Get clientId from JSONB
+            // Get values from JSONB
+            string? realm = bootstrapJson.TryGetProperty("realm", out var realmElement)
+                ? realmElement.GetString() : null;
             string? clientId = bootstrapJson.TryGetProperty("clientId", out var clientIdElement)
                 ? clientIdElement.GetString() : null;
             
             // Build the response object
             var response = new Dictionary<string, object?>
             {
+                ["realm"] = realm,
                 ["clientId"] = clientId,
                 ["openIdConfig"] = bootstrapJson.TryGetProperty("openIdConfig", out var openIdConfig) 
                     ? openIdConfig.GetString() : null,
@@ -141,8 +139,8 @@ public class ConfigController(
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error retrieving bootstrap configuration for realm={Realm}, client={Client}",
-                realm, client);
+                "Error retrieving bootstrap configuration for appDomain={AppDomain}",
+                appDomain);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }
@@ -151,24 +149,23 @@ public class ConfigController(
     /// Get a specific configuration value from user_config or service_config
     /// </summary>
     private async Task<IActionResult> GetConfigValueFromDb(
-        string realm,
-        string client,
+        string appDomain,
         string type,
         string configKey)
     {
         try
         {
             // Only return enabled entries for config requests
-            var entry = await configService.GetAsync(realm, client, enabledOnly: true);
+            var entry = await configService.GetByAppDomainAsync(appDomain, enabledOnly: true);
 
             if (entry is null)
             {
                 logger.LogWarning(
-                    "Configuration entry not found or disabled for realm={Realm}, client={Client}",
-                    realm, client);
+                    "Configuration entry not found or disabled for appDomain={AppDomain}",
+                    appDomain);
                 return NotFound(new ErrorResponse
                 {
-                    Error = $"Configuration not found for realm '{realm}' and client '{client}'"
+                    Error = $"Configuration not found for appDomain '{appDomain}'"
                 });
             }
 
@@ -177,8 +174,8 @@ public class ConfigController(
             if (value is null)
             {
                 logger.LogWarning(
-                    "Configuration key '{ConfigKey}' not found in {Type}_config for realm={Realm}, client={Client}",
-                    configKey, type, realm, client);
+                    "Configuration key '{ConfigKey}' not found in {Type}_config for appDomain={AppDomain}",
+                    configKey, type, appDomain);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Configuration key '{configKey}' not found in {type}_config"
@@ -186,16 +183,16 @@ public class ConfigController(
             }
 
             logger.LogInformation(
-                "Returning {Type} config value for key={ConfigKey}, realm={Realm}, client={Client}",
-                type, configKey, realm, client);
+                "Returning {Type} config value for key={ConfigKey}, appDomain={AppDomain}",
+                type, configKey, appDomain);
 
             return Ok(value.Value);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error retrieving configuration for key={ConfigKey}, type={Type}, realm={Realm}, client={Client}",
-                configKey, type, realm, client);
+                "Error retrieving configuration for key={ConfigKey}, type={Type}, appDomain={AppDomain}",
+                configKey, type, appDomain);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }

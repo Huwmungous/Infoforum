@@ -34,12 +34,6 @@ public partial class ConfigService(
             if (_bootstrapConfig == null)
                 throw new InvalidOperationException("ConfigService not initialized. Call InitializeAsync first.");
 
-            // For Patient apps, derive the client ID from the base client name
-            if (_config.AppType == AuthType.Patient)
-            {
-                return $"{_config.Client}-pps";
-            }
-
             return _bootstrapConfig.ClientId;
         }
     }
@@ -65,7 +59,16 @@ public partial class ConfigService(
 
     public LogLevel LogLevel => ParseLogLevel(_bootstrapConfig?.LogLevel ?? "Information");
 
-    public string Realm => _config.Realm;
+    /// <summary>
+    /// Realm from bootstrap config (e.g., 'LongmanRd')
+    /// </summary>
+    public string Realm => _bootstrapConfig?.Realm
+        ?? throw new InvalidOperationException("ConfigService not initialized. Call InitializeAsync first.");
+
+    /// <summary>
+    /// AppDomain from configuration (e.g., 'Infoforum', 'BreakTackle')
+    /// </summary>
+    public string AppDomain => _config.AppDomain;
 
     public bool IsInitialized => _initialized;
 
@@ -90,7 +93,7 @@ public partial class ConfigService(
 
             // Bootstrap always uses "service" type - the service needs service credentials
             // to fetch configuration. AppType only affects the ClientId for JWT validation.
-            var url = $"{_config.ConfigService}/Config?cfg=bootstrap&type=service&realm={_config.Realm}&client={_config.Client}";
+            var url = $"{_config.ConfigService}/Config?cfg=bootstrap&type=service&appDomain={_config.AppDomain}";
 
             LogFetchingBootstrapConfigFromService(_logger, url);
 
@@ -107,14 +110,15 @@ public partial class ConfigService(
             _bootstrapConfig = JsonSerializer.Deserialize<BootstrapConfig>(content, JsonOptions);
 
             if (_bootstrapConfig == null ||
+                string.IsNullOrEmpty(_bootstrapConfig.Realm) ||
                 string.IsNullOrEmpty(_bootstrapConfig.ClientId) ||
                 string.IsNullOrEmpty(_bootstrapConfig.OpenIdConfig))
             {
-                throw new InvalidOperationException("Invalid bootstrap configuration: missing clientId or openIdConfig");
+                throw new InvalidOperationException("Invalid bootstrap configuration: missing realm, clientId or openIdConfig");
             }
 
             // Append realm to OpenIdConfig
-            _bootstrapConfig.OpenIdConfig = $"{_bootstrapConfig.OpenIdConfig}/{_config.Realm}";
+            _bootstrapConfig.OpenIdConfig = $"{_bootstrapConfig.OpenIdConfig}/{_bootstrapConfig.Realm}";
 
             _bootstrapFetchedAt = DateTime.UtcNow;
 
@@ -197,7 +201,7 @@ public partial class ConfigService(
         try
         {
             // Config fetches always use "service" type - we're authenticated as a service
-            var url = $"{_config.ConfigService}/Config?cfg={configName}&type=service&realm={_config.Realm}&client={_config.Client}";
+            var url = $"{_config.ConfigService}/Config?cfg={configName}&type=service&appDomain={_config.AppDomain}";
 
             LogFetchingConfigFromService(_logger, configName, url);
 

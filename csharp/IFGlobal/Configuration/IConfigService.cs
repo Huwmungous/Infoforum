@@ -26,7 +26,17 @@ public interface IConfigService
     string OpenIdConfig { get; }
     string? LoggerService { get; }
     LogLevel LogLevel { get; }
+    
+    /// <summary>
+    /// The Keycloak realm name (e.g., "LongmanRd"). Retrieved from bootstrap config.
+    /// </summary>
     string Realm { get; }
+    
+    /// <summary>
+    /// The application domain (e.g., "Infoforum", "BreakTackle"). From appsettings.
+    /// </summary>
+    string AppDomain { get; }
+    
     bool IsInitialized { get; }
     Task InitializeAsync(CancellationToken cancellationToken = default);
     Task<T?> GetConfigAsync<T>(string configName, string accessToken, CancellationToken cancellationToken = default) where T : class;
