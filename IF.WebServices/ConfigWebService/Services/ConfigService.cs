@@ -26,8 +26,12 @@ public class ConfigService(ConfigRepository repo)
     public Task<bool> UpdateAsync(string realm, string client, ConfigEntry entry)
         => repo.UpdateAsync(realm, client, entry);
 
+    /// <summary>
+    /// Set enabled/disabled status by modifying JSONB
+    /// Note: enabled=true means disabled=false, enabled=false means disabled=true
+    /// </summary>
     public Task<bool> SetEnabledAsync(int idx, bool enabled)
-        => repo.SetEnabledAsync(idx, enabled);
+        => repo.SetDisabledAsync(idx, !enabled);
 
     public Task<bool> DeleteAsync(string realm, string client)
         => repo.DeleteAsync(realm, client);

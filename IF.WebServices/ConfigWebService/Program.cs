@@ -210,6 +210,8 @@ app.UseAuthorization();
 app.UseRouting();
 app.MapControllers();
 
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
+
 logger.LogInformation("ConfigWebService starting on port {Port}", port);
 logger.LogInformation("Keycloak Authority Base: {Authority}", keycloakUrl);
 logger.LogInformation("Multi-realm authentication enabled - accepting tokens from any realm under {Authority}", keycloakUrl);

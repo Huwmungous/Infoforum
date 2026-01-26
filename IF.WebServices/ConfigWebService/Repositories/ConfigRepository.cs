@@ -13,17 +13,18 @@ public class ConfigRepository(ConfigDbContext db)
     {
         limit = Math.Min(limit, 100);
 
-        var query = db.ConfigEntries.AsNoTracking();
-
-        if (!includeDisabled)
-            query = query.Where(x => x.Enabled);
-
-        return await query
+        var entries = await db.ConfigEntries.AsNoTracking()
             .OrderBy(x => x.Realm)
             .ThenBy(x => x.Client)
+            .ToListAsync();
+
+        if (!includeDisabled)
+            entries = entries.Where(x => !x.IsDisabled).ToList();
+
+        return entries
             .Skip(offset)
             .Take(limit)
-            .ToListAsync();
+            .ToList();
     }
 
     /// <summary>
@@ -31,12 +32,12 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<int> GetCountAsync(bool includeDisabled = true)
     {
-        var query = db.ConfigEntries.AsQueryable();
+        var entries = await db.ConfigEntries.AsNoTracking().ToListAsync();
 
         if (!includeDisabled)
-            query = query.Where(x => x.Enabled);
+            return entries.Count(x => !x.IsDisabled);
 
-        return await query.CountAsync();
+        return entries.Count;
     }
 
     /// <summary>
@@ -44,13 +45,17 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<ConfigEntry?> GetByRealmClientAsync(string realm, string client, bool enabledOnly = true)
     {
-        var query = db.ConfigEntries.AsNoTracking()
-            .Where(x => x.Realm == realm && x.Client == client);
+        var entry = await db.ConfigEntries.AsNoTracking()
+            .Where(x => x.Realm == realm && x.Client == client)
+            .SingleOrDefaultAsync();
 
-        if (enabledOnly)
-            query = query.Where(x => x.Enabled);
+        if (entry is null)
+            return null;
 
-        return await query.SingleOrDefaultAsync();
+        if (enabledOnly && entry.IsDisabled)
+            return null;
+
+        return entry;
     }
 
     /// <summary>
@@ -89,7 +94,6 @@ public class ConfigRepository(ConfigDbContext db)
         existing.UserConfig = updated.UserConfig;
         existing.ServiceConfig = updated.ServiceConfig;
         existing.BootstrapConfig = updated.BootstrapConfig;
-        existing.Enabled = updated.Enabled;
 
         await db.SaveChangesAsync();
         return true;
@@ -111,24 +115,7 @@ public class ConfigRepository(ConfigDbContext db)
         existing.UserConfig = updated.UserConfig;
         existing.ServiceConfig = updated.ServiceConfig;
         existing.BootstrapConfig = updated.BootstrapConfig;
-        existing.Enabled = updated.Enabled;
 
-        await db.SaveChangesAsync();
-        return true;
-    }
-
-    /// <summary>
-    /// Toggle the enabled status of an entry
-    /// </summary>
-    public async Task<bool> SetEnabledAsync(int idx, bool enabled)
-    {
-        var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.Idx == idx);
-
-        if (existing is null)
-            return false;
-
-        existing.Enabled = enabled;
         await db.SaveChangesAsync();
         return true;
     }
@@ -161,6 +148,42 @@ public class ConfigRepository(ConfigDbContext db)
             return false;
 
         db.ConfigEntries.Remove(existing);
+        await db.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>
+    /// Set the disabled status of an entry by modifying the bootstrap_config JSONB
+    /// </summary>
+    public async Task<bool> SetDisabledAsync(int idx, bool disabled)
+    {
+        var existing = await db.ConfigEntries
+            .SingleOrDefaultAsync(x => x.Idx == idx);
+
+        if (existing is null)
+            return false;
+
+        // Parse existing bootstrap config or create new
+        var bootstrapDict = new Dictionary<string, object>();
+        
+        if (existing.BootstrapConfig is not null)
+        {
+            foreach (var prop in existing.BootstrapConfig.RootElement.EnumerateObject())
+            {
+                bootstrapDict[prop.Name] = prop.Value.Clone();
+            }
+        }
+
+        // Set or remove disabled property
+        if (disabled)
+            bootstrapDict["disabled"] = true;
+        else
+            bootstrapDict.Remove("disabled");
+
+        // Serialize back to JsonDocument
+        var json = System.Text.Json.JsonSerializer.Serialize(bootstrapDict);
+        existing.BootstrapConfig = System.Text.Json.JsonDocument.Parse(json);
+
         await db.SaveChangesAsync();
         return true;
     }

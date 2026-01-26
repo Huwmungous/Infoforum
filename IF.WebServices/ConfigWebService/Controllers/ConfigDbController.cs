@@ -88,8 +88,7 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
             Client = config.Client,
             UserConfig = ParseJsonDocument(config.UserConfig),
             ServiceConfig = ParseJsonDocument(config.ServiceConfig),
-            BootstrapConfig = ParseJsonDocument(config.BootstrapConfig),
-            Enabled = config.Enabled
+            BootstrapConfig = BuildBootstrapConfig(config.BootstrapConfig, !config.Enabled)
         };
 
         var created = await service.CreateAsync(entry);
@@ -131,8 +130,7 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
             Client = config.Client,
             UserConfig = ParseJsonDocument(config.UserConfig),
             ServiceConfig = ParseJsonDocument(config.ServiceConfig),
-            BootstrapConfig = ParseJsonDocument(config.BootstrapConfig),
-            Enabled = config.Enabled
+            BootstrapConfig = BuildBootstrapConfig(config.BootstrapConfig, !config.Enabled)
         };
 
         var updated = await service.UpdateByIdxAsync(idx, entry);
@@ -165,8 +163,7 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
             Client = config.Client ?? client,
             UserConfig = ParseJsonDocument(config.UserConfig),
             ServiceConfig = ParseJsonDocument(config.ServiceConfig),
-            BootstrapConfig = ParseJsonDocument(config.BootstrapConfig),
-            Enabled = config.Enabled
+            BootstrapConfig = BuildBootstrapConfig(config.BootstrapConfig, !config.Enabled)
         };
 
         var updated = await service.UpdateAsync(realm, client, entry);
@@ -262,6 +259,44 @@ public class ConfigDbController(ConfigService service, ILogger<ConfigDbControlle
             return null;
         }
     }
+
+    /// <summary>
+    /// Build bootstrap config JSONB, optionally adding "disabled" property
+    /// </summary>
+    private static JsonDocument? BuildBootstrapConfig(string? existingJson, bool disabled)
+    {
+        var dict = new Dictionary<string, object>();
+
+        // Parse existing JSON if provided
+        if (!string.IsNullOrWhiteSpace(existingJson))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(existingJson);
+                foreach (var prop in doc.RootElement.EnumerateObject())
+                {
+                    if (prop.Name != "disabled") // Don't copy disabled, we'll set it based on parameter
+                        dict[prop.Name] = prop.Value.Clone();
+                }
+            }
+            catch (JsonException)
+            {
+                // Invalid JSON, start fresh
+            }
+        }
+
+        // Set disabled if requested
+        if (disabled)
+            dict["disabled"] = true;
+        else
+            dict.Remove("disabled"); // Ensure it's not present if enabled
+
+        if (dict.Count == 0)
+            return null;
+
+        var json = JsonSerializer.Serialize(dict);
+        return JsonDocument.Parse(json);
+    }
 }
 
 /// <summary>
@@ -274,6 +309,9 @@ public class ConfigEntryDto
     public string? UserConfig { get; set; }
     public string? ServiceConfig { get; set; }
     public string? BootstrapConfig { get; set; }
+    /// <summary>
+    /// If false, adds "disabled": true to bootstrap_config JSONB
+    /// </summary>
     public bool Enabled { get; set; } = true;
 }
 

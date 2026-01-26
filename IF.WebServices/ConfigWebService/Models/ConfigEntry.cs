@@ -30,8 +30,31 @@ public class ConfigEntry
     [Column("bootstrap_config", TypeName = "jsonb")]
     public JsonDocument? BootstrapConfig { get; set; }
 
-    [Column("enabled")]
-    public bool Enabled { get; set; } = true;
+    /// <summary>
+    /// Check if this entry is disabled (looks for "disabled": true in bootstrap_config JSONB)
+    /// Defaults to false (enabled) if not specified
+    /// </summary>
+    [NotMapped]
+    public bool IsDisabled
+    {
+        get
+        {
+            if (BootstrapConfig is null)
+                return false;
+            
+            if (BootstrapConfig.RootElement.TryGetProperty("disabled", out var disabledProp) &&
+                disabledProp.ValueKind == JsonValueKind.True)
+                return true;
+            
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Check if this entry is enabled (inverse of IsDisabled)
+    /// </summary>
+    [NotMapped]
+    public bool IsEnabled => !IsDisabled;
 
     /// <summary>
     /// Extracts a value from the specified config column by JSON path
