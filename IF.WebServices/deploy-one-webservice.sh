@@ -120,6 +120,7 @@ SyslogIdentifier=$SERVICE_NAME
 # Environment
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+EnvironmentFile=-/etc/sysconfig/if-secrets
 
 # Resource limits
 LimitNOFILE=65536
