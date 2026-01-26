@@ -49,3 +49,4 @@ node_modules
 /IF.WebServices/LoggerWebService/obj
 /IF.WebServices/SampleWebService/obj
 .vs
+/IF.Web.Common/dist
