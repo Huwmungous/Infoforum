@@ -38,7 +38,7 @@
     }
   },
   "dependencies": {
-    "display-token-app": "file:../display-token-app",
+    "@if/web-common": "file:",
     "oidc-client-ts": "^3.0.0"
   },
   "devDependencies": {
@@ -55,6 +55,7 @@
     "build:cjs": "tsc -p tsconfig.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "clean": "rimraf dist",
+    "rebuild": "npm install && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

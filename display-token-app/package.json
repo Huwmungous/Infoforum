@@ -5,16 +5,12 @@
   "type": "module",
   "scripts": {
     "dbg": "vite --mode dbg",
-    "predbg": "npm run rebuild-lib && npm run build -- --mode dbg",
-
     "dev": "vite --mode dev",
-    "predev": "npm run rebuild-lib && npm run build -- --mode dev",
-
     "build": "vite build",
+    "rebuild": "npm --prefix ../if-web-common-react run rebuild && npm install && rimraf node_modules/.vite && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dev:fresh": "rimraf node_modules/.vite && vite",
-    "rebuild-lib": "npm --prefix ../if-web-common run build && npm --prefix ../if-web-common-react run build && rimraf node_modules/.vite"
+    "dev:fresh": "rimraf node_modules/.vite && vite"
   },
   
   "dependencies": {

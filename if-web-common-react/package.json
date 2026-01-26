@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@if/web-common": "file:../if-web-common",
-    "display-token-app": "file:../display-token-app"
+    "@if/web-common-react": "file:"
   },
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
@@ -41,6 +41,7 @@
     "build:cjs": "tsc -p tsconfig.json",
     "build:esm": "tsc -p tsconfig.esm.json",
     "clean": "rimraf dist",
+    "rebuild": "npm --prefix ../if-web-common run rebuild && npm install && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

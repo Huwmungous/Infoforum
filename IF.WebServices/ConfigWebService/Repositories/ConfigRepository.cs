@@ -102,6 +102,7 @@ public class ConfigRepository : BaseRepository
 
     /// <summary>
     /// Get a configuration entry by app domain (only enabled by default)
+    /// Case-insensitive lookup.
     /// </summary>
     public async Task<ConfigEntry?> GetByAppDomainAsync(string appDomain, bool enabledOnly = true)
     {
@@ -111,7 +112,7 @@ public class ConfigRepository : BaseRepository
             sql = $@"
                 SELECT idx, app_domain, user_config, service_config, bootstrap_config
                 FROM {TableName}
-                WHERE app_domain = @appDomain
+                WHERE LOWER(app_domain) = LOWER(@appDomain)
                   AND COALESCE((bootstrap_config->>'disabled')::boolean, false) = false";
         }
         else
@@ -119,7 +120,7 @@ public class ConfigRepository : BaseRepository
             sql = $@"
                 SELECT idx, app_domain, user_config, service_config, bootstrap_config
                 FROM {TableName}
-                WHERE app_domain = @appDomain";
+                WHERE LOWER(app_domain) = LOWER(@appDomain)";
         }
 
         return await ExecuteQueryFirstOrDefaultAsync(
@@ -202,7 +203,7 @@ public class ConfigRepository : BaseRepository
     }
 
     /// <summary>
-    /// Update an existing configuration entry by app domain
+    /// Update an existing configuration entry by app domain (case-insensitive lookup)
     /// </summary>
     public async Task<bool> UpdateByAppDomainAsync(string appDomain, ConfigEntry updated)
     {
@@ -212,7 +213,7 @@ public class ConfigRepository : BaseRepository
                 user_config = @userConfig,
                 service_config = @serviceConfig,
                 bootstrap_config = @bootstrapConfig
-            WHERE app_domain = @appDomain";
+            WHERE LOWER(app_domain) = LOWER(@appDomain)";
 
         var rowsAffected = await ExecuteNonQueryAsync(
             sql,
@@ -232,11 +233,11 @@ public class ConfigRepository : BaseRepository
     }
 
     /// <summary>
-    /// Delete a configuration entry by app domain
+    /// Delete a configuration entry by app domain (case-insensitive lookup)
     /// </summary>
     public async Task<bool> DeleteByAppDomainAsync(string appDomain)
     {
-        const string sql = $"DELETE FROM {TableName} WHERE app_domain = @appDomain";
+        const string sql = $"DELETE FROM {TableName} WHERE LOWER(app_domain) = LOWER(@appDomain)";
 
         var rowsAffected = await ExecuteNonQueryAsync(
             sql,

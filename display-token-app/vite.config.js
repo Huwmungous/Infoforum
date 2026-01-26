@@ -18,11 +18,10 @@ export default defineConfig(({ mode }) => ({
     allowedHosts: ['localhost', 'longmanrd.net'],
     proxy: {
       '/config': {
-        target: 'http://localhost:5000',
+        target: 'https://longmanrd.net',  // Just the server, no path
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path
-      }
+        secure: true,
+      } 
     }
   },
 

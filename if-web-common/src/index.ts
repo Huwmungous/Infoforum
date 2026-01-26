@@ -25,4 +25,4 @@ export type { LogLevel, IfLoggerConfiguration, IfLogEntry } from './logger';
 export { api, setupFetchInterceptor } from './http';
 
 // Routing utilities
-export { normalizeBase, getAppBasePath, getCurrentRoutePath, buildAppUrl } from './routing';
+export { normalizeBase, getAppBasePath, getCurrentRoutePath, buildAppUrl, setDynamicBasePath } from './routing';
