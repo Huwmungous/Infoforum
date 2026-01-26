@@ -1,35 +1,26 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
 namespace ConfigWebService.Entities;
 
-[Table("usr_svc_settings", Schema = "public")]
+/// <summary>
+/// Represents a configuration entry from the usr_svc_settings table.
+/// </summary>
 public class ConfigEntry
 {
-    [Key]
-    [Column("idx")]
     public int Idx { get; set; }
 
-    [Required]
-    [Column("app_domain")]
-    [MaxLength(240)]
     public string AppDomain { get; set; } = null!;
 
-    [Column("user_config", TypeName = "jsonb")]
     public JsonDocument? UserConfig { get; set; }
 
-    [Column("service_config", TypeName = "jsonb")]
     public JsonDocument? ServiceConfig { get; set; }
 
-    [Column("bootstrap_config", TypeName = "jsonb")]
     public JsonDocument? BootstrapConfig { get; set; }
 
     /// <summary>
     /// Check if this entry is disabled (looks for "disabled": true in bootstrap_config JSONB)
     /// Defaults to false (enabled) if not specified
     /// </summary>
-    [NotMapped]
     public bool IsDisabled
     {
         get
@@ -48,7 +39,6 @@ public class ConfigEntry
     /// <summary>
     /// Check if this entry is enabled (inverse of IsDisabled)
     /// </summary>
-    [NotMapped]
     public bool IsEnabled => !IsDisabled;
 
     /// <summary>

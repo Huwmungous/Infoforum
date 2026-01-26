@@ -1,9 +1,7 @@
 using ConfigWebService.Authentication;
-using ConfigWebService.Data;
 using ConfigWebService.Repositories;
 using ConfigWebService.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using IFGlobal;
 using IFGlobal.Logging;
 using IFGlobal.Models;
@@ -97,10 +95,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddDbContext<ConfigDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ConfigDatabase")));
+// Parse ConfigDatabase connection string to PGConnectionConfig
+var configConnectionString = builder.Configuration.GetConnectionString("ConfigDatabase")
+    ?? throw new InvalidOperationException("ConnectionStrings:ConfigDatabase not configured");
+var configConnParts = configConnectionString.Split(';')
+    .Select(p => p.Split('=', 2))
+    .Where(p => p.Length == 2)
+    .ToDictionary(p => p[0].Trim(), p => p[1].Trim(), StringComparer.OrdinalIgnoreCase);
 
-builder.Services.AddScoped<ConfigRepository>();
+var configDbConfig = new PGConnectionConfig
+{
+    Host = configConnParts.GetValueOrDefault("Host") ?? throw new InvalidOperationException("ConfigDatabase connection string missing Host"),
+    Port = int.TryParse(configConnParts.GetValueOrDefault("Port"), out var configPort) ? configPort : 5432,
+    Database = configConnParts.GetValueOrDefault("Database") ?? throw new InvalidOperationException("ConfigDatabase connection string missing Database"),
+    UserName = configConnParts.GetValueOrDefault("Username") ?? throw new InvalidOperationException("ConfigDatabase connection string missing Username"),
+    Password = configConnParts.GetValueOrDefault("Password") ?? throw new InvalidOperationException("ConfigDatabase connection string missing Password")
+};
+
+// Register ConfigRepository with its own connection config
+builder.Services.AddSingleton<ConfigRepository>(sp =>
+    new ConfigRepository(configDbConfig, sp.GetRequiredService<ILogger<ConfigRepository>>()));
 builder.Services.AddScoped<ConfigService>();
 
 builder.Services.AddControllers()

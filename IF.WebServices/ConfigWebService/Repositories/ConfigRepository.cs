@@ -1,11 +1,47 @@
-using Microsoft.EntityFrameworkCore;
-using ConfigWebService.Data;
+using System.Data.Common;
+using System.Text.Json;
 using ConfigWebService.Entities;
+using IFGlobal.DataAccess;
+using IFGlobal.Models;
+using Microsoft.Extensions.Logging;
+using NpgsqlTypes;
 
 namespace ConfigWebService.Repositories;
 
-public class ConfigRepository(ConfigDbContext db)
+/// <summary>
+/// Repository for accessing configuration entries using simple SQL queries.
+/// Extends BaseRepository from IFGlobal for consistent data access patterns.
+/// </summary>
+public class ConfigRepository : BaseRepository
 {
+    private const string TableName = "public.usr_svc_settings";
+
+    public ConfigRepository(PGConnectionConfig pgConnection, ILogger<ConfigRepository> logger)
+        : base(pgConnection, logger)
+    {
+    }
+
+    /// <summary>
+    /// Maps a database row to a ConfigEntry object.
+    /// </summary>
+    private static ConfigEntry? MapConfigEntry(DbDataReader reader)
+    {
+        return new ConfigEntry
+        {
+            Idx = reader.GetInt32(reader.GetOrdinal("idx")),
+            AppDomain = reader.GetString(reader.GetOrdinal("app_domain")),
+            UserConfig = reader.IsDBNull(reader.GetOrdinal("user_config"))
+                ? null
+                : JsonDocument.Parse(reader.GetString(reader.GetOrdinal("user_config"))),
+            ServiceConfig = reader.IsDBNull(reader.GetOrdinal("service_config"))
+                ? null
+                : JsonDocument.Parse(reader.GetString(reader.GetOrdinal("service_config"))),
+            BootstrapConfig = reader.IsDBNull(reader.GetOrdinal("bootstrap_config"))
+                ? null
+                : JsonDocument.Parse(reader.GetString(reader.GetOrdinal("bootstrap_config")))
+        };
+    }
+
     /// <summary>
     /// Get a batch of configuration entries with pagination (includes disabled for admin)
     /// </summary>
@@ -13,17 +49,35 @@ public class ConfigRepository(ConfigDbContext db)
     {
         limit = Math.Min(limit, 100);
 
-        var entries = await db.ConfigEntries.AsNoTracking()
-            .OrderBy(x => x.AppDomain)
-            .ToListAsync();
+        // For includeDisabled filtering, we check the JSONB field in SQL
+        // disabled entries have bootstrap_config->>'disabled' = 'true'
+        string sql;
+        if (includeDisabled)
+        {
+            sql = $@"
+                SELECT idx, app_domain, user_config, service_config, bootstrap_config
+                FROM {TableName}
+                ORDER BY app_domain
+                LIMIT @limit OFFSET @offset";
+        }
+        else
+        {
+            sql = $@"
+                SELECT idx, app_domain, user_config, service_config, bootstrap_config
+                FROM {TableName}
+                WHERE COALESCE((bootstrap_config->>'disabled')::boolean, false) = false
+                ORDER BY app_domain
+                LIMIT @limit OFFSET @offset";
+        }
 
-        if (!includeDisabled)
-            entries = entries.Where(x => !x.IsDisabled).ToList();
-
-        return entries
-            .Skip(offset)
-            .Take(limit)
-            .ToList();
+        return await ExecuteQueryAsync(
+            sql,
+            p =>
+            {
+                p.AddWithValue("@limit", limit);
+                p.AddWithValue("@offset", offset);
+            },
+            MapConfigEntry);
     }
 
     /// <summary>
@@ -31,12 +85,19 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<int> GetCountAsync(bool includeDisabled = true)
     {
-        var entries = await db.ConfigEntries.AsNoTracking().ToListAsync();
-
-        if (!includeDisabled)
-            return entries.Count(x => !x.IsDisabled);
-
-        return entries.Count;
+        string sql;
+        if (includeDisabled)
+        {
+            sql = $"SELECT COUNT(*) FROM {TableName}";
+            return await ExecuteScalarAsync<int>(sql);
+        }
+        else
+        {
+            sql = $@"
+                SELECT COUNT(*) FROM {TableName}
+                WHERE COALESCE((bootstrap_config->>'disabled')::boolean, false) = false";
+            return await ExecuteScalarAsync<int>(sql);
+        }
     }
 
     /// <summary>
@@ -44,17 +105,27 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<ConfigEntry?> GetByAppDomainAsync(string appDomain, bool enabledOnly = true)
     {
-        var entry = await db.ConfigEntries.AsNoTracking()
-            .Where(x => x.AppDomain == appDomain)
-            .SingleOrDefaultAsync();
+        string sql;
+        if (enabledOnly)
+        {
+            sql = $@"
+                SELECT idx, app_domain, user_config, service_config, bootstrap_config
+                FROM {TableName}
+                WHERE app_domain = @appDomain
+                  AND COALESCE((bootstrap_config->>'disabled')::boolean, false) = false";
+        }
+        else
+        {
+            sql = $@"
+                SELECT idx, app_domain, user_config, service_config, bootstrap_config
+                FROM {TableName}
+                WHERE app_domain = @appDomain";
+        }
 
-        if (entry is null)
-            return null;
-
-        if (enabledOnly && entry.IsDisabled)
-            return null;
-
-        return entry;
+        return await ExecuteQueryFirstOrDefaultAsync(
+            sql,
+            p => p.AddWithValue("@appDomain", appDomain),
+            MapConfigEntry);
     }
 
     /// <summary>
@@ -62,9 +133,15 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<ConfigEntry?> GetByIdxAsync(int idx)
     {
-        return await db.ConfigEntries
-            .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.Idx == idx);
+        const string sql = $@"
+            SELECT idx, app_domain, user_config, service_config, bootstrap_config
+            FROM {TableName}
+            WHERE idx = @idx";
+
+        return await ExecuteQueryFirstOrDefaultAsync(
+            sql,
+            p => p.AddWithValue("@idx", idx),
+            MapConfigEntry);
     }
 
     /// <summary>
@@ -72,8 +149,25 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<ConfigEntry> CreateAsync(ConfigEntry entry)
     {
-        db.ConfigEntries.Add(entry);
-        await db.SaveChangesAsync();
+        const string sql = $@"
+            INSERT INTO {TableName} (app_domain, user_config, service_config, bootstrap_config)
+            VALUES (@appDomain, @userConfig, @serviceConfig, @bootstrapConfig)
+            RETURNING idx";
+
+        var idx = await ExecuteScalarAsync<int>(
+            sql,
+            p =>
+            {
+                p.AddWithValue("@appDomain", entry.AppDomain);
+                p.AddWithValue("@userConfig", NpgsqlDbType.Jsonb,
+                    entry.UserConfig is not null ? entry.UserConfig.RootElement.GetRawText() : DBNull.Value);
+                p.AddWithValue("@serviceConfig", NpgsqlDbType.Jsonb,
+                    entry.ServiceConfig is not null ? entry.ServiceConfig.RootElement.GetRawText() : DBNull.Value);
+                p.AddWithValue("@bootstrapConfig", NpgsqlDbType.Jsonb,
+                    entry.BootstrapConfig is not null ? entry.BootstrapConfig.RootElement.GetRawText() : DBNull.Value);
+            });
+
+        entry.Idx = idx;
         return entry;
     }
 
@@ -82,19 +176,29 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<bool> UpdateByIdxAsync(int idx, ConfigEntry updated)
     {
-        var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.Idx == idx);
+        const string sql = $@"
+            UPDATE {TableName}
+            SET app_domain = @appDomain,
+                user_config = @userConfig,
+                service_config = @serviceConfig,
+                bootstrap_config = @bootstrapConfig
+            WHERE idx = @idx";
 
-        if (existing is null)
-            return false;
+        var rowsAffected = await ExecuteNonQueryAsync(
+            sql,
+            p =>
+            {
+                p.AddWithValue("@idx", idx);
+                p.AddWithValue("@appDomain", updated.AppDomain);
+                p.AddWithValue("@userConfig", NpgsqlDbType.Jsonb,
+                    updated.UserConfig is not null ? updated.UserConfig.RootElement.GetRawText() : DBNull.Value);
+                p.AddWithValue("@serviceConfig", NpgsqlDbType.Jsonb,
+                    updated.ServiceConfig is not null ? updated.ServiceConfig.RootElement.GetRawText() : DBNull.Value);
+                p.AddWithValue("@bootstrapConfig", NpgsqlDbType.Jsonb,
+                    updated.BootstrapConfig is not null ? updated.BootstrapConfig.RootElement.GetRawText() : DBNull.Value);
+            });
 
-        existing.AppDomain = updated.AppDomain;
-        existing.UserConfig = updated.UserConfig;
-        existing.ServiceConfig = updated.ServiceConfig;
-        existing.BootstrapConfig = updated.BootstrapConfig;
-
-        await db.SaveChangesAsync();
-        return true;
+        return rowsAffected > 0;
     }
 
     /// <summary>
@@ -102,19 +206,29 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<bool> UpdateByAppDomainAsync(string appDomain, ConfigEntry updated)
     {
-        var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.AppDomain == appDomain);
+        const string sql = $@"
+            UPDATE {TableName}
+            SET app_domain = @newAppDomain,
+                user_config = @userConfig,
+                service_config = @serviceConfig,
+                bootstrap_config = @bootstrapConfig
+            WHERE app_domain = @appDomain";
 
-        if (existing is null)
-            return false;
+        var rowsAffected = await ExecuteNonQueryAsync(
+            sql,
+            p =>
+            {
+                p.AddWithValue("@appDomain", appDomain);
+                p.AddWithValue("@newAppDomain", updated.AppDomain);
+                p.AddWithValue("@userConfig", NpgsqlDbType.Jsonb,
+                    updated.UserConfig is not null ? updated.UserConfig.RootElement.GetRawText() : DBNull.Value);
+                p.AddWithValue("@serviceConfig", NpgsqlDbType.Jsonb,
+                    updated.ServiceConfig is not null ? updated.ServiceConfig.RootElement.GetRawText() : DBNull.Value);
+                p.AddWithValue("@bootstrapConfig", NpgsqlDbType.Jsonb,
+                    updated.BootstrapConfig is not null ? updated.BootstrapConfig.RootElement.GetRawText() : DBNull.Value);
+            });
 
-        existing.AppDomain = updated.AppDomain;
-        existing.UserConfig = updated.UserConfig;
-        existing.ServiceConfig = updated.ServiceConfig;
-        existing.BootstrapConfig = updated.BootstrapConfig;
-
-        await db.SaveChangesAsync();
-        return true;
+        return rowsAffected > 0;
     }
 
     /// <summary>
@@ -122,15 +236,13 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<bool> DeleteByAppDomainAsync(string appDomain)
     {
-        var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.AppDomain == appDomain);
+        const string sql = $"DELETE FROM {TableName} WHERE app_domain = @appDomain";
 
-        if (existing is null)
-            return false;
+        var rowsAffected = await ExecuteNonQueryAsync(
+            sql,
+            p => p.AddWithValue("@appDomain", appDomain));
 
-        db.ConfigEntries.Remove(existing);
-        await db.SaveChangesAsync();
-        return true;
+        return rowsAffected > 0;
     }
 
     /// <summary>
@@ -138,50 +250,43 @@ public class ConfigRepository(ConfigDbContext db)
     /// </summary>
     public async Task<bool> DeleteByIdxAsync(int idx)
     {
-        var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.Idx == idx);
+        const string sql = $"DELETE FROM {TableName} WHERE idx = @idx";
 
-        if (existing is null)
-            return false;
+        var rowsAffected = await ExecuteNonQueryAsync(
+            sql,
+            p => p.AddWithValue("@idx", idx));
 
-        db.ConfigEntries.Remove(existing);
-        await db.SaveChangesAsync();
-        return true;
+        return rowsAffected > 0;
     }
 
     /// <summary>
-    /// Set the disabled status of an entry by modifying the bootstrap_config JSONB
+    /// Set the disabled status of an entry by modifying the bootstrap_config JSONB.
+    /// Uses PostgreSQL JSONB operators for atomic update.
     /// </summary>
     public async Task<bool> SetDisabledAsync(int idx, bool disabled)
     {
-        var existing = await db.ConfigEntries
-            .SingleOrDefaultAsync(x => x.Idx == idx);
-
-        if (existing is null)
-            return false;
-
-        // Parse existing bootstrap config or create new
-        var bootstrapDict = new Dictionary<string, object>();
-        
-        if (existing.BootstrapConfig is not null)
+        string sql;
+        if (disabled)
         {
-            foreach (var prop in existing.BootstrapConfig.RootElement.EnumerateObject())
-            {
-                bootstrapDict[prop.Name] = prop.Value.Clone();
-            }
+            // Set disabled = true in bootstrap_config (creates the field if it doesn't exist)
+            sql = $@"
+                UPDATE {TableName}
+                SET bootstrap_config = COALESCE(bootstrap_config, '{{}}'::jsonb) || '{{""disabled"": true}}'::jsonb
+                WHERE idx = @idx";
+        }
+        else
+        {
+            // Remove the disabled key from bootstrap_config
+            sql = $@"
+                UPDATE {TableName}
+                SET bootstrap_config = bootstrap_config - 'disabled'
+                WHERE idx = @idx";
         }
 
-        // Set or remove disabled property
-        if (disabled)
-            bootstrapDict["disabled"] = true;
-        else
-            bootstrapDict.Remove("disabled");
+        var rowsAffected = await ExecuteNonQueryAsync(
+            sql,
+            p => p.AddWithValue("@idx", idx));
 
-        // Serialize back to JsonDocument
-        var json = System.Text.Json.JsonSerializer.Serialize(bootstrapDict);
-        existing.BootstrapConfig = System.Text.Json.JsonDocument.Parse(json);
-
-        await db.SaveChangesAsync();
-        return true;
+        return rowsAffected > 0;
     }
 }
