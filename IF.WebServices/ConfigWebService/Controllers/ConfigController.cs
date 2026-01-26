@@ -1,7 +1,6 @@
 using ConfigWebService.Models;
 using ConfigWebService.Services;
 using Microsoft.AspNetCore.Mvc;
-using IFGlobal.Models;
 using System.Text.Json;
 
 namespace ConfigWebService.Controllers;
@@ -18,7 +17,7 @@ public class ConfigController(
     /// <summary>
     /// Get configuration based on cfg type and user/service type
     /// </summary>
-    /// <param name="cfg">Configuration type (e.g., 'oidc', 'bootstrap', 'loggerdb')</param>
+    /// <param name="cfg">Configuration type (e.g., 'bootstrap', 'logLevel')</param>
     /// <param name="type">Client type: 'user' or 'service'</param>
     /// <param name="appDomain">Application domain (e.g., 'Infoforum', 'BreakTackle')</param>
     /// <returns>Configuration object appropriate for the request</returns>
@@ -55,10 +54,10 @@ public class ConfigController(
         if (type != "user" && type != "service")
             return BadRequest(new ErrorResponse { Error = "Parameter 'type' must be 'user' or 'service'" });
 
-        // If cfg is 'bootstrap', allow unauthenticated access
+        // If cfg is 'bootstrap', fetch bootstrap record and return appropriate clientId
         if (cfg == "bootstrap")
         {
-            return await GetBootstrapConfigFromDb(appDomain);
+            return await GetBootstrapConfig(appDomain, type);
         }
 
         // For all other cfg values, require authentication
@@ -67,36 +66,36 @@ public class ConfigController(
             return Unauthorized();
         }
 
-        // Query the database for the configuration
-        return await GetConfigValueFromDb(appDomain, type, cfg);
+        // Query the database for the specific config value from user/service record
+        return await GetConfigValue(appDomain, type, cfg);
     }
 
     /// <summary>
     /// Get Bootstrap configuration from database
-    /// Returns configuration including realm, clientId, openIdConfig etc.
+    /// Fetches the bootstrap record and returns clientId based on type (userClientId or serviceClientId)
     /// </summary>
-    private async Task<IActionResult> GetBootstrapConfigFromDb(string appDomain)
+    private async Task<IActionResult> GetBootstrapConfig(string appDomain, string type)
     {
         try
         {
-            // Only return enabled entries for config requests
-            var entry = await configService.GetByAppDomainAsync(appDomain, enabledOnly: true);
+            // Fetch the bootstrap record
+            var entry = await configService.GetByAppDomainAndTypeAsync(appDomain, "bootstrap", enabledOnly: true);
 
             if (entry is null)
             {
                 logger.LogWarning(
-                    "Configuration entry not found or disabled for appDomain={AppDomain}",
+                    "Bootstrap configuration not found or disabled for appDomain={AppDomain}",
                     appDomain);
                 return NotFound(new ErrorResponse
                 {
-                    Error = $"Configuration not found for appDomain '{appDomain}'"
+                    Error = $"Bootstrap configuration not found for appDomain '{appDomain}'"
                 });
             }
 
-            if (entry.BootstrapConfig is null)
+            if (entry.Config is null)
             {
                 logger.LogWarning(
-                    "Bootstrap config is null for appDomain={AppDomain}",
+                    "Config is null for bootstrap record, appDomain={AppDomain}",
                     appDomain);
                 return NotFound(new ErrorResponse
                 {
@@ -105,33 +104,34 @@ public class ConfigController(
             }
 
             logger.LogInformation(
-                "Returning bootstrap config for appDomain={AppDomain}",
-                appDomain);
+                "Returning bootstrap config for appDomain={AppDomain}, type={Type}",
+                appDomain, type);
 
-            // Transform the bootstrap config to return the appropriate values
-            var bootstrapJson = entry.BootstrapConfig.RootElement;
+            var configJson = entry.Config.RootElement;
             
-            // Get values from JSONB
-            string? realm = bootstrapJson.TryGetProperty("realm", out var realmElement)
-                ? realmElement.GetString() : null;
-            string? clientId = bootstrapJson.TryGetProperty("clientId", out var clientIdElement)
-                ? clientIdElement.GetString() : null;
+            // Select clientId based on type
+            string? clientId;
+            if (type == "service")
+            {
+                clientId = configJson.TryGetProperty("serviceClientId", out var svcClientIdElement)
+                    ? svcClientIdElement.GetString() : null;
+            }
+            else
+            {
+                clientId = configJson.TryGetProperty("userClientId", out var userClientIdElement)
+                    ? userClientIdElement.GetString() : null;
+            }
             
             // Build the response object
             var response = new Dictionary<string, object?>
             {
-                ["realm"] = realm,
                 ["clientId"] = clientId,
-                ["openIdConfig"] = bootstrapJson.TryGetProperty("openIdConfig", out var openIdConfig) 
+                ["realm"] = configJson.TryGetProperty("realm", out var realm) 
+                    ? realm.GetString() : null,
+                ["openIdConfig"] = configJson.TryGetProperty("openIdConfig", out var openIdConfig) 
                     ? openIdConfig.GetString() : null,
-                ["loggerService"] = bootstrapJson.TryGetProperty("loggerService", out var loggerService) 
-                    ? loggerService.GetString() : null,
-                ["logLevel"] = bootstrapJson.TryGetProperty("logLevel", out var logLevel) 
-                    ? logLevel.GetString() : "Information",
-                ["allowedScopes"] = bootstrapJson.TryGetProperty("allowedScopes", out var allowedScopes) 
-                    ? JsonSerializer.Deserialize<string[]>(allowedScopes.GetRawText()) : new[] { "openid", "profile", "email" },
-                ["requiresRelay"] = bootstrapJson.TryGetProperty("requiresRelay", out var requiresRelay) 
-                    && requiresRelay.GetBoolean()
+                ["loggerService"] = configJson.TryGetProperty("loggerService", out var loggerService) 
+                    ? loggerService.GetString() : null
             };
 
             return Ok(response);
@@ -139,60 +139,57 @@ public class ConfigController(
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error retrieving bootstrap configuration for appDomain={AppDomain}",
-                appDomain);
+                "Error retrieving bootstrap configuration for appDomain={AppDomain}, type={Type}",
+                appDomain, type);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }
 
     /// <summary>
-    /// Get a specific configuration value from user_config or service_config
+    /// Get a specific configuration value from user or service record
     /// </summary>
-    private async Task<IActionResult> GetConfigValueFromDb(
-        string appDomain,
-        string type,
-        string configKey)
+    private async Task<IActionResult> GetConfigValue(string appDomain, string type, string configKey)
     {
         try
         {
-            // Only return enabled entries for config requests
-            var entry = await configService.GetByAppDomainAsync(appDomain, enabledOnly: true);
+            // Fetch the user or service record based on type
+            var entry = await configService.GetByAppDomainAndTypeAsync(appDomain, type, enabledOnly: true);
 
             if (entry is null)
             {
                 logger.LogWarning(
-                    "Configuration entry not found or disabled for appDomain={AppDomain}",
-                    appDomain);
+                    "Configuration entry not found or disabled for appDomain={AppDomain}, type={Type}",
+                    appDomain, type);
                 return NotFound(new ErrorResponse
                 {
-                    Error = $"Configuration not found for appDomain '{appDomain}'"
+                    Error = $"Configuration not found for appDomain '{appDomain}', type '{type}'"
                 });
             }
 
-            var value = entry.GetConfigValue(type, configKey);
+            var value = entry.GetConfigValue(configKey);
 
             if (value is null)
             {
                 logger.LogWarning(
-                    "Configuration key '{ConfigKey}' not found in {Type}_config for appDomain={AppDomain}",
-                    configKey, type, appDomain);
+                    "Configuration key '{ConfigKey}' not found for appDomain={AppDomain}, type={Type}",
+                    configKey, appDomain, type);
                 return NotFound(new ErrorResponse
                 {
-                    Error = $"Configuration key '{configKey}' not found in {type}_config"
+                    Error = $"Configuration key '{configKey}' not found"
                 });
             }
 
             logger.LogInformation(
-                "Returning {Type} config value for key={ConfigKey}, appDomain={AppDomain}",
-                type, configKey, appDomain);
+                "Returning config value for key={ConfigKey}, appDomain={AppDomain}, type={Type}",
+                configKey, appDomain, type);
 
             return Ok(value.Value);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error retrieving configuration for key={ConfigKey}, type={Type}, appDomain={AppDomain}",
-                configKey, type, appDomain);
+                "Error retrieving configuration for key={ConfigKey}, appDomain={AppDomain}, type={Type}",
+                configKey, appDomain, type);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }
