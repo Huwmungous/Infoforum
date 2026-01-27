@@ -10,7 +10,9 @@ public sealed class ExclusionRules
     private static readonly HashSet<string> CommonExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
         ".git", ".svn", ".hg", ".vs", ".vscode", ".idea", ".fleet",
-        "__pycache__", ".pytest_cache", ".mypy_cache", "logs", ".temp", ".tmp"
+        "__pycache__", ".pytest_cache", ".mypy_cache", "logs", ".temp", ".tmp",
+        // Always exclude - these are never source code regardless of project type detection
+        "node_modules", "dist"
     };
 
     private static readonly HashSet<string> CommonExcludedFilePatterns = new(StringComparer.OrdinalIgnoreCase)
@@ -33,7 +35,7 @@ public sealed class ExclusionRules
 
     private static readonly HashSet<string> NodeExcludedDirectories = new(StringComparer.OrdinalIgnoreCase)
     {
-        "node_modules", "dist", "build", ".next", ".nuxt", ".output", ".angular",
+        "build", ".next", ".nuxt", ".output", ".angular",
         ".cache", "coverage", ".nyc_output", "storybook-static", ".parcel-cache",
         ".turbo", ".vercel", ".netlify", "bower_components", "jspm_packages"
     };
@@ -69,33 +71,33 @@ public sealed class ExclusionRules
         _excludedDirectories = new HashSet<string>(CommonExcludedDirectories, StringComparer.OrdinalIgnoreCase);
         var excludedPatterns = new HashSet<string>(CommonExcludedFilePatterns, StringComparer.OrdinalIgnoreCase);
 
-        if (projectTypes.HasFlag(ProjectType.CSharp))
+        if(projectTypes.HasFlag(ProjectType.CSharp))
         {
             _excludedDirectories.UnionWith(CSharpExcludedDirectories);
             excludedPatterns.UnionWith(CSharpExcludedFilePatterns);
         }
 
-        if (projectTypes.HasFlag(ProjectType.Node) || projectTypes.HasFlag(ProjectType.React) ||
+        if(projectTypes.HasFlag(ProjectType.Node) || projectTypes.HasFlag(ProjectType.React) ||
             projectTypes.HasFlag(ProjectType.Angular) || projectTypes.HasFlag(ProjectType.TypeScript))
         {
             _excludedDirectories.UnionWith(NodeExcludedDirectories);
             excludedPatterns.UnionWith(NodeExcludedFilePatterns);
         }
 
-        if (projectTypes.HasFlag(ProjectType.Delphi))
+        if(projectTypes.HasFlag(ProjectType.Delphi))
         {
             _excludedDirectories.UnionWith(DelphiExcludedDirectories);
             excludedPatterns.UnionWith(DelphiExcludedFilePatterns);
         }
 
-        if (config != null)
+        if(config != null)
         {
             _excludedDirectories.UnionWith(config.AdditionalExcludedDirectories);
             excludedPatterns.UnionWith(config.AdditionalExcludedFilePatterns);
         }
 
         _fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase);
-        foreach (var pattern in excludedPatterns)
+        foreach(var pattern in excludedPatterns)
         {
             _fileMatcher.AddInclude(pattern);
         }
