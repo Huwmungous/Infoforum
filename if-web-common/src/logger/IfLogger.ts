@@ -42,7 +42,7 @@ export class IfLogger {
   private static initialDelayTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private static readonly MAX_RETRIES = 3;
   private static readonly RETRY_DELAY_MS = 2000;  // Wait 2 seconds before retry
-  private static readonly INITIAL_DELAY_MS = 1000;  // Wait for auth to initialise
+  private static readonly INITIAL_DELAY_MS = 1500;  // Wait for auth to initialise
 
   constructor(
     private categoryName: string,
@@ -223,12 +223,36 @@ export class IfLogger {
     }, IfLogger.RETRY_DELAY_MS);
   }
 
+  /**
+   * Get the effective logger service URL.
+   * In development (localhost), use relative URL to leverage Vite proxy.
+   */
+  private getEffectiveLoggerUrl(): string {
+    const configuredUrl = this.config.loggerService;
+    
+    // In dev mode (localhost), use relative URL to avoid CORS
+    if (typeof window !== 'undefined' && 
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      // Extract just the path from the configured URL
+      try {
+        const url = new URL(configuredUrl);
+        return url.pathname; // e.g., '/logger'
+      } catch {
+        // If it's already a relative URL, use as-is
+        return configuredUrl;
+      }
+    }
+    
+    return configuredUrl;
+  }
+
   private async sendToRemoteService(logEntry: IfLogEntry): Promise<'success' | 'retry' | 'error'> {
     try {
       // Create a clean copy without internal properties
       const { _retryCount, ...cleanEntry } = logEntry;
 
-      const response = await fetch(`${this.config.loggerService}`, {
+      const loggerUrl = this.getEffectiveLoggerUrl();
+      const response = await fetch(loggerUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { useTheme } from './context/ThemeContext.jsx';
-import LevelIcon from './components/LevelIcon'; 
 import { useAppContext, useAuth } from '@if/web-common-react';
+import { useTheme } from './context/ThemeContext.jsx';
+import LevelIcon from './components/LevelIcon';
 
-
+// Logo import for base path compatibility
 const logo = new URL('/IF-Logo.png', import.meta.url).href;
-
-// Line ~240: Change img src
-<img src={logo} alt="IF" className="if-logo" />
 
 const LogDisplay = ({ loggerServiceUrl }) => {
   const { auth } = useAppContext();
@@ -30,6 +27,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const [maxLogs, setMaxLogs] = useState(100);
   const connectionRef = useRef(null);
 
+  // Use Vite proxy in dev mode to avoid CORS issues
+  const apiBase = import.meta.env.DEV ? '/logger' : loggerServiceUrl;
+
   // Simple fetch helper - auth handled by AppInitializer interceptor
   const apiFetch = async (url, options = {}) => {
     const response = await fetch(url, {
@@ -49,7 +49,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   };
 
   const loadAllLogs = useCallback(async () => {
-    if (!loggerServiceUrl) {
+    if (!apiBase) {
       console.error('loggerServiceUrl prop is required');
       return;
     }
@@ -57,22 +57,23 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch(`${loggerServiceUrl}/logs?limit=${maxLogs}`);
+      console.log('Loading logs from:', `${apiBase}/logs?limit=${maxLogs}`);
+      const data = await apiFetch(`${apiBase}/logs?limit=${maxLogs}`);
       setLogs(data);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  }, [loggerServiceUrl, maxLogs]);
+  }, [apiBase, maxLogs]);
 
   // Load logs when authenticated
   useEffect(() => {
-    if (isAuthenticated && initialized && loggerServiceUrl) {
-      console.log('Auth ready, loading logs from:', loggerServiceUrl);
+    if (isAuthenticated && initialized && apiBase) {
+      console.log('Auth ready, loading logs from:', apiBase);
       loadAllLogs();
     }
-  }, [isAuthenticated, initialized, loggerServiceUrl, loadAllLogs]);
+  }, [isAuthenticated, initialized, apiBase, loadAllLogs]);
 
   // Real-time connection management
   useEffect(() => {
@@ -87,7 +88,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }
 
     // Don't connect until authenticated and we have the URL
-    if (!isAuthenticated || !initialized || !loggerServiceUrl) {
+    if (!isAuthenticated || !initialized || !apiBase) {
       return;
     }
 
@@ -109,7 +110,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       }
 
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${loggerServiceUrl}/loghub`, {
+        .withUrl(`${apiBase}/loghub`, {
           accessTokenFactory: () => token
         })
         .withAutomaticReconnect()
@@ -164,10 +165,10 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         connectionRef.current.stop();
       }
     };
-  }, [isRealTime, maxLogs, getAccessToken, isAuthenticated, initialized, loggerServiceUrl]);
+  }, [isRealTime, maxLogs, getAccessToken, isAuthenticated, initialized, apiBase]);
 
   const handleSearch = async () => {
-    if (!loggerServiceUrl) return;
+    if (!apiBase) return;
 
     setLoading(true);
     setError(null);
@@ -180,7 +181,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         filters.push({ field: 'message', operator: 'Contains', value: messageFilter });
       }
 
-      const data = await apiFetch(`${loggerServiceUrl}/logs/search`, {
+      const data = await apiFetch(`${apiBase}/logs/search`, {
         method: 'POST',
         body: JSON.stringify({
           filters: filters,
