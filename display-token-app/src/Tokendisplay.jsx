@@ -131,7 +131,7 @@ const TokenDisplay = () => {
       {/* Header */}
       <header className="bg-[#333] text-if-window px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <img src="/IF-Logo.png" alt="IF" className="w-12 h-12" />
+          <img src="IF-Logo.png" alt="IF" className="w-12 h-12" />
           <h1 className="text-xl font-medium">Token Display</h1>
           <span className="text-sm opacity-70">v1.0</span>
         </div>
