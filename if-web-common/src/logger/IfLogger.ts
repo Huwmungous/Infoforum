@@ -22,6 +22,7 @@ export interface IfLogEntry {
   environment: string;
   host: string;
   pathname: string;
+  _retryCount?: number;  // Internal: track retry attempts
 }
 
 const LOG_LEVELS: Record<LogLevel, number> = {
@@ -36,6 +37,12 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 export class IfLogger {
   private static logQueue: IfLogEntry[] = [];
   private static isProcessing = false;
+  private static retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private static initialDelayComplete = false;
+  private static initialDelayTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private static readonly MAX_RETRIES = 3;
+  private static readonly RETRY_DELAY_MS = 2000;  // Wait 2 seconds before retry
+  private static readonly INITIAL_DELAY_MS = 1500;  // Wait for auth to initialise
 
   constructor(
     private categoryName: string,
@@ -152,46 +159,111 @@ export class IfLogger {
       return;
     }
 
+    // On first attempt, wait for auth to initialise
+    if (!IfLogger.initialDelayComplete) {
+      if (IfLogger.initialDelayTimeoutId === null) {
+        IfLogger.initialDelayTimeoutId = setTimeout(() => {
+          IfLogger.initialDelayComplete = true;
+          IfLogger.initialDelayTimeoutId = null;
+          this.processLogQueue();
+        }, IfLogger.INITIAL_DELAY_MS);
+      }
+      return;
+    }
+
     IfLogger.isProcessing = true;
 
     try {
+      const entriesToRetry: IfLogEntry[] = [];
+
       while (IfLogger.logQueue.length > 0) {
         try {
           const logEntry = IfLogger.logQueue.shift();
-          if (logEntry) 
-            await this.sendToRemoteService(logEntry); 
+          if (logEntry) {
+            const result = await this.sendToRemoteService(logEntry);
+            
+            // If we got a 401 and haven't exceeded retries, queue for retry
+            if (result === 'retry') {
+              const retryCount = (logEntry._retryCount || 0) + 1;
+              if (retryCount <= IfLogger.MAX_RETRIES) {
+                logEntry._retryCount = retryCount;
+                entriesToRetry.push(logEntry);
+              } else {
+                console.warn(`Dropping log entry after ${IfLogger.MAX_RETRIES} failed attempts (auth not ready)`);
+              }
+            }
+          }
         } catch (error) {
-          console.error('Exception processing log entry:', error); // but must swallow the exception
+          console.error('Exception processing log entry:', error);
         }
+      }
+
+      // Re-queue entries that need retry
+      if (entriesToRetry.length > 0) {
+        // Add back to front of queue
+        IfLogger.logQueue.unshift(...entriesToRetry);
+        
+        // Schedule retry after delay
+        this.scheduleRetry();
       }
     } finally {
       IfLogger.isProcessing = false;
     }
   }
 
-private async sendToRemoteService(logEntry: IfLogEntry): Promise<void> {
-  try {
-    const response = await fetch(`${this.config.loggerService}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        realm: logEntry.realm,
-        client: logEntry.client,
-        logData: logEntry,
-        environment: logEntry.environment,
-        application: logEntry.application,
-        logLevel: logEntry.level
-      })
-    });
+  private scheduleRetry(): void {
+    // Don't schedule if already scheduled
+    if (IfLogger.retryTimeoutId !== null) {
+      return;
+    }
 
-      if (!response.ok) {
-        console.error(`Remote logging failed: ${response.status}`);
+    IfLogger.retryTimeoutId = setTimeout(() => {
+      IfLogger.retryTimeoutId = null;
+      this.processLogQueue();
+    }, IfLogger.RETRY_DELAY_MS);
+  }
+
+  private async sendToRemoteService(logEntry: IfLogEntry): Promise<'success' | 'retry' | 'error'> {
+    try {
+      // Create a clean copy without internal properties
+      const { _retryCount, ...cleanEntry } = logEntry;
+
+      const response = await fetch(`${this.config.loggerService}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          realm: cleanEntry.realm,
+          client: cleanEntry.client,
+          logData: cleanEntry,
+          environment: cleanEntry.environment,
+          application: cleanEntry.application,
+          logLevel: cleanEntry.level
+        })
+      });
+
+      if (response.ok) {
+        return 'success';
       }
+
+      // 401 means auth token not ready yet - retry later
+      if (response.status === 401) {
+        const retryCount = logEntry._retryCount || 0;
+        if (retryCount === 0) {
+          // Only log on first attempt to avoid spam
+          console.debug('Remote logging: auth not ready, will retry...');
+        }
+        return 'retry';
+      }
+
+      // Other errors - log and don't retry
+      console.error(`Remote logging failed: ${response.status}`);
+      return 'error';
     } catch (error) {
-      // Log error but don't crash the app
+      // Network error - log but don't crash
       console.error('Exception sending log to remote service:', error);
+      return 'error';
     }
   }
 }
