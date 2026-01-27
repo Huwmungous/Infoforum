@@ -7,6 +7,10 @@ import LevelIcon from './components/LevelIcon';
 // Logo import for base path compatibility
 const logo = new URL('/IF-Logo.png', import.meta.url).href;
 
+// Constants for live log trimming
+const MAX_LIVE_LOGS = 300;
+const TRIM_COUNT = 100;
+
 const LogDisplay = ({ loggerServiceUrl }) => {
   const { auth } = useAppContext();
   const { getAccessToken, isAuthenticated, initialized } = auth;
@@ -26,6 +30,10 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [maxLogs, setMaxLogs] = useState(100);
   const connectionRef = useRef(null);
+  
+  // Ref for auto-scrolling the Hercules terminal
+  const terminalRef = useRef(null);
+  const [autoScroll, setAutoScroll] = useState(true);
 
   // Use Vite proxy in dev mode to avoid CORS issues
   const apiBase = import.meta.env.DEV ? '/logger' : loggerServiceUrl;
@@ -75,6 +83,41 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }
   }, [isAuthenticated, initialized, apiBase, loadAllLogs]);
 
+  // Auto-scroll when new logs arrive in live mode
+  useEffect(() => {
+    if (isRealTime && autoScroll && terminalRef.current) {
+      // Use requestAnimationFrame to ensure DOM has updated before scrolling
+      requestAnimationFrame(() => {
+        if (terminalRef.current) {
+          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+        }
+      });
+    }
+  }, [logs, isRealTime, autoScroll]);
+
+  // Scroll to bottom immediately when entering live mode
+  useEffect(() => {
+    if (isRealTime && terminalRef.current) {
+      // Small delay to ensure terminal is rendered with content
+      const timer = setTimeout(() => {
+        if (terminalRef.current) {
+          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isRealTime]);
+
+  // Handle scroll to detect if user scrolled up (disable auto-scroll)
+  const handleTerminalScroll = () => {
+    if (terminalRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = terminalRef.current;
+      // If user is within 50px of bottom, re-enable auto-scroll
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      setAutoScroll(isAtBottom);
+    }
+  };
+
   // Real-time connection management
   useEffect(() => {
     if (!isRealTime) {
@@ -119,14 +162,17 @@ const LogDisplay = ({ loggerServiceUrl }) => {
 
       connectionRef.current = connection;
 
-      // Handle incoming logs
+      // Handle incoming logs with trimming logic
       connection.on('newlogentry', (log) => {
         console.log('Log hub message received:', log);
         log._isNew = true;
         setLogs(prevLogs => {
           const newLogs = [...prevLogs, log];
-          // Keep only the most recent maxLogs entries
-          return newLogs.slice(-maxLogs);
+          // Trim oldest 100 entries when count exceeds 300
+          if (newLogs.length > MAX_LIVE_LOGS) {
+            return newLogs.slice(TRIM_COUNT);
+          }
+          return newLogs;
         });
       });
 
@@ -202,6 +248,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     if (enabled) {
       // When enabling real-time, load recent logs first
       loadAllLogs();
+      setAutoScroll(true);
     }
   };
 
@@ -236,6 +283,103 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       case 'sit': return 'badge-sit';
       default: return 'badge-default';
     }
+  };
+
+  // Format timestamp for Hercules display
+  const formatHerculesTime = (dateStr) => {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString('en-GB', { hour12: false }) + '.' + 
+           d.getMilliseconds().toString().padStart(3, '0');
+  };
+
+  // Get level indicator character
+  const getLevelChar = (level) => {
+    const chars = {
+      'Trace': '·',
+      'Debug': '○',
+      'Information': '●',
+      'Warning': '▲',
+      'Error': '✗',
+      'Critical': '◆'
+    };
+    return chars[level] || '•';
+  };
+
+  // Get level color for Hercules display
+  const getLevelColor = (level) => {
+    const colors = {
+      'Trace': '#336633',
+      'Debug': '#669966',
+      'Information': '#33ff33',
+      'Warning': '#ffcc00',
+      'Error': '#ff6633',
+      'Critical': '#ff3333'
+    };
+    return colors[level] || '#33ff33';
+  };
+
+  // Render Hercules-style terminal for live logs
+  const renderHerculesTerminal = () => {
+    const filteredLogs = logs.filter(showRow);
+    
+    return (
+      <div className="hercules-container">
+        <div className="hercules-header">
+          <span>═══ LIVE LOG STREAM ═══</span>
+          <span className="hercules-status">
+            {isConnected ? '● CONNECTED' : '○ DISCONNECTED'}
+          </span>
+          <span className="hercules-count">{filteredLogs.length} entries</span>
+          {!autoScroll && (
+            <button 
+              className="hercules-scroll-btn"
+              onClick={() => {
+                setAutoScroll(true);
+                if (terminalRef.current) {
+                  terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+                }
+              }}
+            >
+              ↓ SCROLL TO BOTTOM
+            </button>
+          )}
+        </div>
+        <div 
+          className="hercules-terminal"
+          ref={terminalRef}
+          onScroll={handleTerminalScroll}
+        >
+          {filteredLogs.length === 0 ? (
+            <div className="hercules-waiting">
+              {isConnected ? '▌ Waiting for log entries...' : '▌ Connecting...'}
+            </div>
+          ) : (
+            filteredLogs.map((log, index) => (
+              <div 
+                key={log.idx || index} 
+                className={`hercules-line ${log._isNew ? 'hercules-new' : ''}`}
+              >
+                <span className="hercules-time">
+                  {formatHerculesTime(log.createdAt)}
+                </span>
+                <span 
+                  className="hercules-level"
+                  style={{ color: getLevelColor(log.logData?.level) }}
+                >
+                  {getLevelChar(log.logData?.level)}
+                </span>
+                <span className="hercules-category">
+                  [{log.logData?.category || 'System'}]
+                </span>
+                <span className="hercules-message">
+                  {log.logData?.message || ''}
+                </span>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -376,17 +520,19 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             </div>
           )}
 
-          {/* Empty state */}
-          {!loading && logs.length === 0 && (
+          {/* Hercules Terminal for Live Mode */}
+          {isRealTime && !loading && renderHerculesTerminal()}
+
+          {/* Standard Table View for non-live mode */}
+          {!isRealTime && !loading && logs.length === 0 && (
             <div className="empty-message">
-              {isRealTime && isConnected ? 'Waiting for logs...' : 'No logs found'}
+              No logs found
             </div>
           )}
 
-          {/* Log table */}
-          {!loading && logs.length > 0 && (
+          {/* Log table (only shown when NOT in real-time mode) */}
+          {!isRealTime && !loading && logs.length > 0 && (
             <>
-
               {/* Table */}
               <div className="table-container">
                 <table className="log-table">

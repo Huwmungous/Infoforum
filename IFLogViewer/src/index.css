@@ -550,3 +550,174 @@
 .animate-new-log {
   animation: newLogFade 1s ease-out;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERCULES TERMINAL STYLES
+   Retro green-on-black display reminiscent of classic Hercules monitors
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hercules-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: #0a0a0a;
+  border: 2px solid #1a1a1a;
+  margin: var(--if-space-sm);
+  border-radius: var(--if-radius-md);
+  overflow: hidden;
+}
+
+.hercules-header {
+  display: flex;
+  align-items: center;
+  gap: var(--if-space-md);
+  padding: var(--if-space-xs) var(--if-space-sm);
+  background: #0f0f0f;
+  border-bottom: 1px solid #1a3a1a;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: #33ff33;
+}
+
+.hercules-status {
+  color: #33ff33;
+}
+
+.hercules-status:first-letter {
+  font-size: 10px;
+}
+
+.hercules-count {
+  margin-left: auto;
+  color: #669966;
+}
+
+.hercules-scroll-btn {
+  background: #1a3a1a;
+  border: 1px solid #33ff33;
+  color: #33ff33;
+  padding: 2px 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.hercules-scroll-btn:hover {
+  background: #2a4a2a;
+}
+
+.hercules-terminal {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--if-space-sm);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  background: #0a0a0a;
+  /* Subtle scanline effect */
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 20, 0, 0.1) 2px,
+    rgba(0, 20, 0, 0.1) 4px
+  );
+}
+
+/* Custom scrollbar for Hercules terminal */
+.hercules-terminal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.hercules-terminal::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.hercules-terminal::-webkit-scrollbar-thumb {
+  background: #1a3a1a;
+  border-radius: 4px;
+}
+
+.hercules-terminal::-webkit-scrollbar-thumb:hover {
+  background: #2a4a2a;
+}
+
+.hercules-waiting {
+  color: #33ff33;
+  animation: hercules-blink 1s infinite;
+}
+
+@keyframes hercules-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+.hercules-line {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+  padding: 1px 0;
+  color: #33ff33;
+}
+
+.hercules-line:hover {
+  background: rgba(51, 255, 51, 0.05);
+}
+
+.hercules-new {
+  animation: hercules-flash 0.5s ease-out;
+}
+
+@keyframes hercules-flash {
+  from { background: rgba(51, 255, 51, 0.3); }
+  to { background: transparent; }
+}
+
+.hercules-time {
+  color: #669966;
+  flex-shrink: 0;
+  width: 100px;
+}
+
+.hercules-level {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.hercules-category {
+  color: #4a9a4a;
+  flex-shrink: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hercules-message {
+  color: #33ff33;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Ensure the main content fills available space when in Hercules mode */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.results-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Make filter row not grow */
+.filter-row {
+  flex-shrink: 0;
+}
