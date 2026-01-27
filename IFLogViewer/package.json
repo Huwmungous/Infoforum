@@ -3,25 +3,16 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-  "dbg": "vite --mode dbg",
-  "predbg": "npm run rebuild-lib && npm run build -- --mode dbg",
-
-  "dev": "vite --mode dev",
-  "predev": "npm run rebuild-lib && npm run build -- --mode dev",
-
-  "sit": "vite --mode sit",
-  "presit": "npm run rebuild-lib && npm run build -- --mode sit",
-
-  "uat": "vite --mode uat",
-  "preuat": "npm run rebuild-lib && npm run build -- --mode uat",
-
-  "build": "vite build",
-
-  "rebuild-lib": "npm --prefix ../../IF.Web.Common run build && rimraf node_modules/.vite"
+    "dbg": "vite --mode dbg",
+    "dev": "vite --mode dev",
+    "build": "vite build",
+    "rebuild": "npm run rebuild-lib && npm run build",
+    "rebuild-lib": "npm --prefix ../if-web-common run build && npm --prefix ../if-web-common-react run build && rimraf node_modules/.vite"
   },
   "dependencies": {
     "@if/styles": "file:../IF.Styles",
-    "@if/web-common": "file:../../IF.Web.Common",
+    "@if/web-common": "file:../if-web-common",
+    "@if/web-common-react": "file:../if-web-common-react",
     "@microsoft/signalr": "^10.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"

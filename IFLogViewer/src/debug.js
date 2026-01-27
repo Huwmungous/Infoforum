@@ -1,5 +1,4 @@
-import { useAppContext } from '@if/web-common';
-
+import { useAppContext } from '@if/web-common-react';
 // Debug utilities exposed to browser console for testing
 // This is a side-effect module - import it to set up window.IFDebug
 

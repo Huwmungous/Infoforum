@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAppContext } from '@if/web-common';
+import { useAppContext } from '@if/web-common-react';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import LogDisplay from './LogDisplay.jsx';
 import { initDebug } from './debug.js';

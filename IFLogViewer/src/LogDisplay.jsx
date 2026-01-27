@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
-import { useAppContext, useAuth } from '@if/web-common';
 import { useTheme } from './context/ThemeContext.jsx';
-import LevelIcon from './components/LevelIcon';
+import LevelIcon from './components/LevelIcon'; 
+import { useAppContext, useAuth } from '@if/web-common-react';
+
+
+const logo = new URL('/IF-Logo.png', import.meta.url).href;
+
+// Line ~240: Change img src
+<img src={logo} alt="IF" className="if-logo" />
 
 const LogDisplay = ({ loggerServiceUrl }) => {
   const { auth } = useAppContext();
@@ -237,7 +243,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       <header className="app-header">
         {/* Left: Logo and Title */}
         <div className="header-left">
-          <img src="/IF-Logo.png" alt="IF" className="if-logo" />
+          <img src={logo} alt="IF" className="if-logo" />
           <h1 className="app-title">IF Log Viewer</h1>
           <span className="version-label">v1.0</span>
         </div>

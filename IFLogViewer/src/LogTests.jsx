@@ -1,4 +1,4 @@
-import { useAppContext } from '@if/web-common';
+import { useAppContext } from '@if/web-common-react';
 
 const LogTests = () => {
   const { createLogger } = useAppContext();

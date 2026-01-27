@@ -10,21 +10,29 @@ export default defineConfig(({ command, mode }) => {
 
     build: { sourcemap: mode === "dev" },
 
-    base: command === 'serve' ? '/' : '/logs/',
+    // Base path - updated by deploy script
+    base: '/infoforum/logs/',
 
     resolve: {
       dedupe: ['react', 'react-dom']
     },
 
     server: {
-      port: parseInt(env.VITE_SERVER_PORT),
+      port: parseInt(env.VITE_SERVER_PORT) || 5004,
       proxy: {
         '/config': {
-          target: env.VITE_CONFIG_SERVICE_URL,
+          target: 'https://longmanrd.net',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/config/, '')
+          secure: true
+        },
+        '/logger': {
+          target: 'https://longmanrd.net',
+          changeOrigin: true,
+          secure: true
         }
       }
     }
+
+
   }
 })
