@@ -5,6 +5,10 @@ import { useAppContext, useAuth } from '@if/web-common-react';
  * TokenDisplay component
  * Displays authenticated user information and tokens
  */
+
+// At the top of Tokendisplay.jsx
+const logo = new URL('/IF-Logo.png', import.meta.url).href;
+ 
 const TokenDisplay = () => {
   const { createLogger } = useAppContext();
   const { user, signout, renewToken } = useAuth();
@@ -131,7 +135,7 @@ const TokenDisplay = () => {
       {/* Header */}
       <header className="bg-[#333] text-if-window px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <img src="IF-Logo.png" alt="IF" className="w-12 h-12" />
+          <img src={logo} alt="IF" className="w-12 h-12" />
           <h1 className="text-xl font-medium">Token Display</h1>
           <span className="text-sm opacity-70">v1.0</span>
         </div>
