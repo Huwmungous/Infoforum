@@ -49,16 +49,8 @@ VALUES (
         "loggerdb": {
             "Host": "intelligence",
             "Port": 5432,
-            "Database": "Sfd_Log",
+            "Database": "IF_Log",
             "UserName": "hugh",
-            "Password": "CHANGEME",
-            "RequiresRelay": false
-        },
-        "firebirddb": {
-            "Host": "intelligence", 
-            "Port": 3050,
-            "Database": "/data/InfoForum.ib",
-            "UserName": "SYSDBA",
             "Password": "CHANGEME",
             "RequiresRelay": false
         }
