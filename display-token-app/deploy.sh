@@ -52,7 +52,17 @@ sudo rm -rf "${DEPLOY_DIR:?}"/*
 sudo cp -r dist/* "${DEPLOY_DIR}/"
 
 # Set appropriate permissions for nginx
-sudo chown -R www-data:www-data "${DEPLOY_DIR}"
+# Detect nginx user (www-data on Debian/Ubuntu, nginx on Fedora/RHEL)
+if id "nginx" &>/dev/null; then
+    NGINX_USER="nginx"
+elif id "www-data" &>/dev/null; then
+    NGINX_USER="www-data"
+else
+    NGINX_USER="root"
+    echo -e "${YELLOW}Warning: Neither nginx nor www-data user found, using root${NC}"
+fi
+
+sudo chown -R "${NGINX_USER}:${NGINX_USER}" "${DEPLOY_DIR}"
 sudo chmod -R 755 "${DEPLOY_DIR}"
 
 echo -e "${GREEN}========================================${NC}"
