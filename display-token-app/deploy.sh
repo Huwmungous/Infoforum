@@ -2,14 +2,16 @@
 #===============================================================================
 # Deploy script for display-token-app
 # Rebuilds the application and deploys to nginx serving directory
+#
+# Usage: ./deploy.sh <app-domain>
+#   app-domain: 'infoforum' or 'breaktackle'
+#
+# Examples:
+#   ./deploy.sh infoforum   -> https://longmanrd.net/infoforum/tokens/
+#   ./deploy.sh breaktackle -> https://longmanrd.net/breaktackle/tokens/
 #===============================================================================
 
 set -e  # Exit on any error
-
-# Configuration
-APP_NAME="display-token-app"
-DEPLOY_DIR="/srv/Infoforum/Apps/${APP_NAME}"
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Colours for output
 RED='\033[0;31m'
@@ -17,8 +19,38 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Colour
 
+# Check for required argument
+if [ -z "$1" ]; then
+    echo -e "${RED}Error: Missing app-domain argument${NC}"
+    echo ""
+    echo "Usage: $0 <app-domain>"
+    echo "  app-domain: 'infoforum' or 'breaktackle'"
+    echo ""
+    echo "Examples:"
+    echo "  $0 infoforum   -> deploys to /infoforum/tokens/"
+    echo "  $0 breaktackle -> deploys to /breaktackle/tokens/"
+    exit 1
+fi
+
+APP_DOMAIN=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+
+# Validate app-domain
+if [[ "$APP_DOMAIN" != "infoforum" && "$APP_DOMAIN" != "breaktackle" ]]; then
+    echo -e "${RED}Error: Invalid app-domain '${APP_DOMAIN}'${NC}"
+    echo "Valid options: 'infoforum' or 'breaktackle'"
+    exit 1
+fi
+
+# Configuration
+APP_NAME="display-token-app"
+BASE_PATH="/${APP_DOMAIN}/tokens/"
+DEPLOY_DIR="/srv/Infoforum/Apps/${APP_NAME}"
+VITE_CONFIG="vite.config.js"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Deploying ${APP_NAME}${NC}"
+echo -e "${GREEN}Base path: ${BASE_PATH}${NC}"
 echo -e "${GREEN}========================================${NC}"
 
 # Check we're in the right directory (should contain package.json)
@@ -35,7 +67,19 @@ if [ -z "$APP_CHECK" ]; then
     exit 1
 fi
 
-echo -e "${YELLOW}Step 1: Running npm rebuild...${NC}"
+# Check vite.config.js exists
+if [ ! -f "$VITE_CONFIG" ]; then
+    echo -e "${RED}Error: ${VITE_CONFIG} not found${NC}"
+    exit 1
+fi
+
+echo -e "${YELLOW}Step 1: Updating base path in ${VITE_CONFIG}...${NC}"
+# Update the base path in vite.config.js
+# Matches: base: '/' or base: '/anything/'
+sed -i "s|base: '[^']*'|base: '${BASE_PATH}'|" "$VITE_CONFIG"
+echo -e "Set base to: ${BASE_PATH}"
+
+echo -e "${YELLOW}Step 2: Running npm rebuild...${NC}"
 npm run rebuild
 
 if [ ! -d "dist" ]; then
@@ -43,10 +87,10 @@ if [ ! -d "dist" ]; then
     exit 1
 fi
 
-echo -e "${YELLOW}Step 2: Creating deployment directory...${NC}"
+echo -e "${YELLOW}Step 3: Creating deployment directory...${NC}"
 sudo mkdir -p "${DEPLOY_DIR}"
 
-echo -e "${YELLOW}Step 3: Deploying to ${DEPLOY_DIR}...${NC}"
+echo -e "${YELLOW}Step 4: Deploying to ${DEPLOY_DIR}...${NC}"
 # Remove old files and copy new build
 sudo rm -rf "${DEPLOY_DIR:?}"/*
 sudo cp -r dist/* "${DEPLOY_DIR}/"
@@ -69,6 +113,7 @@ echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Deployment complete!${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo -e "Application deployed to: ${DEPLOY_DIR}"
+echo -e "Accessible at: https://longmanrd.net${BASE_PATH}"
 echo ""
 echo -e "${YELLOW}Note: You may need to reload nginx if this is a new deployment:${NC}"
 echo "  sudo systemctl reload nginx"
