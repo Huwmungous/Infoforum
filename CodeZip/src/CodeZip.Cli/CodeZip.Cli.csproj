@@ -14,11 +14,11 @@
     <Version>1.0.0</Version>
     <PackageId>CodeZip.Cli</PackageId>
     <Description>Source-only zip creator for Delphi, C#, React, and Angular projects</Description>
-    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <ApplicationIcon>if-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="favicon.ico" />
+    <Content Include="if-icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
