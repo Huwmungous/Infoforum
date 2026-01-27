@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => ({
 
   // No static base - the appDomain in /{appDomain}/tokens/ is dynamic
   // The app extracts appDomain from the URL at runtime
-  base: '/',
+  base: '/infoforum/tokens/',
 
   resolve: {
     dedupe: ['react', 'react-dom']
