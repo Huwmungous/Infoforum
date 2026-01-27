@@ -42,7 +42,7 @@ export class IfLogger {
   private static initialDelayTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private static readonly MAX_RETRIES = 3;
   private static readonly RETRY_DELAY_MS = 2000;  // Wait 2 seconds before retry
-  private static readonly INITIAL_DELAY_MS = 2500;  // Wait for auth to initialise
+  private static readonly INITIAL_DELAY_MS = 1000;  // Wait for auth to initialise
 
   constructor(
     private categoryName: string,
