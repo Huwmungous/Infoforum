@@ -50,3 +50,4 @@ node_modules
 /IF.WebServices/SampleWebService/obj
 .vs
 /IF.Web.Common/dist
+/IFLogViewer/dist
