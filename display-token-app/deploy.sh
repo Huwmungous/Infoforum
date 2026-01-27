@@ -109,6 +109,12 @@ fi
 sudo chown -R "${NGINX_USER}:${NGINX_USER}" "${DEPLOY_DIR}"
 sudo chmod -R 755 "${DEPLOY_DIR}"
 
+# Fix SELinux context for nginx access
+if command -v restorecon &>/dev/null; then
+    echo -e "${YELLOW}Step 5: Restoring SELinux context...${NC}"
+    sudo restorecon -Rv "${DEPLOY_DIR}"
+fi
+
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}Deployment complete!${NC}"
 echo -e "${GREEN}========================================${NC}"
