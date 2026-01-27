@@ -11,7 +11,7 @@ public sealed class ZipCommand : Command<ZipSettings>
     {
         var path = Path.GetFullPath(settings.Path);
 
-        if (!Directory.Exists(path))
+        if(!Directory.Exists(path))
         {
             AnsiConsole.MarkupLine($"[red]Error:[/] Directory not found: {path}");
             return 1;
@@ -20,7 +20,7 @@ public sealed class ZipCommand : Command<ZipSettings>
         var config = CodeZipConfig.Load();
         var zipper = new SourceZipper(config);
 
-        if (settings.DryRun)
+        if(settings.DryRun)
             return ExecuteDryRun(path, zipper, settings.Verbose);
 
         return ExecuteZip(path, zipper, config, settings);
@@ -43,13 +43,13 @@ public sealed class ZipCommand : Command<ZipSettings>
 
         AnsiConsole.Write(table);
 
-        if (verbose && included.Count > 0)
+        if(verbose && included.Count > 0)
         {
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[blue]Files to include:[/]");
-            foreach (var file in included.Take(100))
+            foreach(var file in included.Take(100))
                 AnsiConsole.MarkupLine($"  [grey]{file}[/]");
-            if (included.Count > 100)
+            if(included.Count > 100)
                 AnsiConsole.MarkupLine($"  [grey]... and {included.Count - 100} more[/]");
         }
 
@@ -65,7 +65,7 @@ public sealed class ZipCommand : Command<ZipSettings>
         var result = AnsiConsole.Status().Start("Processing...", ctx =>
             zipper.CreateZip(path, settings.NoPrune, msg => ctx.Status(msg)));
 
-        if (!result.Success)
+        if(!result.Success)
         {
             AnsiConsole.MarkupLine($"[red]Error:[/] {result.ErrorMessage}");
             return 1;
@@ -75,7 +75,7 @@ public sealed class ZipCommand : Command<ZipSettings>
         table.AddColumn("Result");
         table.AddColumn("Value");
 
-        if (result.PrunedFileCount > 0)
+        if(result.PrunedFileCount > 0)
             table.AddRow("[yellow]Pruned[/]", $"{result.PrunedFileCount} expired zip(s)");
 
         table.AddRow("Project Types", ProjectDetector.GetDescription(result.DetectedTypes));
@@ -87,15 +87,22 @@ public sealed class ZipCommand : Command<ZipSettings>
 
         AnsiConsole.Write(table);
 
-        if (!settings.NoClipboard && result.ZipFilePath != null)
+        if(!settings.NoClipboard && result.ZipFilePath != null)
         {
             try
             {
-                ClipboardService.SetText(result.ZipFilePath);
+                // Use async clipboard with timeout to prevent hanging in non-interactive contexts
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                var clipboardTask = ClipboardService.SetTextAsync(result.ZipFilePath, cts.Token);
+                clipboardTask.Wait(cts.Token);
                 AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[green]âœ“[/] Path copied to clipboard");
+                AnsiConsole.MarkupLine("[green]✓[/] Path copied to clipboard");
             }
-            catch (Exception ex)
+            catch(OperationCanceledException)
+            {
+                // Clipboard timed out - silently skip (common in non-interactive contexts)
+            }
+            catch(Exception ex)
             {
                 AnsiConsole.MarkupLine($"[yellow]Warning:[/] Could not copy to clipboard: {ex.Message}");
             }
@@ -109,7 +116,7 @@ public sealed class ZipCommand : Command<ZipSettings>
         string[] suffixes = ["B", "KB", "MB", "GB"];
         var order = 0;
         var size = (double)bytes;
-        while (size >= 1024 && order < suffixes.Length - 1) { order++; size /= 1024; }
+        while(size >= 1024 && order < suffixes.Length - 1) { order++; size /= 1024; }
         return $"{size:0.##} {suffixes[order]}";
     }
 }

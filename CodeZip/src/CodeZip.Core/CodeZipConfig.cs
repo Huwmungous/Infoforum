@@ -28,7 +28,7 @@ public sealed class CodeZipConfig
     /// <summary>
     /// Gets or sets the number of days to retain zip files before pruning.
     /// </summary>
-    public int RetentionDays { get; set; } = 2;
+    public int RetentionDays { get; set; } = 1;
 
     /// <summary>
     /// Gets or sets whether to automatically prune old zip files on each run.
@@ -66,7 +66,7 @@ public sealed class CodeZipConfig
     /// </summary>
     public static CodeZipConfig Load()
     {
-        if (!File.Exists(ConfigFilePath))
+        if(!File.Exists(ConfigFilePath))
         {
             var defaultConfig = new CodeZipConfig();
             defaultConfig.Save();
@@ -90,7 +90,7 @@ public sealed class CodeZipConfig
     public void Save()
     {
         var directory = Path.GetDirectoryName(ConfigFilePath);
-        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        if(!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
