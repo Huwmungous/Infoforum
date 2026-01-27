@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext, useAuth } from '@if/web-common-react';
+import logo from '/IF-Logo.png';
 
 /**
  * TokenDisplay component
@@ -7,7 +8,7 @@ import { useAppContext, useAuth } from '@if/web-common-react';
  */
 
 // At the top of Tokendisplay.jsx
-const logo = new URL('/IF-Logo.png', import.meta.url).href;
+
  
 const TokenDisplay = () => {
   const { createLogger } = useAppContext();
