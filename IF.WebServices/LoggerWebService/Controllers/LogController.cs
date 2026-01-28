@@ -8,7 +8,7 @@ using IFGlobal.Logging;
 namespace LoggerWebService.Controllers;
 
 /// <summary>
-/// Controller for log entry operations.aaa
+/// Controller for log entry operations.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -22,7 +22,7 @@ public class LogController(
     /// </summary>
     /// <param name="request">The log entry to create.</param>
     /// <returns>The created log entry index.</returns>
-    [HttpPost("")] 
+    [HttpPost("api/logs")]
     [ProducesResponseType(typeof(LogCreatedResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
@@ -43,7 +43,7 @@ public class LogController(
                 new { idx },
                 new LogCreatedResponse(idx, "Log entry created successfully"));
         }
-        catch (ArgumentException ex)
+        catch(ArgumentException ex)
         {
             logger.LogWarning(ex, "Invalid log entry request");
             return BadRequest(new ProblemDetails
@@ -53,7 +53,7 @@ public class LogController(
                 Status = StatusCodes.Status400BadRequest
             });
         }
-        catch (PostgresException ex)
+        catch(PostgresException ex)
         {
             logger.LogError(ex, "Database error creating log entry");
             return Problem(
@@ -75,7 +75,7 @@ public class LogController(
     {
         var logEntry = await service.GetLogEntryAsync(idx);
 
-        if (logEntry is null)
+        if(logEntry is null)
         {
             return NotFound();
         }
@@ -115,7 +115,7 @@ public class LogController(
             var logs = await service.SearchLogEntriesAsync(request);
             return Ok(logs);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             logger.LogError(ex, "Error searching logs");
             return Problem(
@@ -141,7 +141,7 @@ public class LogController(
             var logs = await service.AdvancedSearchLogEntriesAsync(request);
             return Ok(logs);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             logger.LogError(ex, "Error in advanced search");
             return Problem(

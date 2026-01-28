@@ -252,7 +252,10 @@ export class IfLogger {
       const { _retryCount, ...cleanEntry } = logEntry;
 
       const loggerUrl = this.getEffectiveLoggerUrl();
-      const response = await fetch(loggerUrl, {
+      // Append /api/logs to the logger service URL
+      const postUrl = `${loggerUrl.replace(/\/$/, '')}/api/logs`;
+      
+      const response = await fetch(postUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
