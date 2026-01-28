@@ -14,6 +14,8 @@ export interface AuthConfig {
   // Direct OIDC configuration (alternative to oidcConfigUrl)
   authority?: string; // Optional - will use ConfigService.OpenIdConfig if not provided
   metadata?: any;
+  // When true (default), automatically redirect to login when session expires
+  redirectToLoginOnSessionExpiry?: boolean;
 }
 
 export type UserChangeCallback = (user: User | null) => void;
@@ -34,9 +36,7 @@ class AuthService {
 
   // --- Renewal failure cooldown ---
   private renewalFailureCount: number = 0;
-  private renewalCooldownUntil: number = 0;
   private readonly maxRenewalFailures: number = 3;
-  private readonly renewalCooldownMs: number = 30000; // 30 seconds cooldown after failures
 
   // Private constructor prevents direct instantiation
   private constructor() {}
@@ -104,7 +104,7 @@ class AuthService {
         authority: metadata.issuer,
         client_id: clientId,
         redirect_uri: config.redirectUri,
-        scope: config.scope || 'openid profile email',
+        scope: config.scope || 'openid profile email offline_access',
         response_type: 'code',
         post_logout_redirect_uri: config.postLogoutRedirectUri || config.redirectUri,
         automaticSilentRenew: config.automaticSilentRenew !== false,
@@ -118,7 +118,7 @@ class AuthService {
         authority: authority,
         client_id: clientId,
         redirect_uri: config.redirectUri,
-        scope: config.scope || 'openid profile email',
+        scope: config.scope || 'openid profile email offline_access',
         response_type: 'code',
         post_logout_redirect_uri: config.postLogoutRedirectUri || config.redirectUri,
         automaticSilentRenew: config.automaticSilentRenew !== false,
@@ -141,10 +141,18 @@ class AuthService {
 
     this.userManager.events.addAccessTokenExpired(async () => {
       this.logger.warn('Access token has expired');
-      // If we’re in storm mode, we intentionally stopped auto-renew; treat expiry as “session ended”.
+      // If we're in storm mode, we intentionally stopped auto-renew; treat expiry as "session ended".
       if (this.endOfSessionStormMode) {
         await this.userManager?.removeUser();
         this.notifyUserChange(null);
+        
+        // Redirect to login if configured (default: true)
+        if (this.config?.redirectToLoginOnSessionExpiry !== false) {
+          this.logger.info('Session expired. Redirecting to login...');
+          this.signin().catch(err => {
+            this.logger.error('Failed to redirect to login', err);
+          });
+        }
         return;
       }
 
@@ -163,23 +171,32 @@ class AuthService {
         this.logger.warn('Silent renew failed near end-of-session; auto-renew is disabled to prevent refresh storms');
       }
 
-      // After maxRenewalFailures, stop trying for a cooldown period
+      // After maxRenewalFailures, session has expired - redirect to login
       if (this.renewalFailureCount >= this.maxRenewalFailures) {
-        this.renewalCooldownUntil = Date.now() + this.renewalCooldownMs;
         this.userManager?.stopSilentRenew();
         this.logger.warn(
-          `Silent renewal failed ${this.renewalFailureCount} times. ` +
-          `Pausing renewal attempts for ${this.renewalCooldownMs / 1000}s. User may need to re-authenticate.`
+          `Silent renewal failed ${this.renewalFailureCount} times. Session has expired.`
         );
         
-        // Schedule re-enabling after cooldown
-        setTimeout(() => {
-          if (Date.now() >= this.renewalCooldownUntil) {
-            this.renewalFailureCount = 0;
-            this.userManager?.startSilentRenew();
-            this.logger.info('Silent renewal re-enabled after cooldown period');
-          }
-        }, this.renewalCooldownMs);
+        // Check if we should redirect to login (default: true)
+        const shouldRedirect = this.config?.redirectToLoginOnSessionExpiry !== false;
+        
+        if (shouldRedirect) {
+          this.logger.info('Session expired. Redirecting to login...');
+          // Clear the user session - this will trigger ProtectedRoute to redirect
+          this.userManager?.removeUser().then(() => {
+            this.notifyUserChange(null);
+            // Initiate sign-in redirect
+            this.signin().catch(err => {
+              this.logger.error('Failed to redirect to login', err);
+            });
+          });
+        } else {
+          // Just clear the session without redirect
+          this.userManager?.removeUser().then(() => {
+            this.notifyUserChange(null);
+          });
+        }
       }
     });
 
