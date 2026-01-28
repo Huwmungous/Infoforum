@@ -32,6 +32,12 @@ class AuthService {
   private endOfSessionStormLogged: boolean = false;
   private silentRenewStoppedByStorm: boolean = false;
 
+  // --- Renewal failure cooldown ---
+  private renewalFailureCount: number = 0;
+  private renewalCooldownUntil: number = 0;
+  private readonly maxRenewalFailures: number = 3;
+  private readonly renewalCooldownMs: number = 30000; // 30 seconds cooldown after failures
+
   // Private constructor prevents direct instantiation
   private constructor() {}
   
@@ -147,17 +153,39 @@ class AuthService {
     });
 
     this.userManager.events.addSilentRenewError((error) => {
-      // In storm mode we expect “invalid_grant” etc. near session end; log once to avoid hammering logs.
+      this.renewalFailureCount++;
+      
+      // In storm mode we expect "invalid_grant" etc. near session end; log once to avoid hammering logs.
       if (!this.endOfSessionStormMode) {
-        this.logger.error('Silent token renewal failed', error);
+        this.logger.error('Silent token renewal failed');
       } else if (!this.endOfSessionStormLogged) {
         this.endOfSessionStormLogged = true;
-        this.logger.warn('Silent renew failed near end-of-session; auto-renew is disabled to prevent refresh storms', error);
+        this.logger.warn('Silent renew failed near end-of-session; auto-renew is disabled to prevent refresh storms');
+      }
+
+      // After maxRenewalFailures, stop trying for a cooldown period
+      if (this.renewalFailureCount >= this.maxRenewalFailures) {
+        this.renewalCooldownUntil = Date.now() + this.renewalCooldownMs;
+        this.userManager?.stopSilentRenew();
+        this.logger.warn(
+          `Silent renewal failed ${this.renewalFailureCount} times. ` +
+          `Pausing renewal attempts for ${this.renewalCooldownMs / 1000}s. User may need to re-authenticate.`
+        );
+        
+        // Schedule re-enabling after cooldown
+        setTimeout(() => {
+          if (Date.now() >= this.renewalCooldownUntil) {
+            this.renewalFailureCount = 0;
+            this.userManager?.startSilentRenew();
+            this.logger.info('Silent renewal re-enabled after cooldown period');
+          }
+        }, this.renewalCooldownMs);
       }
     });
 
     this.userManager.events.addUserLoaded((user) => {
       this.logger.debug('User loaded/renewed');
+      this.renewalFailureCount = 0; // Reset failure count on successful load/renewal
       this.applyEndOfSessionStormSuppression(user);
       this.notifyUserChange(user);
     });
@@ -241,6 +269,7 @@ class AuthService {
       this.endOfSessionStormMode = false;
       this.endOfSessionStormLogged = false;
       this.silentRenewStoppedByStorm = false;
+      this.renewalFailureCount = 0;
       this.userManager.startSilentRenew();
       this.logger.info('Automatic silent renew re-enabled after interactive sign-in');
     }
@@ -268,6 +297,7 @@ class AuthService {
     this.endOfSessionStormMode = false;
     this.endOfSessionStormLogged = false;
     this.silentRenewStoppedByStorm = false;
+    this.renewalFailureCount = 0;
   }
 
   async renewToken(): Promise<User> {
@@ -313,6 +343,7 @@ class AuthService {
     this.endOfSessionStormMode = false;
     this.endOfSessionStormLogged = false;
     this.silentRenewStoppedByStorm = false;
+    this.renewalFailureCount = 0;
   }
 
   async completeSilentSignin(): Promise<void> {
