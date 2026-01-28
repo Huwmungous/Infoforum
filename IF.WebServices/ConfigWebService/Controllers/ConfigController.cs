@@ -89,7 +89,7 @@ public class ConfigController(
             if (entry is null)
             {
                 logger.LogWarning(
-                    "Bootstrap configuration not found or disabled for appDomain={AppDomain}, requestedBy={AppName}",
+                    "{AppDomain}.{AppName} requested bootstrap config - not found or disabled",
                     appDomain, appName);
                 return NotFound(new ErrorResponse
                 {
@@ -100,7 +100,7 @@ public class ConfigController(
             if (entry.Config is null)
             {
                 logger.LogWarning(
-                    "Config is null for bootstrap record, appDomain={AppDomain}, requestedBy={AppName}",
+                    "{AppDomain}.{AppName} requested bootstrap config - config is null",
                     appDomain, appName);
                 return NotFound(new ErrorResponse
                 {
@@ -109,8 +109,8 @@ public class ConfigController(
             }
 
             logger.LogInformation(
-                "Returning bootstrap config for appDomain={AppDomain}, type={Type}, requestedBy={AppName}",
-                appDomain, type, appName);
+                "{AppDomain}.{AppName} ({Type}) requested bootstrap config",
+                appDomain, appName, type);
 
             var configJson = entry.Config.RootElement;
             
@@ -144,8 +144,8 @@ public class ConfigController(
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error retrieving bootstrap configuration for appDomain={AppDomain}, type={Type}, requestedBy={AppName}",
-                appDomain, type, appName);
+                "{AppDomain}.{AppName} ({Type}) requested bootstrap config - error occurred",
+                appDomain, appName, type);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }
@@ -163,8 +163,8 @@ public class ConfigController(
             if (entry is null)
             {
                 logger.LogWarning(
-                    "Configuration entry not found or disabled for appDomain={AppDomain}, type={Type}, requestedBy={AppName}",
-                    appDomain, type, appName);
+                    "{AppDomain}.{AppName} ({Type}) requested config - entry not found or disabled",
+                    appDomain, appName, type);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Configuration not found for appDomain '{appDomain}', type '{type}'"
@@ -176,8 +176,8 @@ public class ConfigController(
             if (value is null)
             {
                 logger.LogWarning(
-                    "Configuration key '{ConfigKey}' not found for appDomain={AppDomain}, type={Type}, requestedBy={AppName}",
-                    configKey, appDomain, type, appName);
+                    "{AppDomain}.{AppName} ({Type}) requested config key '{ConfigKey}' - not found",
+                    appDomain, appName, type, configKey);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Configuration key '{configKey}' not found"
@@ -185,16 +185,16 @@ public class ConfigController(
             }
 
             logger.LogInformation(
-                "Returning config value for key={ConfigKey}, appDomain={AppDomain}, type={Type}, requestedBy={AppName}",
-                configKey, appDomain, type, appName);
+                "{AppDomain}.{AppName} ({Type}) requested config key '{ConfigKey}'",
+                appDomain, appName, type, configKey);
 
             return Ok(value.Value);
         }
         catch (Exception ex)
         {
             logger.LogError(ex,
-                "Error retrieving configuration for key={ConfigKey}, appDomain={AppDomain}, type={Type}, requestedBy={AppName}",
-                configKey, appDomain, type, appName);
+                "{AppDomain}.{AppName} ({Type}) requested config key '{ConfigKey}' - error occurred",
+                appDomain, appName, type, configKey);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }
