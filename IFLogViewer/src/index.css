@@ -671,7 +671,7 @@
 
 .hercules-line {
   display: flex;
-  gap: 8px;
+  gap: 3px;
   white-space: nowrap;
   padding: 1px 0;
   color: #33ff33;
@@ -691,9 +691,8 @@
 }
 
 .hercules-time {
-  color: #669966;
+  color: #33aa33;
   flex-shrink: 0;
-  width: 100px;
 }
 
 .hercules-level {
@@ -711,17 +710,8 @@
   25%, 75% { opacity: 0.2; }
 }
 
-.hercules-app {
-  color: #a0a0ff;
-  flex-shrink: 0;
-  margin-right: 4px;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hercules-category {
-  color: #4a9a4a;
+.hercules-source {
+  color: #33aa33;
   flex-shrink: 0;
   max-width: 400px;
   overflow: hidden;
