@@ -702,6 +702,15 @@
   text-align: center;
 }
 
+.hercules-app {
+  color: #4a9a4a;
+  flex-shrink: 0;
+  margin-right: 4px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .hercules-category {
   color: #4a9a4a;
   flex-shrink: 0;

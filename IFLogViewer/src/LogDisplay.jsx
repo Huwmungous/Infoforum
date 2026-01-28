@@ -311,6 +311,14 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   };
 
   // Render Hercules-style terminal for live logs
+  // Get just the class name from a fully-qualified category
+  const getShortCategory = (category) => {
+    if (!category) return 'System';
+    // Extract the last part after the final dot
+    const parts = category.split('.');
+    return parts[parts.length - 1];
+  };
+
   const renderHerculesTerminal = () => {
     const filteredLogs = logs.filter(showRow);
     
@@ -354,8 +362,11 @@ const LogDisplay = ({ loggerServiceUrl }) => {
               >
                 {getLevelChar(log.logData?.level)}
               </span>
+              <span className="hercules-app">
+                {log.logData?.application || log.logData?.serviceName || ''}
+              </span>
               <span className="hercules-category">
-                [{log.logData?.category || 'System'}]
+                [{getShortCategory(log.logData?.category)}]
               </span>
               <span className="hercules-message">
                 {log.logData?.message || ''}
