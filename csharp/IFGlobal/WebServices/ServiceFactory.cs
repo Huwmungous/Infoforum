@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using IFGlobal.Auth;
@@ -340,6 +341,24 @@ public static partial class ServiceFactory
         options.ConfigurePipeline?.Invoke(app, context);
 
         app.MapControllers();
+
+        // Register application lifecycle events with service name
+        var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+        var hostname = Environment.MachineName;
+        
+        lifetime.ApplicationStarted.Register(() =>
+        {
+            var startupMessage = $"{serviceName} started on {hostname}:{port}";
+            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {startupMessage}");
+            sfdLogger?.LogInformation(startupMessage);
+        });
+        
+        lifetime.ApplicationStopping.Register(() =>
+        {
+            var stoppingMessage = $"{serviceName} is shutting down on {hostname}:{port}";
+            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {stoppingMessage}");
+            sfdLogger?.LogInformation(stoppingMessage);
+        });
 
         LogServiceStarting(bootstrapLogger, serviceName, port);
         LogConfigServiceDetails(bootstrapLogger, configService.ClientId, configService.Realm);
