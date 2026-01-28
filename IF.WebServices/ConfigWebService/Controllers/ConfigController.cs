@@ -139,7 +139,11 @@ public class ConfigController(
                 ["openIdConfig"] = configJson.TryGetProperty("openIdConfig", out var openIdConfig) 
                     ? openIdConfig.GetString() : null,
                 ["loggerService"] = configJson.TryGetProperty("loggerService", out var loggerService) 
-                    ? loggerService.GetString() : null
+                    ? loggerService.GetString() : null,
+                ["logLevel"] = configJson.TryGetProperty("logLevel", out var logLevel) 
+                    ? logLevel.GetString() 
+                    : (configJson.TryGetProperty("LogLevel", out var logLevelAlt) 
+                        ? logLevelAlt.GetString() : "Information")
             };
 
             return Ok(response);
