@@ -28,7 +28,8 @@ export default defineConfig(({ command, mode }) => {
         '/logger': {
           target: 'https://longmanrd.net',
           changeOrigin: true,
-          secure: true
+          secure: true,
+          ws: true  // Enable WebSocket proxying for SignalR
         }
       }
     }

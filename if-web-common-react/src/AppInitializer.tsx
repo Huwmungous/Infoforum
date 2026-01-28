@@ -194,9 +194,22 @@ export function AppInitializer({
         await LoggerService.configureFromConfigService();
         console.log('AppInitializer: LoggerService configured from ConfigService');
 
+        // Log app launching event
+        const appLogger = LoggerService.create('AppInitializer');
+        appLogger.info(`Application launching: ${ConfigService.AppName} (${ConfigService.Environment})`);
+
         setState({ ready: true, error: null });
       } catch (err: any) {
         console.error('AppInitializer: Failed to initialize ConfigService:', err);
+        
+        // Try to log the failure if LoggerService is available
+        try {
+          const appLogger = LoggerService.create('AppInitializer');
+          appLogger.error(`Application failed to initialize: ${err.message}`, err);
+        } catch {
+          // LoggerService not available yet, console.error already logged
+        }
+        
         setState({ ready: false, error: err.message || 'Failed to initialize configuration' });
       }
     };

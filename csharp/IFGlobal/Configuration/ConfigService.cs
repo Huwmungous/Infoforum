@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace IFGlobal.Configuration;
 
 public partial class ConfigService(
-    IOptions<SfdConfiguration> options,
+    IOptions<IFConfiguration> options,
     IHttpClientFactory httpClientFactory,
     ILogger<ConfigService> logger) : IConfigService
 {
@@ -14,7 +14,7 @@ public partial class ConfigService(
         PropertyNameCaseInsensitive = true
     };
 
-    private readonly SfdConfiguration _config = options.Value;
+    private readonly IFConfiguration _config = options.Value;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly ILogger<ConfigService> _logger = logger;
     private BootstrapConfig? _bootstrapConfig;
@@ -93,7 +93,9 @@ public partial class ConfigService(
 
             // Bootstrap always uses "service" type - the service needs service credentials
             // to fetch configuration. AppType only affects the ClientId for JWT validation.
-            var url = $"{_config.ConfigService}/Config?cfg=bootstrap&type=service&appDomain={_config.AppDomain}";
+            // Include ServiceName for diagnostic logging on ConfigWebService.
+            var serviceName = Uri.EscapeDataString(_config.ServiceName);
+            var url = $"{_config.ConfigService}/Config?cfg=bootstrap&type=service&appDomain={_config.AppDomain}&app={serviceName}";
 
             LogFetchingBootstrapConfigFromService(_logger, url);
 
@@ -201,7 +203,9 @@ public partial class ConfigService(
         try
         {
             // Config fetches always use "service" type - we're authenticated as a service
-            var url = $"{_config.ConfigService}/Config?cfg={configName}&type=service&appDomain={_config.AppDomain}";
+            // Include ServiceName for diagnostic logging on ConfigWebService.
+            var serviceName = Uri.EscapeDataString(_config.ServiceName);
+            var url = $"{_config.ConfigService}/Config?cfg={configName}&type=service&appDomain={_config.AppDomain}&app={serviceName}";
 
             LogFetchingConfigFromService(_logger, configName, url);
 

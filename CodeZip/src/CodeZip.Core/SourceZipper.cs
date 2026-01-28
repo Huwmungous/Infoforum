@@ -16,21 +16,21 @@ public sealed class SourceZipper
 
     public ZipResult CreateZip(string sourcePath, bool skipPrune = false, Action<string>? progress = null)
     {
-        if (!Directory.Exists(sourcePath))
+        if(!Directory.Exists(sourcePath))
             return ZipResult.Failed($"Source directory does not exist: {sourcePath}");
 
-        if (!Directory.Exists(_config.OutputDirectory))
+        if(!Directory.Exists(_config.OutputDirectory))
         {
             try { Directory.CreateDirectory(_config.OutputDirectory); }
-            catch (Exception ex) { return ZipResult.Failed($"Failed to create output directory: {ex.Message}"); }
+            catch(Exception ex) { return ZipResult.Failed($"Failed to create output directory: {ex.Message}"); }
         }
 
         var prunedCount = 0;
-        if (_config.PruneOnRun && !skipPrune)
+        if(_config.PruneOnRun && !skipPrune)
         {
             progress?.Invoke("Pruning old zip files...");
             prunedCount = ZipPruner.PruneOldZips(_config.OutputDirectory, _config.RetentionDays);
-            if (prunedCount > 0) progress?.Invoke($"Pruned {prunedCount} expired zip file(s)");
+            if(prunedCount > 0) progress?.Invoke($"Pruned {prunedCount} expired zip file(s)");
         }
 
         progress?.Invoke("Detecting project types...");
@@ -47,7 +47,7 @@ public sealed class SourceZipper
         progress?.Invoke("Scanning files...");
         var (filesToInclude, excludedFileCount, excludedDirCount) = CollectFiles(sourcePath, exclusionRules);
 
-        if (filesToInclude.Count == 0)
+        if(filesToInclude.Count == 0)
             return ZipResult.Failed("No source files found to zip after applying exclusions.");
 
         progress?.Invoke($"Found {filesToInclude.Count} source files ({excludedFileCount} files, {excludedDirCount} directories excluded)");
@@ -61,16 +61,16 @@ public sealed class SourceZipper
             return ZipResult.Succeeded(zipFilePath, filesToInclude.Count, zipInfo.Length,
                 projectTypes, excludedFileCount, excludedDirCount, prunedCount);
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
-            if (File.Exists(zipFilePath)) try { File.Delete(zipFilePath); } catch { }
+            if(File.Exists(zipFilePath)) try { File.Delete(zipFilePath); } catch { }
             return ZipResult.Failed($"Failed to create zip: {ex.Message}");
         }
     }
 
     public (List<string> Included, int ExcludedFiles, int ExcludedDirs, ProjectType Types) DryRun(string sourcePath)
     {
-        if (!Directory.Exists(sourcePath)) return ([], 0, 0, ProjectType.None);
+        if(!Directory.Exists(sourcePath)) return ([], 0, 0, ProjectType.None);
 
         var projectTypes = ProjectDetector.DetectProjectTypes(sourcePath);
         var exclusionRules = new ExclusionRules(projectTypes, _config);
@@ -90,34 +90,29 @@ public sealed class SourceZipper
         {
             try
             {
-                foreach (var file in Directory.GetFiles(directory))
+                foreach(var file in Directory.GetFiles(directory))
                 {
-                    if (rules.ShouldExcludeFile(Path.GetFileName(file))) excludedFileCount++;
+                    if(rules.ShouldExcludeFile(Path.GetFileName(file))) excludedFileCount++;
                     else files.Add(file);
                 }
 
-                foreach (var subDir in Directory.GetDirectories(directory))
+                foreach(var subDir in Directory.GetDirectories(directory))
                 {
                     var dirName = new DirectoryInfo(subDir).Name;
-                    if (rules.ShouldExcludeDirectory(dirName))
+                    if(rules.ShouldExcludeDirectory(dirName))
                     {
                         excludedDirCount++;
-                        excludedFileCount += CountFilesRecursive(subDir);
+                        // Skip expensive recursive file counting for excluded directories
+                        // (node_modules alone can have 50,000+ files and take minutes to enumerate)
                     }
                     else ScanDirectory(subDir);
                 }
             }
-            catch (UnauthorizedAccessException) { }
+            catch(UnauthorizedAccessException) { }
         }
 
         ScanDirectory(rootPath);
         return (files, excludedFileCount, excludedDirCount);
-    }
-
-    private static int CountFilesRecursive(string directory)
-    {
-        try { return Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length; }
-        catch { return 0; }
     }
 
     private static void CreateZipArchive(string rootPath, string zipFilePath, List<string> files, Action<string>? progress)
@@ -129,7 +124,7 @@ public sealed class SourceZipper
         var processedCount = 0;
         var lastProgressUpdate = 0;
 
-        foreach (var file in files)
+        foreach(var file in files)
         {
             var fullPath = Path.GetFullPath(file);
             var relativePath = fullPath[rootPathNormalized.Length..];
@@ -138,7 +133,7 @@ public sealed class SourceZipper
             archive.CreateEntryFromFile(file, entryName, CompressionLevel.Optimal);
             processedCount++;
 
-            if (progress != null && (processedCount - lastProgressUpdate >= 100 || processedCount == files.Count))
+            if(progress != null && (processedCount - lastProgressUpdate >= 100 || processedCount == files.Count))
             {
                 progress($"Compressed {processedCount}/{files.Count} files...");
                 lastProgressUpdate = processedCount;

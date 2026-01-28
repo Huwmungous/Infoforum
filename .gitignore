@@ -51,3 +51,4 @@ node_modules
 .vs
 /IF.Web.Common/dist
 /IFLogViewer/dist
+/IFLogViewer/package-lock.json

@@ -117,7 +117,8 @@ export class ConfigService {
   private static async performInitialization(params: ConfigServiceInitParams): Promise<void> {
     try {
       // Use appDomain to fetch bootstrap config - realm comes from the response
-      const url = `${params.configServiceUrl}/Config?cfg=bootstrap&type=${params.appType}&appDomain=${params.appDomain}`;
+      // Include app name for diagnostic logging on the server
+      const url = `${params.configServiceUrl}/Config?cfg=bootstrap&type=${params.appType}&appDomain=${params.appDomain}&app=${encodeURIComponent(params.appName)}`;
       this.logger.debug(`Fetching bootstrap configuration: ${url}`);
 
       console.log('ConfigService fetch URL:', url);

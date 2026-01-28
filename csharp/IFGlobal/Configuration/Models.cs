@@ -42,7 +42,7 @@ public class FlexibleLogLevelConverter : JsonConverter<string>
     }
 }
 
-public class SfdConfiguration
+public class IFConfiguration
 {
     public const string SectionName = "IF";
 
@@ -60,5 +60,17 @@ public class SfdConfiguration
     /// </summary>
     public string? ClientSecret { get; set; }
 
+    /// <summary>
+    /// Name of the service/application making config requests.
+    /// Used for diagnostic logging on the ConfigWebService.
+    /// </summary>
+    public string ServiceName { get; set; } = "Unknown";
+
     public AuthType AppType { get; set; } = AuthType.User;
 }
+
+/// <summary>
+/// Backwards compatibility alias for IFConfiguration.
+/// </summary>
+[Obsolete("Use IFConfiguration instead")]
+public class SfdConfiguration : IFConfiguration { }

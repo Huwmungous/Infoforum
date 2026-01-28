@@ -76,7 +76,7 @@ export function SigninCallback({
             await authService.signin();
             return;
           } catch (restartErr: any) {
-            callbackLogger.error('Failed to restart auth flow', restartErr);
+            callbackLogger.warn(`Failed to restart auth flow: ${restartErr.message}`, restartErr);
             setError('Authentication session expired. Please try again.');
             return;
           }
@@ -84,7 +84,7 @@ export function SigninCallback({
 
         // Non-recoverable errors: log and display to user
         console.error('Signin callback error:', err);
-        callbackLogger.error('Authentication failed', err);
+        callbackLogger.warn(`Authentication callback failed: ${err.message}`, err);
         setError(err.message);
       }
     };

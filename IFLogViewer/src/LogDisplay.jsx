@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { useAppContext, useAuth } from '@if/web-common-react';
 import { useTheme } from './context/ThemeContext.jsx';
@@ -31,8 +31,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const [maxLogs, setMaxLogs] = useState(100);
   const connectionRef = useRef(null);
   
-  // Ref for auto-scrolling the Hercules terminal
-  const terminalRef = useRef(null);
+  // Ref for auto-scrolling - points to the cursor at the bottom
+  const cursorRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
   // Use Vite proxy in dev mode to avoid CORS issues
@@ -56,7 +56,13 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     return response.json();
   };
 
-  const loadAllLogs = useCallback(async () => {
+  const scrollToBottom = useCallback(() => {
+    if (cursorRef.current) {
+      cursorRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+    }
+  }, []);
+
+  const loadAllLogs = useCallback(async (shouldScrollToBottom = false) => {
     if (!apiBase) {
       console.error('loggerServiceUrl prop is required');
       return;
@@ -72,8 +78,12 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       setError(err.message);
     } finally {
       setLoading(false);
+      // Scroll to bottom AFTER loading is complete (DOM will update on next tick)
+      if (shouldScrollToBottom) {
+        setTimeout(scrollToBottom, 100);
+      }
     }
-  }, [apiBase, maxLogs]);
+  }, [apiBase, maxLogs, scrollToBottom]);
 
   // Load logs when authenticated
   useEffect(() => {
@@ -83,39 +93,21 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }
   }, [isAuthenticated, initialized, apiBase, loadAllLogs]);
 
-  // Auto-scroll when new logs arrive in live mode
-  useEffect(() => {
-    if (isRealTime && autoScroll && terminalRef.current) {
-      // Use requestAnimationFrame to ensure DOM has updated before scrolling
-      requestAnimationFrame(() => {
-        if (terminalRef.current) {
-          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-        }
-      });
+  // Auto-scroll to cursor when new logs arrive in live mode
+  // useLayoutEffect runs synchronously after DOM mutations
+  useLayoutEffect(() => {
+    if (isRealTime && autoScroll && !loading && cursorRef.current) {
+      cursorRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
     }
-  }, [logs, isRealTime, autoScroll]);
-
-  // Scroll to bottom immediately when entering live mode
-  useEffect(() => {
-    if (isRealTime && terminalRef.current) {
-      // Small delay to ensure terminal is rendered with content
-      const timer = setTimeout(() => {
-        if (terminalRef.current) {
-          terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isRealTime]);
+  }, [logs, isRealTime, autoScroll, loading]);
 
   // Handle scroll to detect if user scrolled up (disable auto-scroll)
-  const handleTerminalScroll = () => {
-    if (terminalRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = terminalRef.current;
-      // If user is within 50px of bottom, re-enable auto-scroll
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-      setAutoScroll(isAtBottom);
-    }
+  const handleTerminalScroll = (e) => {
+    const el = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    // If user is within 50px of bottom, re-enable auto-scroll
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setAutoScroll(isAtBottom);
   };
 
   // Real-time connection management
@@ -163,7 +155,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       connectionRef.current = connection;
 
       // Handle incoming logs with trimming logic
-      connection.on('newlogentry', (log) => {
+      connection.on('NewLogEntry', (log) => {
         console.log('Log hub message received:', log);
         log._isNew = true;
         setLogs(prevLogs => {
@@ -198,8 +190,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         console.log('Connected to log stream');
         setIsConnected(true);
       } catch (err) {
-        console.error('Connection error:', err);
-        setError('Failed to connect to real-time log stream');
+        console.error('SignalR connection error:', err);
+        setError(`Failed to connect to real-time log stream: ${err.message || err}`);
       }
     };
 
@@ -246,8 +238,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const handleRealTimeToggle = (enabled) => {
     setIsRealTime(enabled);
     if (enabled) {
-      // When enabling real-time, load recent logs first
-      loadAllLogs();
+      // When enabling real-time, load recent logs and scroll to bottom
+      loadAllLogs(true);
       setAutoScroll(true);
     }
   };
@@ -335,8 +327,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
               className="hercules-scroll-btn"
               onClick={() => {
                 setAutoScroll(true);
-                if (terminalRef.current) {
-                  terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+                if (cursorRef.current) {
+                  cursorRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
                 }
               }}
             >
@@ -346,37 +338,39 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         </div>
         <div 
           className="hercules-terminal"
-          ref={terminalRef}
           onScroll={handleTerminalScroll}
         >
-          {filteredLogs.length === 0 ? (
-            <div className="hercules-waiting">
-              {isConnected ? '▌ Waiting for log entries...' : '▌ Connecting...'}
-            </div>
-          ) : (
-            filteredLogs.map((log, index) => (
-              <div 
-                key={log.idx || index} 
-                className={`hercules-line ${log._isNew ? 'hercules-new' : ''}`}
+          {filteredLogs.map((log, index) => (
+            <div 
+              key={log.idx || index} 
+              className={`hercules-line ${log._isNew ? 'hercules-new' : ''}`}
+            >
+              <span className="hercules-time">
+                {formatHerculesTime(log.createdAt)}
+              </span>
+              <span 
+                className="hercules-level"
+                style={{ color: getLevelColor(log.logData?.level) }}
               >
-                <span className="hercules-time">
-                  {formatHerculesTime(log.createdAt)}
-                </span>
-                <span 
-                  className="hercules-level"
-                  style={{ color: getLevelColor(log.logData?.level) }}
-                >
-                  {getLevelChar(log.logData?.level)}
-                </span>
-                <span className="hercules-category">
-                  [{log.logData?.category || 'System'}]
-                </span>
-                <span className="hercules-message">
-                  {log.logData?.message || ''}
-                </span>
-              </div>
-            ))
-          )}
+                {getLevelChar(log.logData?.level)}
+              </span>
+              <span className="hercules-category">
+                [{log.logData?.category || 'System'}]
+              </span>
+              <span className="hercules-message">
+                {log.logData?.message || ''}
+              </span>
+            </div>
+          ))}
+          {/* Blinking cursor line - always at bottom */}
+          <div className="hercules-cursor-line" ref={cursorRef}>
+            <span className="hercules-cursor">▌</span>
+            {filteredLogs.length === 0 && (
+              <span className="hercules-waiting-text">
+                {isConnected ? ' Waiting for log entries...' : ' Connecting...'}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     );

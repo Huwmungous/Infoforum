@@ -649,9 +649,24 @@
   animation: hercules-blink 1s infinite;
 }
 
+.hercules-cursor-line {
+  display: flex;
+  padding: 1px 0;
+  color: #33ff33;
+}
+
+.hercules-cursor {
+  color: #33ff33;
+  animation: hercules-blink 1s infinite step-end;
+}
+
+.hercules-waiting-text {
+  color: #669966;
+}
+
 @keyframes hercules-blink {
   0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0.3; }
+  51%, 100% { opacity: 0; }
 }
 
 .hercules-line {
@@ -690,7 +705,7 @@
 .hercules-category {
   color: #4a9a4a;
   flex-shrink: 0;
-  max-width: 200px;
+  max-width: 400px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

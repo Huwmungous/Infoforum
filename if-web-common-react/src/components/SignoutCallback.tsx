@@ -22,7 +22,7 @@ export function SignoutCallback({ redirectUrl = '/' }: SignoutCallbackProps) {
         await authService.completeSignout();
         window.location.replace(redirectUrl);
       } catch (err: any) {
-        logger.error('Signout callback error', err);
+        logger.warn(`Signout callback failed: ${err.message}`, err);
         window.location.replace(redirectUrl);
       }
     };

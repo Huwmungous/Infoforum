@@ -89,8 +89,13 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
         }
       } catch (err: any) {
         console.error('AuthProvider: Failed to initialize auth:', err);
-        if (logger) {
-          logger.error('Failed to initialize authentication', err);
+        
+        // Try to log auth initialization failure
+        try {
+          const failLogger = LoggerService.create('AuthProvider');
+          failLogger.warn(`Authentication initialization failed: ${err.message}`, err);
+        } catch {
+          // Logger not available, console.error already logged
         }
         
         // FIXED: Atomic state update
@@ -123,7 +128,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
       setState(prev => ({ ...prev, error: null }));
       await authService.signin();
     } catch (err: any) {
-      logger?.error('User sign-in failed', err);
+      logger?.warn(`Sign-in redirect failed: ${err.message}`, err);
       setState(prev => ({ ...prev, error: err.message }));
       throw err;
     }

@@ -74,14 +74,15 @@ public static partial class ServiceFactory
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            [$"{SfdConfiguration.SectionName}:ConfigService"] = configServiceUrl,
-            [$"{SfdConfiguration.SectionName}:AppDomain"] = appDomain,
-            [$"{SfdConfiguration.SectionName}:AppType"] = authTypeString,
-            [$"{SfdConfiguration.SectionName}:ClientSecret"] = clientSecret
+            [$"{IFConfiguration.SectionName}:ConfigService"] = configServiceUrl,
+            [$"{IFConfiguration.SectionName}:AppDomain"] = appDomain,
+            [$"{IFConfiguration.SectionName}:AppType"] = authTypeString,
+            [$"{IFConfiguration.SectionName}:ClientSecret"] = clientSecret,
+            [$"{IFConfiguration.SectionName}:ServiceName"] = serviceName
         });
 
-        builder.Services.Configure<SfdConfiguration>(
-            builder.Configuration.GetSection(SfdConfiguration.SectionName));
+        builder.Services.Configure<IFConfiguration>(
+            builder.Configuration.GetSection(IFConfiguration.SectionName));
         builder.Services.AddHttpClient();
 
         var configService = await BootstrapConfigServiceAsync(builder);
@@ -394,18 +395,18 @@ public static partial class ServiceFactory
     private static async Task<ConfigService> BootstrapConfigServiceAsync(WebApplicationBuilder builder)
     {
         var tempServices = new ServiceCollection();
-        tempServices.Configure<SfdConfiguration>(
-            builder.Configuration.GetSection(SfdConfiguration.SectionName));
+        tempServices.Configure<IFConfiguration>(
+            builder.Configuration.GetSection(IFConfiguration.SectionName));
         tempServices.AddHttpClient();
         tempServices.AddLogging();
 
         using var tempProvider = tempServices.BuildServiceProvider();
 
-        var sfdOptions = tempProvider.GetRequiredService<IOptions<SfdConfiguration>>();
+        var ifOptions = tempProvider.GetRequiredService<IOptions<IFConfiguration>>();
         var httpClientFactory = tempProvider.GetRequiredService<IHttpClientFactory>();
         var configServiceLogger = tempProvider.GetRequiredService<ILogger<ConfigService>>();
 
-        var configService = new ConfigService(sfdOptions, httpClientFactory, configServiceLogger);
+        var configService = new ConfigService(ifOptions, httpClientFactory, configServiceLogger);
         await configService.InitializeAsync();
 
         return configService;
