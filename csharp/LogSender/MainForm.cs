@@ -1,5 +1,8 @@
+using System.Diagnostics;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
-using IFGlobal.Auth;
 using IFGlobal.Http;
 
 namespace LogSender;
@@ -10,14 +13,14 @@ public class MainForm : Form
     private GroupBox grpConnection = null!;
     private Label lblLoggerUrl = null!;
     private TextBox txtLoggerUrl = null!;
-    private Label lblAuthUrl = null!;
-    private TextBox txtAuthUrl = null!;
+    private Label lblAuthority = null!;
+    private TextBox txtAuthority = null!;
     private Label lblRealm = null!;
     private TextBox txtRealm = null!;
     private Label lblClientId = null!;
     private TextBox txtClientId = null!;
-    private Label lblClientSecret = null!;
-    private TextBox txtClientSecret = null!;
+    private Label lblRedirectPort = null!;
+    private NumericUpDown nudRedirectPort = null!;
     private Button btnAuthenticate = null!;
     private Label lblAuthStatus = null!;
 
@@ -44,6 +47,7 @@ public class MainForm : Form
     // State
     private string? _accessToken;
     private DateTime _tokenExpiry = DateTime.MinValue;
+    private HttpListener? _callbackListener;
 
     public MainForm()
     {
@@ -61,7 +65,7 @@ public class MainForm : Form
         {
             Text = "Connection",
             Location = new Point(12, 12),
-            Size = new Size(560, 175)
+            Size = new Size(560, 150)
         };
 
         lblLoggerUrl = new Label { Text = "Logger URL:", Location = new Point(10, 25), Size = new Size(75, 20) };
@@ -72,61 +76,63 @@ public class MainForm : Form
             Text = "https://longmanrd.net/logger"
         };
 
-        lblAuthUrl = new Label { Text = "Auth URL:", Location = new Point(10, 52), Size = new Size(75, 20) };
-        txtAuthUrl = new TextBox
+        lblAuthority = new Label { Text = "Authority:", Location = new Point(10, 52), Size = new Size(75, 20) };
+        txtAuthority = new TextBox
         {
             Location = new Point(90, 49),
             Size = new Size(455, 23),
             Text = "https://longmanrd.net/auth/realms/LongmanRd"
         };
 
-        lblRealm = new Label { Text = "Realm:", Location = new Point(10, 79), Size = new Size(75, 20) };
+        lblRealm = new Label { Text = "Realm:", Location = new Point(10, 79), Size = new Size(50, 20) };
         txtRealm = new TextBox
         {
-            Location = new Point(90, 76),
-            Size = new Size(150, 23),
+            Location = new Point(65, 76),
+            Size = new Size(120, 23),
             Text = "LongmanRd"
         };
 
-        lblClientId = new Label { Text = "Client ID:", Location = new Point(260, 79), Size = new Size(60, 20) };
+        lblClientId = new Label { Text = "Client ID:", Location = new Point(195, 79), Size = new Size(60, 20) };
         txtClientId = new TextBox
         {
-            Location = new Point(325, 76),
-            Size = new Size(220, 23),
-            Text = "infoforum-svc"
+            Location = new Point(260, 76),
+            Size = new Size(140, 23),
+            Text = "infoforum-user"
         };
 
-        lblClientSecret = new Label { Text = "Secret:", Location = new Point(10, 106), Size = new Size(75, 20) };
-        txtClientSecret = new TextBox
+        lblRedirectPort = new Label { Text = "Port:", Location = new Point(410, 79), Size = new Size(35, 20) };
+        nudRedirectPort = new NumericUpDown
         {
-            Location = new Point(90, 103),
-            Size = new Size(280, 23),
-            UseSystemPasswordChar = true
+            Location = new Point(450, 76),
+            Size = new Size(70, 23),
+            Minimum = 1024,
+            Maximum = 65535,
+            Value = 5050
         };
 
         btnAuthenticate = new Button
         {
-            Text = "Authenticate",
-            Location = new Point(380, 102),
-            Size = new Size(90, 25)
+            Text = "Login (Browser)",
+            Location = new Point(90, 110),
+            Size = new Size(120, 28)
         };
         btnAuthenticate.Click += BtnAuthenticate_Click;
 
         lblAuthStatus = new Label
         {
             Text = "Not authenticated",
-            Location = new Point(10, 140),
-            Size = new Size(535, 25),
+            Location = new Point(220, 115),
+            Size = new Size(325, 20),
             ForeColor = Color.Gray
         };
 
         grpConnection.Controls.AddRange(new Control[]
         {
             lblLoggerUrl, txtLoggerUrl,
-            lblAuthUrl, txtAuthUrl,
+            lblAuthority, txtAuthority,
             lblRealm, txtRealm,
             lblClientId, txtClientId,
-            lblClientSecret, txtClientSecret,
+            lblRedirectPort, nudRedirectPort,
             btnAuthenticate, lblAuthStatus
         });
 
@@ -136,7 +142,7 @@ public class MainForm : Form
         grpLogEntry = new GroupBox
         {
             Text = "Log Entry",
-            Location = new Point(12, 195),
+            Location = new Point(12, 170),
             Size = new Size(560, 195)
         };
 
@@ -224,8 +230,8 @@ public class MainForm : Form
         // ============================================
         txtStatus = new TextBox
         {
-            Location = new Point(12, 400),
-            Size = new Size(560, 110),
+            Location = new Point(12, 375),
+            Size = new Size(560, 135),
             Multiline = true,
             ReadOnly = true,
             ScrollBars = ScrollBars.Vertical,
@@ -242,9 +248,15 @@ public class MainForm : Form
         this.FormBorderStyle = FormBorderStyle.FixedSingle;
         this.MaximizeBox = false;
         this.StartPosition = FormStartPosition.CenterScreen;
-        this.Text = "Log Sender - IFGlobal";
+        this.Text = "Log Sender";
+        this.FormClosing += MainForm_FormClosing;
 
         this.ResumeLayout(false);
+    }
+
+    private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
+    {
+        _callbackListener?.Close();
     }
 
     private void Log(string message)
@@ -261,56 +273,240 @@ public class MainForm : Form
         txtStatus.ScrollToCaret();
     }
 
+    private void UpdateAuthStatus(string message, Color color)
+    {
+        if (InvokeRequired)
+        {
+            Invoke(() => UpdateAuthStatus(message, color));
+            return;
+        }
+        lblAuthStatus.Text = message;
+        lblAuthStatus.ForeColor = color;
+    }
+
     private async void BtnAuthenticate_Click(object? sender, EventArgs e)
     {
         try
         {
             btnAuthenticate.Enabled = false;
-            lblAuthStatus.Text = "Authenticating...";
-            lblAuthStatus.ForeColor = Color.Orange;
+            UpdateAuthStatus("Starting login...", Color.Orange);
 
-            var authUrl = txtAuthUrl.Text.Trim();
+            var authority = txtAuthority.Text.Trim();
             var clientId = txtClientId.Text.Trim();
-            var clientSecret = txtClientSecret.Text.Trim();
+            var port = (int)nudRedirectPort.Value;
+            var redirectUri = $"http://localhost:{port}/callback";
 
-            if (string.IsNullOrEmpty(clientSecret))
+            // Generate PKCE code verifier and challenge
+            var codeVerifier = GenerateCodeVerifier();
+            var codeChallenge = GenerateCodeChallenge(codeVerifier);
+
+            // Build authorization URL
+            var state = Guid.NewGuid().ToString("N");
+            var authUrl = $"{authority}/protocol/openid-connect/auth?" +
+                $"client_id={Uri.EscapeDataString(clientId)}&" +
+                $"redirect_uri={Uri.EscapeDataString(redirectUri)}&" +
+                $"response_type=code&" +
+                $"scope=openid&" +
+                $"state={state}&" +
+                $"code_challenge={codeChallenge}&" +
+                $"code_challenge_method=S256";
+
+            Log($"Starting PKCE login flow...");
+            Log($"Redirect URI: {redirectUri}");
+
+            // Start local HTTP listener for callback
+            _callbackListener?.Close();
+            _callbackListener = new HttpListener();
+            _callbackListener.Prefixes.Add($"http://localhost:{port}/");
+            
+            try
             {
-                MessageBox.Show("Please enter the client secret.", "Missing Secret",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                lblAuthStatus.Text = "Not authenticated";
-                lblAuthStatus.ForeColor = Color.Gray;
+                _callbackListener.Start();
+            }
+            catch (HttpListenerException ex)
+            {
+                Log($"Failed to start listener on port {port}: {ex.Message}");
+                Log("Try a different port or run as administrator.");
+                UpdateAuthStatus("Failed to start listener", Color.Red);
                 return;
             }
 
-            Log($"Authenticating as {clientId}...");
+            // Open browser for login
+            Log("Opening browser for login...");
+            Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
 
-            // Use IFGlobal's ServiceAuthenticator
-            _accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(
-                authUrl,
-                clientId,
-                clientSecret);
+            UpdateAuthStatus("Waiting for browser login...", Color.Orange);
 
-            // Token typically expires in 300 seconds, use 270 to be safe
-            _tokenExpiry = DateTime.UtcNow.AddSeconds(270);
+            // Wait for callback
+            var context = await _callbackListener.GetContextAsync();
+            var request = context.Request;
+            var response = context.Response;
 
-            // Configure AuthenticatedHttp with the token
-            AuthenticatedHttp.ConfigureWithToken(_accessToken);
+            // Parse callback
+            var query = request.Url?.Query?.TrimStart('?') ?? "";
+            var queryParams = ParseQueryString(query);
+            queryParams.TryGetValue("code", out var code);
+            queryParams.TryGetValue("state", out var returnedState);
+            queryParams.TryGetValue("error", out var error);
 
-            Log($"Authenticated successfully. Token expires at {_tokenExpiry:HH:mm:ss}");
-            lblAuthStatus.Text = $"Authenticated as {clientId}. Expires: {_tokenExpiry:HH:mm:ss}";
-            lblAuthStatus.ForeColor = Color.Green;
+            // Send response to browser
+            var responseHtml = error == null
+                ? "<html><body><h2>Login successful!</h2><p>You can close this window and return to LogSender.</p></body></html>"
+                : $"<html><body><h2>Login failed</h2><p>Error: {error}</p></body></html>";
+            
+            var buffer = Encoding.UTF8.GetBytes(responseHtml);
+            response.ContentLength64 = buffer.Length;
+            response.ContentType = "text/html";
+            await response.OutputStream.WriteAsync(buffer);
+            response.Close();
+
+            _callbackListener.Close();
+            _callbackListener = null;
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                Log($"Login failed: {error}");
+                UpdateAuthStatus($"Login failed: {error}", Color.Red);
+                return;
+            }
+
+            if (returnedState != state)
+            {
+                Log("State mismatch - possible CSRF attack");
+                UpdateAuthStatus("Security error: state mismatch", Color.Red);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(code))
+            {
+                Log("No authorization code received");
+                UpdateAuthStatus("No authorization code", Color.Red);
+                return;
+            }
+
+            Log("Authorization code received, exchanging for tokens...");
+
+            // Exchange code for tokens
+            var tokenUrl = $"{authority}/protocol/openid-connect/token";
+            using var httpClient = new HttpClient();
+            var tokenRequest = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "authorization_code",
+                ["client_id"] = clientId,
+                ["code"] = code,
+                ["redirect_uri"] = redirectUri,
+                ["code_verifier"] = codeVerifier
+            });
+
+            var tokenResponse = await httpClient.PostAsync(tokenUrl, tokenRequest);
+            var tokenBody = await tokenResponse.Content.ReadAsStringAsync();
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                Log($"Token exchange failed: {tokenResponse.StatusCode}");
+                Log(tokenBody);
+                UpdateAuthStatus("Token exchange failed", Color.Red);
+                return;
+            }
+
+            var tokenData = JsonSerializer.Deserialize<JsonElement>(tokenBody);
+            _accessToken = tokenData.GetProperty("access_token").GetString();
+            var expiresIn = tokenData.GetProperty("expires_in").GetInt32();
+
+            _tokenExpiry = DateTime.UtcNow.AddSeconds(expiresIn - 30);
+
+            // Configure AuthenticatedHttp
+            AuthenticatedHttp.ConfigureWithToken(_accessToken!);
+
+            // Try to get username from token
+            var username = GetUsernameFromToken(_accessToken!);
+
+            Log($"Login successful! Token expires in {expiresIn}s");
+            UpdateAuthStatus($"Logged in as {username}. Expires: {_tokenExpiry.ToLocalTime():HH:mm:ss}", Color.Green);
         }
         catch (Exception ex)
         {
             Log($"Auth error: {ex.Message}");
-            lblAuthStatus.Text = $"Error: {ex.Message}";
-            lblAuthStatus.ForeColor = Color.Red;
+            UpdateAuthStatus($"Error: {ex.Message}", Color.Red);
             _accessToken = null;
         }
         finally
         {
             btnAuthenticate.Enabled = true;
         }
+    }
+
+    private static string GenerateCodeVerifier()
+    {
+        var bytes = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        return Base64UrlEncode(bytes);
+    }
+
+    private static string GenerateCodeChallenge(string codeVerifier)
+    {
+        using var sha256 = SHA256.Create();
+        var hash = sha256.ComputeHash(Encoding.ASCII.GetBytes(codeVerifier));
+        return Base64UrlEncode(hash);
+    }
+
+    private static string Base64UrlEncode(byte[] input)
+    {
+        return Convert.ToBase64String(input)
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+    }
+
+    private static string GetUsernameFromToken(string token)
+    {
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length != 3) return "unknown";
+
+            var payload = parts[1];
+            // Add padding if needed
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+            payload = payload.Replace('-', '+').Replace('_', '/');
+
+            var json = Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+            var claims = JsonSerializer.Deserialize<JsonElement>(json);
+
+            if (claims.TryGetProperty("preferred_username", out var username))
+                return username.GetString() ?? "unknown";
+            if (claims.TryGetProperty("sub", out var sub))
+                return sub.GetString() ?? "unknown";
+
+            return "unknown";
+        }
+        catch
+        {
+            return "unknown";
+        }
+    }
+
+    private static Dictionary<string, string> ParseQueryString(string query)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrEmpty(query)) return result;
+
+        foreach (var part in query.Split('&'))
+        {
+            var keyValue = part.Split('=', 2);
+            if (keyValue.Length == 2)
+            {
+                var key = Uri.UnescapeDataString(keyValue[0]);
+                var value = Uri.UnescapeDataString(keyValue[1]);
+                result[key] = value;
+            }
+        }
+        return result;
     }
 
     private async void BtnSendLog_Click(object? sender, EventArgs e)
@@ -354,8 +550,8 @@ public class MainForm : Form
         {
             if (string.IsNullOrEmpty(_accessToken) || DateTime.UtcNow >= _tokenExpiry)
             {
-                Log("Not authenticated or token expired. Please authenticate first.");
-                MessageBox.Show("Please authenticate first.", "Not Authenticated",
+                Log("Not authenticated or token expired. Please login first.");
+                MessageBox.Show("Please login first.", "Not Authenticated",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -365,7 +561,6 @@ public class MainForm : Form
             var loggerUrl = txtLoggerUrl.Text.Trim().TrimEnd('/');
             var endpoint = $"{loggerUrl}/api/logs";
 
-            // Build log data matching the IFGlobal LogData structure
             var logData = new
             {
                 Timestamp = DateTime.UtcNow,
@@ -377,7 +572,6 @@ public class MainForm : Form
                 MachineName = Environment.MachineName
             };
 
-            // Build the request matching LogEntryRequest
             var request = new
             {
                 Realm = txtRealm.Text.Trim(),
@@ -390,7 +584,6 @@ public class MainForm : Form
 
             Log($"Sending {request.LogLevel}: {logData.Message}");
 
-            // Use IFGlobal's AuthenticatedHttp
             var response = await AuthenticatedHttp.PostAsync(endpoint, request);
 
             if (response.IsSuccessStatusCode)

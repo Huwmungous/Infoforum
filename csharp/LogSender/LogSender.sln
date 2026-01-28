@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogSender", "LogSender.csproj", "{965E8293-C235-2357-0D33-F2EFD5E28BA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{965E8293-C235-2357-0D33-F2EFD5E28BA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{965E8293-C235-2357-0D33-F2EFD5E28BA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{965E8293-C235-2357-0D33-F2EFD5E28BA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{965E8293-C235-2357-0D33-F2EFD5E28BA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {07AE0989-01DD-4166-8A62-C4A406F62882}
+	EndGlobalSection
+EndGlobal
