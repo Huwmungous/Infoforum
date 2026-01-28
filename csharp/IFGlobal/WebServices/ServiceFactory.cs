@@ -9,6 +9,7 @@ using IFGlobal.Auth;
 using IFGlobal.Config;
 using IFGlobal.Configuration;
 using IFGlobal.Extensions;
+using IFGlobal.Http;
 using IFGlobal.Logging;
 using IFGlobal.Models;
 
@@ -64,7 +65,7 @@ public static partial class ServiceFactory
         // Configuration from appsettings.json (IF: section)
         var configServiceUrl = GetConfigValue(builder, "IF:ConfigService");
         var appDomain = GetConfigValue(builder, "IF:AppDomain");
-        
+
         // ClientSecret is optional - only needed for Service AppType
         var clientSecret = GetOptionalConfigValue(builder, "IF:ClientSecret", "IF_CLIENTSECRET");
 
@@ -94,6 +95,10 @@ public static partial class ServiceFactory
         var accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(configService);
         LogAuthenticatedSuccessfully(bootstrapLogger, serviceName);
 
+        // Configure AuthenticatedHttp with the service access token
+        // This enables IFLogger and other components to make authenticated HTTP requests
+        AuthenticatedHttp.ConfigureWithToken(accessToken);
+
         // Fire-and-forget remote bootstrap log
         _ = LogBootstrapToRemoteAsync(
             configService.LoggerService,
@@ -105,7 +110,7 @@ public static partial class ServiceFactory
 
         // Database config from ConfigService
         object? databaseConfig = null;
-        if (!string.IsNullOrEmpty(options.DatabaseConfigName) && options.DatabaseConfigType != null)
+        if(!string.IsNullOrEmpty(options.DatabaseConfigName) && options.DatabaseConfigType != null)
         {
             var configName = options.DatabaseConfigName;
             LogFetchingConfig(bootstrapLogger, serviceName, configName);
@@ -119,7 +124,7 @@ public static partial class ServiceFactory
             var resultProperty = task.GetType().GetProperty("Result");
             databaseConfig = resultProperty!.GetValue(task);
 
-            if (databaseConfig == null)
+            if(databaseConfig == null)
             {
                 throw new InvalidOperationException($"Failed to fetch {options.DatabaseConfigName} configuration");
             }
@@ -142,7 +147,7 @@ public static partial class ServiceFactory
         builder.Logging.AddConsole();
 
         IFLogger? ifLogger = null;
-        if (options.UseIFLogger)
+        if(options.UseIFLogger)
         {
 #if DEBUG
             var loggerServiceUrl = builder.Configuration["ServiceUrls:LoggerService"]
@@ -202,7 +207,7 @@ public static partial class ServiceFactory
         // ============================================================================
         // AUTHENTICATION CONFIGURATION
         // ============================================================================
-        if (options.UseAuthentication)
+        if(options.UseAuthentication)
         {
             builder.Services.AddAuthentication(authOptions =>
             {
@@ -233,7 +238,7 @@ public static partial class ServiceFactory
 
         // Allow service-specific registrations
         options.ConfigureServices?.Invoke(builder.Services, context);
-        if (options.ConfigureServicesAsync != null)
+        if(options.ConfigureServicesAsync != null)
         {
             await options.ConfigureServicesAsync(builder.Services, context);
         }
@@ -255,7 +260,7 @@ public static partial class ServiceFactory
             });
 
             // Add Bearer token security definition when authentication is enabled
-            if (options.UseAuthentication)
+            if(options.UseAuthentication)
             {
                 c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
                 {
@@ -264,7 +269,7 @@ public static partial class ServiceFactory
                     In = Microsoft.OpenApi.ParameterLocation.Header,
                     Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey
                 });
-                
+
                 // Add operation filter to apply security to [Authorize] endpoints
                 c.OperationFilter<IFGlobal.Swagger.JwtSecurityOperationFilter>();
             }
@@ -272,9 +277,13 @@ public static partial class ServiceFactory
             options.ConfigureSwagger?.Invoke(c);
         });
 
-        if (options.UseSignalR)
+        if(options.UseSignalR)
         {
-            builder.Services.AddSignalR();
+            builder.Services.AddSignalR()
+                .AddJsonProtocol(jsonOptions =>
+                {
+                    jsonOptions.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+                });
         }
 
         builder.Services.AddCors(corsOptions =>
@@ -312,7 +321,7 @@ public static partial class ServiceFactory
         app.UseSwaggerUI(uiOptions =>
         {
             // Add auth persistence when authentication is enabled
-            if (options.UseAuthentication)
+            if(options.UseAuthentication)
             {
                 uiOptions.EnablePersistAuthorization();
                 uiOptions.UseRequestInterceptor("(req) => { const auth = window.ui?.authSelectors?.authorized(); if (auth) { const bearerAuth = auth.get('Bearer'); if (bearerAuth) { const token = bearerAuth.get('value'); if (token) { req.headers.Authorization = token; } } } return req; }");
@@ -328,7 +337,7 @@ public static partial class ServiceFactory
         app.UseCors("AllowAll");
 #endif
 
-        if (options.UseAuthentication)
+        if(options.UseAuthentication)
         {
             app.UseAuthentication();
             app.UseAuthorization();
@@ -348,14 +357,14 @@ public static partial class ServiceFactory
         var loggerUrl = configService.LoggerService;
         var realm = configService.Realm;
         var clientId = configService.ClientId;
-        
+
         lifetime.ApplicationStarted.Register(() =>
         {
             var message = $"{serviceName} started on {hostname}:{port}";
             Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {message}");
             _ = LogLifecycleEventAsync(loggerUrl, serviceName, realm, clientId, accessToken, "ServiceStarted", message);
         });
-        
+
         lifetime.ApplicationStopping.Register(() =>
         {
             var message = $"{serviceName} is shutting down on {hostname}:{port}";
@@ -377,14 +386,14 @@ public static partial class ServiceFactory
     {
         // Always prefer appsettings.json
         var value = builder.Configuration[configKey];
-        if (!string.IsNullOrEmpty(value))
+        if(!string.IsNullOrEmpty(value))
             return value;
 
         // Fallback to environment variable if provided
-        if (!string.IsNullOrEmpty(envVarName))
+        if(!string.IsNullOrEmpty(envVarName))
         {
             value = Environment.GetEnvironmentVariable(envVarName);
-            if (!string.IsNullOrEmpty(value))
+            if(!string.IsNullOrEmpty(value))
                 return value;
         }
 
@@ -398,14 +407,14 @@ public static partial class ServiceFactory
     {
         // Always prefer appsettings.json
         var value = builder.Configuration[configKey];
-        if (!string.IsNullOrEmpty(value))
+        if(!string.IsNullOrEmpty(value))
             return value;
 
         // Fallback to environment variable if provided
-        if (!string.IsNullOrEmpty(envVarName))
+        if(!string.IsNullOrEmpty(envVarName))
         {
             value = Environment.GetEnvironmentVariable(envVarName);
-            if (!string.IsNullOrEmpty(value))
+            if(!string.IsNullOrEmpty(value))
                 return value;
         }
 
@@ -440,7 +449,7 @@ public static partial class ServiceFactory
     /// </summary>
     private static void LogDatabaseConfig(ILogger logger, string serviceName, object config)
     {
-        switch (config)
+        switch(config)
         {
             case PGConnectionConfig pg:
                 LogDatabaseConnection(logger, serviceName, pg.Host, pg.Port, pg.Database);
@@ -548,7 +557,7 @@ public static partial class ServiceFactory
         string accessToken,
         ILogger bootstrapLogger)
     {
-        if (string.IsNullOrEmpty(loggerServiceUrl))
+        if(string.IsNullOrEmpty(loggerServiceUrl))
         {
             LogSkippingRemoteBootstrap(bootstrapLogger, serviceName);
             return;
@@ -603,7 +612,7 @@ public static partial class ServiceFactory
 
             var response = await httpClient.PostAsync(string.Concat(loggerServiceUrl, "/api/logs"), content);
 
-            if (response.IsSuccessStatusCode)
+            if(response.IsSuccessStatusCode)
             {
                 LogBootstrapSent(bootstrapLogger, serviceName);
             }
@@ -612,7 +621,7 @@ public static partial class ServiceFactory
                 LogBootstrapFailed(bootstrapLogger, serviceName, response.StatusCode);
             }
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             // Fire and forget - don't crash startup if logger is unavailable
             LogBootstrapError(bootstrapLogger, serviceName, ex.Message);
@@ -632,7 +641,7 @@ public static partial class ServiceFactory
         string eventType,
         string message)
     {
-        if (string.IsNullOrEmpty(loggerServiceUrl))
+        if(string.IsNullOrEmpty(loggerServiceUrl))
             return;
 
         try

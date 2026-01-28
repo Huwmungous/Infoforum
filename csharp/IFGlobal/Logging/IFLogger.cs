@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Text.Json;
+using IFGlobal.Http;
 
 namespace IFGlobal.Logging;
 
@@ -105,7 +106,7 @@ public class IFLogger : ILogger
 
     public bool IsEnabled(LogLevel logLevel)
     {
-        if (_config != null)
+        if(_config != null)
             return logLevel >= _config.MinimumLogLevel;
         return logLevel >= LogLevel.Information;
     }
@@ -117,7 +118,7 @@ public class IFLogger : ILogger
         Exception? exception,
         Func<TState, Exception?, string> formatter)
     {
-        if (!IsEnabled(logLevel))
+        if(!IsEnabled(logLevel))
             return;
 
         var message = formatter(state, exception);
@@ -167,22 +168,22 @@ public class IFLogger : ILogger
     private void WriteToEventLog(LogLevel logLevel, string message)
     {
         // Only on Windows and if enabled
-        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if(!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return;
 
         var enableEventLog = _config?.EnableEventLog ?? false;
-        if (!enableEventLog)
+        if(!enableEventLog)
             return;
 
         try
         {
             EnsureEventLogInitialised();
 
-            if (_eventLog == null)
+            if(_eventLog == null)
                 return;
 
             // Suppress CA1416 - we check for Windows platform at the start of this method
-            #pragma warning disable CA1416
+#pragma warning disable CA1416
             var eventLogType = logLevel switch
             {
                 LogLevel.Critical => EventLogEntryType.Error,
@@ -197,7 +198,7 @@ public class IFLogger : ILogger
                 : message;
 
             _eventLog.WriteEntry($"[{_categoryName}] {truncatedMessage}", eventLogType);
-            #pragma warning restore CA1416
+#pragma warning restore CA1416
         }
         catch
         {
@@ -207,12 +208,12 @@ public class IFLogger : ILogger
 
     private void EnsureEventLogInitialised()
     {
-        if (_eventLogInitialised)
+        if(_eventLogInitialised)
             return;
 
-        lock (EventLogLock)
+        lock(EventLogLock)
         {
-            if (_eventLogInitialised)
+            if(_eventLogInitialised)
                 return;
 
             try
@@ -221,16 +222,16 @@ public class IFLogger : ILogger
                 var logName = _config?.EventLogName ?? "Application";
 
                 // Suppress CA1416 - we check for Windows platform before calling this method
-                #pragma warning disable CA1416
+#pragma warning disable CA1416
                 // Try to create the event source if it doesn't exist
                 // Note: This requires admin privileges on first run
-                if (!EventLog.SourceExists(sourceName))
+                if(!EventLog.SourceExists(sourceName))
                 {
                     try
                     {
                         EventLog.CreateEventSource(sourceName, logName);
                     }
-                    catch (SecurityException)
+                    catch(SecurityException)
                     {
                         // Can't create source without admin - use existing Application log
                         sourceName = "Application";
@@ -238,7 +239,7 @@ public class IFLogger : ILogger
                 }
 
                 _eventLog = new EventLog(logName) { Source = sourceName };
-                #pragma warning restore CA1416
+#pragma warning restore CA1416
             }
             catch
             {
@@ -256,17 +257,17 @@ public class IFLogger : ILogger
         var enableFileLogging = _config?.EnableFileLogging ?? false;
 
         // Auto-enable file logging on Linux if not explicitly configured
-        if (!enableFileLogging && _config == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        if(!enableFileLogging && _config == null && RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             enableFileLogging = true;
 
-        if (!enableFileLogging)
+        if(!enableFileLogging)
             return;
 
         try
         {
             var logDirectory = _config?.LogFilePath ?? GetDefaultLogDirectory();
 
-            if (string.IsNullOrEmpty(logDirectory))
+            if(string.IsNullOrEmpty(logDirectory))
                 return;
 
             // Ensure directory exists
@@ -278,7 +279,7 @@ public class IFLogger : ILogger
 
             var logEntry = $"[{timestamp}] [{logLevel,-11}] [{_categoryName}] {message}";
 
-            lock (FileLock)
+            lock(FileLock)
             {
                 File.AppendAllText(logFilePath, logEntry + Environment.NewLine);
             }
@@ -291,10 +292,10 @@ public class IFLogger : ILogger
 
     private static string GetDefaultLogDirectory()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             return "/var/log/sfd";
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "SfD", "Logs");
 
         return Path.Combine(Environment.CurrentDirectory, "logs");
@@ -312,61 +313,33 @@ public class IFLogger : ILogger
         var enableRemote = _config?.EnableRemoteLogging ?? true;
         var serviceUrl = _config?.LoggerService ?? _loggerServiceUrl;
 
-        if (!enableRemote || string.IsNullOrEmpty(serviceUrl))
+        if(!enableRemote || string.IsNullOrEmpty(serviceUrl))
             return;
 
-        // Post to remote LoggerService asynchronously (fire and forget)
-        _ = Task.Run(async () =>
+        // Build the log entry request
+        var request = new
         {
-            try
+            Realm = _realm,
+            Client = _clientId,
+            LogData = new
             {
-                var request = new
-                {
-                    Realm = _realm,
-                    Client = _clientId,
-                    LogData = new
-                    {
-                        Timestamp = DateTime.UtcNow,
-                        Level = logLevel.ToString(),
-                        Category = _categoryName,
-                        Message = message,
-                        Exception = exception?.ToString(),
-                        ClientId = _clientId,
-                        Application = _applicationName,
-                        Environment = _environmentName,
-                        MachineName = Environment.MachineName
-                    },
-                    Environment = _environmentName,
-                    Application = _applicationName,
-                    LogLevel = logLevel.ToString()
-                };
+                Timestamp = DateTime.UtcNow,
+                Level = logLevel.ToString(),
+                Category = _categoryName,
+                Message = message,
+                Exception = exception?.ToString(),
+                ClientId = _clientId,
+                Application = _applicationName,
+                Environment = _environmentName,
+                MachineName = Environment.MachineName
+            },
+            Environment = _environmentName,
+            Application = _applicationName,
+            LogLevel = logLevel.ToString()
+        };
 
-                HttpClient client;
-                if (_httpClientFactory != null)
-                {
-                    client = _httpClientFactory.CreateClient("IFLogger");
-                }
-                else if (_httpClient != null)
-                {
-                    client = _httpClient;
-                }
-                else
-                {
-                    return;
-                }
-
-                var content = new StringContent(
-                    JsonSerializer.Serialize(request, LoggerJsonOptions.CamelCase),
-                    Encoding.UTF8,
-                    "application/json");
-
-                await client.PostAsync(serviceUrl, content);
-            }
-            catch
-            {
-                // Silently fail - logging should never break the application
-            }
-        });
+        // Use AuthenticatedHttp for fire-and-forget POST with automatic auth headers
+        AuthenticatedHttp.PostFireAndForget(serviceUrl, request);
     }
 
     /// <summary>
