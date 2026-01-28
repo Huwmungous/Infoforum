@@ -114,8 +114,16 @@ public class ServiceFactoryContext
 
     /// <summary>
     /// The authenticated access token for fetching additional config.
+    /// Note: This is captured at startup and will expire. For long-running
+    /// operations, use TokenManager.GetTokenAsync() instead.
     /// </summary>
     public string? AccessToken { get; init; }
+
+    /// <summary>
+    /// The ServiceTokenManager for obtaining fresh access tokens.
+    /// Use this for operations that may occur after the initial AccessToken expires.
+    /// </summary>
+    public Auth.ServiceTokenManager? TokenManager { get; init; }
 
     /// <summary>
     /// The database configuration object (if DatabaseConfigName was specified).

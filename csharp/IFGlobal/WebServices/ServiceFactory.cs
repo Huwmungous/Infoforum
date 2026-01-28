@@ -92,12 +92,19 @@ public static partial class ServiceFactory
         LogConfigServiceInitialised(bootstrapLogger, serviceName, configService.ClientId, configService.Realm, authTypeString);
 
         LogAuthenticating(bootstrapLogger, serviceName);
-        var accessToken = await ServiceAuthenticator.GetServiceAccessTokenAsync(configService);
+
+        // Create ServiceTokenManager for automatic token caching and refresh
+        var tokenManager = new ServiceTokenManager(configService);
+        var accessToken = await tokenManager.GetTokenAsync();
         LogAuthenticatedSuccessfully(bootstrapLogger, serviceName);
 
-        // Configure AuthenticatedHttp with the service access token
+        // Configure AuthenticatedHttp with the token manager
         // This enables IFLogger and other components to make authenticated HTTP requests
-        AuthenticatedHttp.ConfigureWithToken(accessToken);
+        // with automatic token refresh when the token expires
+        AuthenticatedHttp.ConfigureWithTokenManager(tokenManager);
+
+        // Register the token manager as a singleton for DI access if needed
+        builder.Services.AddSingleton(tokenManager);
 
         // Fire-and-forget remote bootstrap log
         _ = LogBootstrapToRemoteAsync(
@@ -199,6 +206,7 @@ public static partial class ServiceFactory
             ConfigService = configService,
             Configuration = builder.Configuration,
             AccessToken = accessToken,
+            TokenManager = tokenManager,
             DatabaseConfig = databaseConfig,
             Logger = ifLogger,
             Port = port
