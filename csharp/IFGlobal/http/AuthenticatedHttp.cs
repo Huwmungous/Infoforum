@@ -84,6 +84,18 @@ public static class AuthenticatedHttp
     }
 
     /// <summary>
+    /// Configure with a ServiceTokenManager for automatic token caching and refresh.
+    /// </summary>
+    /// <param name="tokenManager">The token manager instance.</param>
+    public static void ConfigureWithTokenManager(Auth.ServiceTokenManager tokenManager)
+    {
+        Configure(new AuthenticatedHttpOptions
+        {
+            GetAccessToken = async () => await tokenManager.GetTokenAsync()
+        });
+    }
+
+    /// <summary>
     /// Check if the HTTP client has been configured.
     /// </summary>
     public static bool IsConfigured => _options != null;
