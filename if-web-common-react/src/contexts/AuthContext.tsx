@@ -68,7 +68,7 @@ export function AuthProvider({ children, config }: AuthProviderProps) {
           // Log existing authenticated session
           const username = currentUser.profile.preferred_username || currentUser.profile.email || 'unknown';
           const expiresAt = currentUser.expires_at ? new Date(currentUser.expires_at * 1000).toISOString() : 'unknown';
-          authLogger.info(`Existing session found for user: ${username}, expires: ${expiresAt}`);
+          authLogger.debug(`Existing session found for user: ${username}, expires: ${expiresAt}`);
 
           // FIXED: Atomic state update
           setState({

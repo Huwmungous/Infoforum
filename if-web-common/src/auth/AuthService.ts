@@ -129,7 +129,7 @@ class AuthService {
     this.userManager.events.addAccessTokenExpiring(() => {
       // Avoid log storms if we’ve deliberately disabled auto-renew at end-of-session.
       if (!this.endOfSessionStormMode) {
-        this.logger.info('Access token is about to expire, attempting silent renewal');
+        this.logger.debug('Access token is about to expire, attempting silent renewal');
       }
     });
 
@@ -157,7 +157,7 @@ class AuthService {
     });
 
     this.userManager.events.addUserLoaded((user) => {
-      this.logger.info('User loaded/renewed');
+      this.logger.debug('User loaded/renewed');
       this.applyEndOfSessionStormSuppression(user);
       this.notifyUserChange(user);
     });
