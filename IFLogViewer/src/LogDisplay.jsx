@@ -2,7 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import * as signalR from '@microsoft/signalr';
 import { useAppContext, useAuth } from '@if/web-common-react';
 import { useTheme } from './context/ThemeContext.jsx';
-import LevelIcon from './components/LevelIcon';
+import LevelIcon from './LevelIcon';
 
 // Logo import for base path compatibility
 const logo = new URL('/IF-Logo.png', import.meta.url).href;

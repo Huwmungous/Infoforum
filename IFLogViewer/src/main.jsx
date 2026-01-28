@@ -6,7 +6,7 @@ import { createRoot } from 'react-dom/client';
 import { AppInitializer } from '@if/web-common-react';
 import App from './App.jsx';
 import LogTests from './LogTests.jsx';
-import { getConfigFromUrl, buildFullUrl, getAppBasePath } from './urlconfig.ts';
+import { getConfigFromUrl, buildFullUrl, getAppBasePath } from './urlConfig.ts';
 import './index.css';
 
 // Extract appDomain from URL

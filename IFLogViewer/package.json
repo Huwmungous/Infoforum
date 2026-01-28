@@ -1,29 +1,45 @@
 {
-  "name": "if-log-viewer",
+  "name": "if-logviewer",
+  "private": true,
   "version": "1.0.0",
+  "description": "IF Log Viewer Application",
   "type": "module",
   "scripts": {
     "dbg": "vite --mode dbg",
     "dev": "vite --mode dev",
     "build": "vite build",
-    "rebuild": "npm run rebuild-lib && npm run build",
-    "rebuild-lib": "npm --prefix ../if-web-common run build && npm --prefix ../if-web-common-react run build && rimraf node_modules/.vite"
+    "rebuild": "npm --prefix ../if-web-common-react run rebuild && npm install && rimraf node_modules/.vite && vite build",
+    "preview": "vite preview",
+    "dev:fresh": "rimraf node_modules/.vite && vite",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@if/styles": "file:../IF.Styles",
     "@if/web-common": "file:../if-web-common",
     "@if/web-common-react": "file:../if-web-common-react",
-    "@microsoft/signalr": "^10.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@microsoft/signalr": "^8.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.18",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.23",
-    "postcss": "^8.5.6",
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/vite": "^4.1.17",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "@vitest/coverage-v8": "^4.0.16",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "happy-dom": "^20.0.11",
     "rimraf": "^5.0.5",
-    "tailwindcss": "^4.1.18",
-    "vite": "^5.0.8"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2",
+    "vitest": "^4.0.16"
   }
 }

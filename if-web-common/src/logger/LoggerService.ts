@@ -1,4 +1,4 @@
-﻿import { IfLoggerProvider } from './IfLoggerProvider';
+import { IfLoggerProvider } from './IfLoggerProvider';
 import { IfLogger, IfLoggerConfiguration, LogLevel } from './IfLogger';
 import { ConfigService } from '../config';
 
@@ -108,7 +108,9 @@ private static getValidLogLevel(level: string | number): LogLevel {
     const loggerServiceUrl = ConfigService.LoggerService;
     const logLevel = LoggerService.getValidLogLevel(ConfigService.LogLevel);
 
-    console.log(`Configuring logger with URL from ConfigService: ${loggerServiceUrl || '(none)'}, LogLevel: ${logLevel}`);
+    console.log(loggerServiceUrl 
+      ? `LoggerService: Remote logging enabled - URL: ${loggerServiceUrl}, LogLevel: ${logLevel}`
+      : `LoggerService: Remote logging DISABLED (no LoggerService URL configured), LogLevel: ${logLevel}`);
     IfLoggerProvider.configure({
       loggerService: loggerServiceUrl || '',
       minimumLogLevel: logLevel
