@@ -288,7 +288,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const getLevelChar = (level) => {
     const chars = {
       'Trace': '·',
-      'Debug': '○',
+      'Debug': '●',      // Solid circle (grey)
       'Information': '●',
       'Warning': '▲',
       'Error': '✗',
@@ -301,7 +301,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const getLevelColor = (level) => {
     const colors = {
       'Trace': '#336633',
-      'Debug': '#669966',
+      'Debug': '#888888',   // Light grey
       'Information': '#33ff33',
       'Warning': '#ffcc00',
       'Error': '#ff6633',
@@ -309,6 +309,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     };
     return colors[level] || '#33ff33';
   };
+
+  // Check if level should blink
+  const shouldBlink = (level) => level === 'Critical';
 
   // Render Hercules-style terminal for live logs
   // Get just the class name from a fully-qualified category
@@ -357,7 +360,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
                 {formatHerculesTime(log.createdAt)}
               </span>
               <span 
-                className="hercules-level"
+                className={`hercules-level ${shouldBlink(log.logData?.level) ? 'hercules-blink' : ''}`}
                 style={{ color: getLevelColor(log.logData?.level) }}
               >
                 {getLevelChar(log.logData?.level)}

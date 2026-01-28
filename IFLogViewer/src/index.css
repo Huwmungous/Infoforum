@@ -702,8 +702,17 @@
   text-align: center;
 }
 
+.hercules-blink {
+  animation: hercules-blink-animation 0.8s ease-in-out infinite;
+}
+
+@keyframes hercules-blink-animation {
+  0%, 50% { opacity: 1; }
+  25%, 75% { opacity: 0.2; }
+}
+
 .hercules-app {
-  color: #4a9a4a;
+  color: #a0a0ff;
   flex-shrink: 0;
   margin-right: 4px;
   max-width: 200px;
