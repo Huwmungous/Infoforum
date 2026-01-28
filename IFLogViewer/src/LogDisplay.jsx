@@ -365,11 +365,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
               >
                 {getLevelChar(log.logData?.level)}
               </span>
-              <span className="hercules-app">
-                {log.logData?.application || log.logData?.serviceName || ''}
-              </span>
-              <span className="hercules-category">
-                [{getShortCategory(log.logData?.category)}]
+              <span className="hercules-source">
+                [{log.logData?.application || log.logData?.serviceName || 'System'}.{getShortCategory(log.logData?.category)}]
               </span>
               <span className="hercules-message">
                 {log.logData?.message || ''}
