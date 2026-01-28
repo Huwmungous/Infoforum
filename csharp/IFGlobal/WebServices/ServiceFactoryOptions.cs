@@ -34,7 +34,7 @@ public class ServiceFactoryOptions
     public Type? DatabaseConfigType { get; set; }
 
     /// <summary>
-    /// Whether to configure SfdLogger for remote logging.
+    /// Whether to configure IFLogger for remote logging.
     /// Set to false for LoggerWebService to avoid circular dependency.
     /// Default is true.
     /// </summary>
@@ -124,9 +124,9 @@ public class ServiceFactoryContext
     public object? DatabaseConfig { get; init; }
 
     /// <summary>
-    /// The SfdLogger instance (if UseIFLogger is true).
+    /// The IFLogger instance (if UseIFLogger is true).
     /// </summary>
-    public SfdLogger? Logger { get; init; }
+    public IFLogger? Logger { get; init; }
 
     /// <summary>
     /// The port the service is configured to listen on.

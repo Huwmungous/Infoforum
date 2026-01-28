@@ -3,17 +3,17 @@ using Microsoft.Extensions.Logging;
 
 namespace IFGlobal.Logging;
 
-public static class SfdLoggerExtensions
+public static class IFLoggerExtensions
 {
     /// <summary>
     /// Adds the SfD Logger provider to the logging builder
     /// </summary>
-    public static ILoggingBuilder AddSfdLogger(
+    public static ILoggingBuilder AddIFLogger(
         this ILoggingBuilder builder,
-        SfdLoggerConfiguration configuration)
+        IFLoggerConfiguration configuration)
     {
         builder.Services.AddSingleton<ILoggerProvider>(
-            new SfdLoggerProvider(
+            new IFLoggerProvider(
                 configuration.LoggerServiceUrl,
                 configuration.ClientId,
                 configuration.Realm,
@@ -29,13 +29,13 @@ public static class SfdLoggerExtensions
     /// <summary>
     /// Adds the SfD Logger provider with a configuration action
     /// </summary>
-    public static ILoggingBuilder AddSfdLogger(
+    public static ILoggingBuilder AddIFLogger(
         this ILoggingBuilder builder,
-        Action<SfdLoggerConfiguration> configure)
+        Action<IFLoggerConfiguration> configure)
     {
-        var configuration = new SfdLoggerConfiguration();
+        var configuration = new IFLoggerConfiguration();
         configure(configuration);
 
-        return builder.AddSfdLogger(configuration);
+        return builder.AddIFLogger(configuration);
     }
 }

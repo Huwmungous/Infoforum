@@ -3,15 +3,15 @@ using Microsoft.Extensions.Logging;
 namespace IFGlobal.Logging;
 
 /// <summary>
-/// Configuration for the SfD logging service.
+/// Configuration for the IF logging service.
 /// Supports console, remote service, Windows Event Log, and file logging.
 /// </summary>
-public class SfdLoggerConfiguration
+public class IFLoggerConfiguration
 {
     /// <summary>
     /// The configuration section name in appsettings.json.
     /// </summary>
-    public const string SectionName = "SfdLogger";
+    public const string SectionName = "IFLogger";
 
     /// <summary>
     /// The URL of the remote logging service.
@@ -63,7 +63,7 @@ public class SfdLoggerConfiguration
     public bool EnableEventLog { get; set; } = false;
 
     /// <summary>
-    /// The Event Log source name (defaults to ApplicationName or "SfD").
+    /// The Event Log source name (defaults to ApplicationName).
     /// </summary>
     public string EventLogSource { get; set; } = string.Empty;
 
@@ -80,7 +80,13 @@ public class SfdLoggerConfiguration
 
     /// <summary>
     /// The directory path for log files.
-    /// Defaults to /var/log/sfd on Linux, %ProgramData%\SfD\Logs on Windows.
+    /// Defaults to /var/log/if on Linux, %ProgramData%\IF\Logs on Windows.
     /// </summary>
     public string LogFilePath { get; set; } = string.Empty;
 }
+
+/// <summary>
+/// Backwards compatibility alias for IFLoggerConfiguration.
+/// </summary>
+[Obsolete("Use IFLoggerConfiguration instead")]
+public class SfdLoggerConfiguration : IFLoggerConfiguration { }

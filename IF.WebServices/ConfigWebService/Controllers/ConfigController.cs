@@ -52,6 +52,9 @@ public class ConfigController(
         if (string.IsNullOrWhiteSpace(appDomain))
             return BadRequest(new ErrorResponse { Error = "Parameter 'appDomain' is required" });
 
+        // Normalise appDomain to title case for consistent logging
+        var appDomainDisplay = char.ToUpperInvariant(appDomain[0]) + appDomain[1..].ToLowerInvariant();
+
         // Normalise to lowercase for case-insensitive comparison
         cfg = cfg.ToLowerInvariant();
         type = type.ToLowerInvariant();
@@ -62,7 +65,7 @@ public class ConfigController(
         // If cfg is 'bootstrap', fetch bootstrap record and return appropriate clientId
         if (cfg == "bootstrap")
         {
-            return await GetBootstrapConfig(appDomain, type, appName);
+            return await GetBootstrapConfig(appDomain, type, appName, appDomainDisplay);
         }
 
         // For all other cfg values, require authentication
@@ -72,14 +75,14 @@ public class ConfigController(
         }
 
         // Query the database for the specific config value from user/service record
-        return await GetConfigValue(appDomain, type, cfg, appName);
+        return await GetConfigValue(appDomain, type, cfg, appName, appDomainDisplay);
     }
 
     /// <summary>
     /// Get Bootstrap configuration from database
     /// Fetches the bootstrap record and returns clientId based on type (userClientId or serviceClientId)
     /// </summary>
-    private async Task<IActionResult> GetBootstrapConfig(string appDomain, string type, string appName)
+    private async Task<IActionResult> GetBootstrapConfig(string appDomain, string type, string appName, string appDomainDisplay)
     {
         try
         {
@@ -90,7 +93,7 @@ public class ConfigController(
             {
                 logger.LogWarning(
                     "{AppDomain}.{AppName} requested bootstrap config - not found or disabled",
-                    appDomain, appName);
+                    appDomainDisplay, appName);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Bootstrap configuration not found for appDomain '{appDomain}'"
@@ -101,7 +104,7 @@ public class ConfigController(
             {
                 logger.LogWarning(
                     "{AppDomain}.{AppName} requested bootstrap config - config is null",
-                    appDomain, appName);
+                    appDomainDisplay, appName);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Bootstrap configuration not set for appDomain '{appDomain}'"
@@ -110,7 +113,7 @@ public class ConfigController(
 
             logger.LogInformation(
                 "{AppDomain}.{AppName} ({Type}) requested bootstrap config",
-                appDomain, appName, type);
+                appDomainDisplay, appName, type);
 
             var configJson = entry.Config.RootElement;
             
@@ -145,7 +148,7 @@ public class ConfigController(
         {
             logger.LogError(ex,
                 "{AppDomain}.{AppName} ({Type}) requested bootstrap config - error occurred",
-                appDomain, appName, type);
+                appDomainDisplay, appName, type);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }
@@ -153,7 +156,7 @@ public class ConfigController(
     /// <summary>
     /// Get a specific configuration value from user or service record
     /// </summary>
-    private async Task<IActionResult> GetConfigValue(string appDomain, string type, string configKey, string appName)
+    private async Task<IActionResult> GetConfigValue(string appDomain, string type, string configKey, string appName, string appDomainDisplay)
     {
         try
         {
@@ -164,7 +167,7 @@ public class ConfigController(
             {
                 logger.LogWarning(
                     "{AppDomain}.{AppName} ({Type}) requested config - entry not found or disabled",
-                    appDomain, appName, type);
+                    appDomainDisplay, appName, type);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Configuration not found for appDomain '{appDomain}', type '{type}'"
@@ -177,7 +180,7 @@ public class ConfigController(
             {
                 logger.LogWarning(
                     "{AppDomain}.{AppName} ({Type}) requested config key '{ConfigKey}' - not found",
-                    appDomain, appName, type, configKey);
+                    appDomainDisplay, appName, type, configKey);
                 return NotFound(new ErrorResponse
                 {
                     Error = $"Configuration key '{configKey}' not found"
@@ -186,7 +189,7 @@ public class ConfigController(
 
             logger.LogInformation(
                 "{AppDomain}.{AppName} ({Type}) requested config key '{ConfigKey}'",
-                appDomain, appName, type, configKey);
+                appDomainDisplay, appName, type, configKey);
 
             return Ok(value.Value);
         }
@@ -194,7 +197,7 @@ public class ConfigController(
         {
             logger.LogError(ex,
                 "{AppDomain}.{AppName} ({Type}) requested config key '{ConfigKey}' - error occurred",
-                appDomain, appName, type, configKey);
+                appDomainDisplay, appName, type, configKey);
             return StatusCode(500, new ErrorResponse { Error = "Internal server error" });
         }
     }

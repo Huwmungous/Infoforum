@@ -25,7 +25,7 @@ public static class ServiceCollectionExtensions
 
         // Register HttpClientFactory
         services.AddHttpClient();
-        services.AddHttpClient("SfdLogger")
+        services.AddHttpClient("IFLogger")
             .ConfigureHttpClient(client =>
             {
                 client.Timeout = TimeSpan.FromSeconds(5);
@@ -34,10 +34,10 @@ public static class ServiceCollectionExtensions
         // Register ConfigService
         services.AddSingleton<IConfigService, ConfigService>();
 
-        // Add SfdLogger to logging pipeline
+        // Add IFLogger to logging pipeline
         services.AddLogging(logging =>
         {
-            logging.AddSfdLogger(configuration, applicationName, environmentName);
+            logging.AddIFLogger(configuration, applicationName, environmentName);
         });
 
         return services;
@@ -46,20 +46,20 @@ public static class ServiceCollectionExtensions
     /// <summary>
     /// Adds SfD logger provider to the logging builder.
     /// </summary>
-    public static ILoggingBuilder AddSfdLogger(
+    public static ILoggingBuilder AddIFLogger(
         this ILoggingBuilder builder,
         IConfiguration configuration,
         string applicationName,
         string environmentName = "")
     {
         // Register logger configuration
-        builder.Services.Configure<SfdLoggerConfiguration>(
-            configuration.GetSection(SfdLoggerConfiguration.SectionName));
+        builder.Services.Configure<IFLoggerConfiguration>(
+            configuration.GetSection(IFLoggerConfiguration.SectionName));
 
         // Register the logger provider
         builder.Services.AddSingleton<ILoggerProvider>(serviceProvider =>
         {
-            var config = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<SfdLoggerConfiguration>>();
+            var config = serviceProvider.GetRequiredService<Microsoft.Extensions.Options.IOptions<IFLoggerConfiguration>>();
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
             var configService = serviceProvider.GetRequiredService<IConfigService>();
 
@@ -67,7 +67,7 @@ public static class ServiceCollectionExtensions
             var realm = configService.IsInitialized ? configService.Realm : "Unknown";
             var client = configService.IsInitialized ? configService.ClientId : "Unknown";
 
-            return new SfdLoggerProvider(
+            return new IFLoggerProvider(
                 config,
                 httpClientFactory,
                 realm,
@@ -92,11 +92,11 @@ public static class ServiceCollectionExtensions
     /// Configures SfD logger with values from ConfigService after bootstrap initialization.
     /// Call this after ConfigService.InitializeAsync() completes.
     /// </summary>
-    public static IServiceCollection ConfigureSfdLoggerFromBootstrap(
+    public static IServiceCollection ConfigureIFLoggerFromBootstrap(
         this IServiceCollection services,
         IConfigService configService)
     {
-        services.Configure<SfdLoggerConfiguration>(options =>
+        services.Configure<IFLoggerConfiguration>(options =>
         {
             if (!string.IsNullOrEmpty(configService.LoggerService))
             {

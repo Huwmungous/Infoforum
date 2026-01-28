@@ -141,7 +141,7 @@ public static partial class ServiceFactory
         builder.Logging.ClearProviders();
         builder.Logging.AddConsole();
 
-        SfdLogger? sfdLogger = null;
+        IFLogger? ifLogger = null;
         if (options.UseIFLogger)
         {
 #if DEBUG
@@ -154,7 +154,7 @@ public static partial class ServiceFactory
 #endif
 
             var minLogLevel = builder.Configuration.GetValue("Logging:LogLevel:Default", LogLevel.Information);
-            var sfdLoggerConfig = new SfdLoggerConfiguration
+            var ifLoggerConfig = new IFLoggerConfiguration
             {
                 LoggerServiceUrl = loggerServiceUrl,
                 ClientId = configService.ClientId,
@@ -163,17 +163,17 @@ public static partial class ServiceFactory
                 ApplicationName = serviceName,
                 EnvironmentName = builder.Environment.EnvironmentName
             };
-            builder.Logging.AddSfdLogger(sfdLoggerConfig);
+            builder.Logging.AddIFLogger(ifLoggerConfig);
 
-            sfdLogger = new SfdLogger(
+            ifLogger = new IFLogger(
                 serviceName,
-                sfdLoggerConfig.LoggerServiceUrl,
-                sfdLoggerConfig.ClientId,
-                sfdLoggerConfig.Realm,
+                ifLoggerConfig.LoggerServiceUrl,
+                ifLoggerConfig.ClientId,
+                ifLoggerConfig.Realm,
                 serviceName,
                 builder.Environment.EnvironmentName
             );
-            builder.Services.AddSingleton(sfdLogger);
+            builder.Services.AddSingleton(ifLogger);
         }
 
         // ============================================================================
@@ -195,7 +195,7 @@ public static partial class ServiceFactory
             Configuration = builder.Configuration,
             AccessToken = accessToken,
             DatabaseConfig = databaseConfig,
-            Logger = sfdLogger,
+            Logger = ifLogger,
             Port = port
         };
 
@@ -345,19 +345,23 @@ public static partial class ServiceFactory
         // Register application lifecycle events with service name
         var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
         var hostname = Environment.MachineName;
+        var loggerUrl = configService.LoggerService;
+        var realm = configService.Realm;
+        var clientId = configService.ClientId;
         
         lifetime.ApplicationStarted.Register(() =>
         {
-            var startupMessage = $"{serviceName} started on {hostname}:{port}";
-            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {startupMessage}");
-            sfdLogger?.LogInformation(startupMessage);
+            var message = $"{serviceName} started on {hostname}:{port}";
+            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {message}");
+            _ = LogLifecycleEventAsync(loggerUrl, serviceName, realm, clientId, accessToken, "ServiceStarted", message);
         });
         
         lifetime.ApplicationStopping.Register(() =>
         {
-            var stoppingMessage = $"{serviceName} is shutting down on {hostname}:{port}";
-            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {stoppingMessage}");
-            sfdLogger?.LogInformation(stoppingMessage);
+            var message = $"{serviceName} is shutting down on {hostname}:{port}";
+            Console.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [Information ] ServiceLifecycle: {message}");
+            // Use .Wait() for shutdown to ensure log is sent before process exits
+            LogLifecycleEventAsync(loggerUrl, serviceName, realm, clientId, accessToken, "ServiceStopping", message).Wait(TimeSpan.FromSeconds(3));
         });
 
         LogServiceStarting(bootstrapLogger, serviceName, port);
@@ -456,7 +460,7 @@ public static partial class ServiceFactory
         string serviceName,
         string? description = null,
         bool useAuthentication = true,
-        bool useSfdLogger = true,
+        bool useIFLogger = true,
         string? pathBase = null,
         AuthType authType = AuthType.User,
         Action<IServiceCollection, ServiceFactoryContext>? configureServices = null,
@@ -469,7 +473,7 @@ public static partial class ServiceFactory
             DatabaseConfigName = "firebirddb",
             DatabaseConfigType = typeof(FBConnectionConfig),
             UseAuthentication = useAuthentication,
-            UseIFLogger = useSfdLogger,
+            UseIFLogger = useIFLogger,
             PathBase = pathBase,
             AuthType = authType,
             ConfigureServices = configureServices,
@@ -513,7 +517,7 @@ public static partial class ServiceFactory
         string serviceName,
         string? description = null,
         bool useAuthentication = true,
-        bool useSfdLogger = true,
+        bool useIFLogger = true,
         bool useSignalR = false,
         string? pathBase = null,
         Action<IServiceCollection, ServiceFactoryContext>? configureServices = null,
@@ -524,7 +528,7 @@ public static partial class ServiceFactory
             ServiceName = serviceName,
             Description = description,
             UseAuthentication = useAuthentication,
-            UseIFLogger = useSfdLogger,
+            UseIFLogger = useIFLogger,
             UseSignalR = useSignalR,
             PathBase = pathBase,
             ConfigureServices = configureServices,
@@ -612,6 +616,56 @@ public static partial class ServiceFactory
         {
             // Fire and forget - don't crash startup if logger is unavailable
             LogBootstrapError(bootstrapLogger, serviceName, ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Sends a lifecycle event to the remote LoggerWebService.
+    /// Fire-and-forget for startup, blocking for shutdown.
+    /// </summary>
+    private static async Task LogLifecycleEventAsync(
+        string? loggerServiceUrl,
+        string serviceName,
+        string realm,
+        string clientId,
+        string accessToken,
+        string eventType,
+        string message)
+    {
+        if (string.IsNullOrEmpty(loggerServiceUrl))
+            return;
+
+        try
+        {
+            var logEntry = new
+            {
+                realm,
+                client = clientId,
+                logData = new
+                {
+                    level = "Information",
+                    category = "ServiceLifecycle",
+                    message,
+                    eventType,
+                    serviceName,
+                    machineName = Environment.MachineName,
+                    timestamp = DateTime.UtcNow.ToString("O")
+                }
+            };
+
+            using var httpClient = new HttpClient();
+            httpClient.Timeout = TimeSpan.FromSeconds(5);
+            httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            var json = System.Text.Json.JsonSerializer.Serialize(logEntry);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+            await httpClient.PostAsync(string.Concat(loggerServiceUrl, "/api/logs"), content);
+        }
+        catch
+        {
+            // Silently fail - lifecycle logging should never break the application
         }
     }
 

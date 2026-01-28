@@ -25,7 +25,7 @@ internal static class LoggerJsonOptions
 /// - Windows Event Log (on Windows, configurable)
 /// - Log files (on Linux or when configured)
 /// </summary>
-public class SfdLogger : ILogger
+public class IFLogger : ILogger
 {
     private readonly string _categoryName;
     private readonly string _loggerServiceUrl;
@@ -33,7 +33,7 @@ public class SfdLogger : ILogger
     private readonly string _realm;
     private readonly IHttpClientFactory? _httpClientFactory;
     private readonly HttpClient? _httpClient;
-    private readonly SfdLoggerConfiguration? _config;
+    private readonly IFLoggerConfiguration? _config;
     private readonly string? _applicationName;
     private readonly string? _environmentName;
 
@@ -45,7 +45,7 @@ public class SfdLogger : ILogger
     /// <summary>
     /// Creates a logger with explicit URL, clientId, and realm (legacy constructor).
     /// </summary>
-    public SfdLogger(
+    public IFLogger(
         string categoryName,
         string loggerServiceUrl,
         string clientId,
@@ -65,9 +65,9 @@ public class SfdLogger : ILogger
     /// <summary>
     /// Creates a logger with full configuration (for standalone/CLI applications).
     /// </summary>
-    public SfdLogger(
+    public IFLogger(
         string categoryName,
-        SfdLoggerConfiguration config)
+        IFLoggerConfiguration config)
     {
         _categoryName = categoryName;
         _config = config;
@@ -82,10 +82,10 @@ public class SfdLogger : ILogger
     /// <summary>
     /// Creates a logger with IHttpClientFactory and configuration.
     /// </summary>
-    public SfdLogger(
+    public IFLogger(
         string categoryName,
         IHttpClientFactory httpClientFactory,
-        SfdLoggerConfiguration config,
+        IFLoggerConfiguration config,
         string realm,
         string clientId,
         string applicationName,
@@ -344,7 +344,7 @@ public class SfdLogger : ILogger
                 HttpClient client;
                 if (_httpClientFactory != null)
                 {
-                    client = _httpClientFactory.CreateClient("SfdLogger");
+                    client = _httpClientFactory.CreateClient("IFLogger");
                 }
                 else if (_httpClient != null)
                 {

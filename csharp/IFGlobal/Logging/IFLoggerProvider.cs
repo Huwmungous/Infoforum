@@ -6,10 +6,10 @@ namespace IFGlobal.Logging;
 /// <summary>
 /// Logger provider for the SfD logging service.
 /// </summary>
-public class SfdLoggerProvider : ILoggerProvider
+public class IFLoggerProvider : ILoggerProvider
 {
-    private readonly IOptions<SfdLoggerConfiguration>? _configOptions;
-    private readonly SfdLoggerConfiguration? _directConfig;
+    private readonly IOptions<IFLoggerConfiguration>? _configOptions;
+    private readonly IFLoggerConfiguration? _directConfig;
     private readonly IHttpClientFactory? _httpClientFactory;
     private readonly string _realm;
     private readonly string _clientId;
@@ -19,8 +19,8 @@ public class SfdLoggerProvider : ILoggerProvider
     /// <summary>
     /// Creates a provider with IHttpClientFactory (recommended for ASP.NET Core).
     /// </summary>
-    public SfdLoggerProvider(
-        IOptions<SfdLoggerConfiguration> config,
+    public IFLoggerProvider(
+        IOptions<IFLoggerConfiguration> config,
         IHttpClientFactory httpClientFactory,
         string realm,
         string clientId,
@@ -38,7 +38,7 @@ public class SfdLoggerProvider : ILoggerProvider
     /// <summary>
     /// Creates a provider with full configuration (for standalone/CLI applications).
     /// </summary>
-    public SfdLoggerProvider(SfdLoggerConfiguration config)
+    public IFLoggerProvider(IFLoggerConfiguration config)
     {
         _directConfig = config;
         _clientId = config.ClientId;
@@ -50,9 +50,9 @@ public class SfdLoggerProvider : ILoggerProvider
     /// <summary>
     /// Creates a provider with explicit configuration (legacy constructor).
     /// </summary>
-    public SfdLoggerProvider(string loggerServiceUrl, string clientId, string realm, string applicationName = "", string environmentName = "")
+    public IFLoggerProvider(string loggerServiceUrl, string clientId, string realm, string applicationName = "", string environmentName = "")
     {
-        _directConfig = new SfdLoggerConfiguration
+        _directConfig = new IFLoggerConfiguration
         {
             LoggerServiceUrl = loggerServiceUrl,
             ClientId = clientId,
@@ -70,7 +70,7 @@ public class SfdLoggerProvider : ILoggerProvider
     {
         if (_httpClientFactory != null && _configOptions != null && _applicationName != null)
         {
-            return new SfdLogger(
+            return new IFLogger(
                 categoryName,
                 _httpClientFactory,
                 _configOptions.Value,
@@ -81,11 +81,11 @@ public class SfdLoggerProvider : ILoggerProvider
         }
         else if (_directConfig != null)
         {
-            return new SfdLogger(categoryName, _directConfig);
+            return new IFLogger(categoryName, _directConfig);
         }
         else
         {
-            throw new InvalidOperationException("SfdLoggerProvider not properly configured");
+            throw new InvalidOperationException("IFLoggerProvider not properly configured");
         }
     }
 
