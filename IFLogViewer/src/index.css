@@ -118,6 +118,9 @@
   border-bottom: 1px solid rgba(33, 76, 140, 0.2);
   font-size: 0.75rem;
   background: var(--if-paper-colour);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .dark .filter-row {
@@ -446,6 +449,15 @@
   font-size: 0.875rem;
 }
 
+.level-icon-pulse {
+  animation: level-pulse 2s ease-in-out infinite;
+}
+
+@keyframes level-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
 .app-footer {
   background: #333;
   color: var(--if-window-colour);
@@ -650,7 +662,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Make filter row not grow */
