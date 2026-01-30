@@ -443,8 +443,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         {/* Center: Search controls */}
         <div className="header-center">
           <select
+            value={levelFilter}
             onChange={e => setLevelFilter(e.target.value)}
-            disabled={isRealTime}
             className="filter-select"
           >
             <option value="">All Levels</option>
