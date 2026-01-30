@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import * as signalR from '@microsoft/signalr';
 import { useAppContext, useAuth } from '@if/web-common-react';
 import { useTheme } from './context/ThemeContext.jsx';
@@ -278,7 +278,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     'Critical': 5
   };
 
-  const showRow = log => {
+  const showRow = useCallback((log) => {
     // Level filter - show selected level and above
     if (levelFilter) {
       const logLevel = log?.logData?.level;
@@ -306,7 +306,10 @@ const LogDisplay = ({ loggerServiceUrl }) => {
            pathname.includes(searchLower) ||
            machineName.includes(searchLower) ||
            host.includes(searchLower);
-  };
+  }, [levelFilter, searchString]);
+
+  // Memoize filtered logs to prevent recalculation on every render
+  const filteredLogs = useMemo(() => logs.filter(showRow), [logs, showRow]);
 
   // Badge color configs using CSS classes
   const getEnvironmentBadgeClass = (env) => {
@@ -365,8 +368,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   };
 
   const renderHerculesTerminal = () => {
-    const filteredLogs = logs.filter(showRow);
-    
     return (
       <div className="hercules-container">
         <div className="hercules-header">
@@ -546,7 +547,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           {/* Right: Count */}
           <div className="filter-row-right">
             <span className="results-count">
-              {logs.filter(showRow).length} log{logs.filter(showRow).length === 1 ? '' : 's'}
+              {filteredLogs.length} log{filteredLogs.length === 1 ? '' : 's'}
             </span>
           </div>
         </div>
@@ -594,8 +595,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {logs.map(log => (
-                      showRow(log) ? (
+                    {filteredLogs.map(log => (
                         <React.Fragment key={log.idx}>
                           <tr
                             className={`table-row ${focusedLog === log.idx ? 'table-row-focused' : ''} ${log._isNew ? 'animate-new-log' : ''}`}
@@ -698,7 +698,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
                             </tr>
                           )}
                         </React.Fragment>
-                      ) : null
                     ))}
                   </tbody>
                 </table>
