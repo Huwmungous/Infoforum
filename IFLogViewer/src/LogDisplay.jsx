@@ -156,7 +156,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
 
       // Handle incoming logs with trimming logic
       connection.on('NewLogEntry', (log) => {
-        console.log('Log hub message received:', log);
         log._isNew = true;
         setLogs(prevLogs => {
           const newLogs = [...prevLogs, log];
