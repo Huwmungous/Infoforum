@@ -6,7 +6,8 @@
 .app-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: var(--if-window-colour);
 }
 
@@ -21,6 +22,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   padding: var(--if-space-sm) var(--if-space-md);
+  flex-shrink: 0;
 }
 
 .header-left {
@@ -71,6 +73,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .toggle-switch {
@@ -147,6 +151,9 @@
 
 .results-panel {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   overflow: auto;
 }
 
@@ -645,20 +652,4 @@
   color: #33ff33;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Ensure the main content fills available space when in Hercules mode */
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.results-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: auto;
 }
