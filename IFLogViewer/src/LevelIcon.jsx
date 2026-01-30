@@ -1,4 +1,4 @@
-const LevelIcon = ({ level, size = 16 }) => {
+const LevelIcon = ({ level, size = 24 }) => {
   // SVG icons for each log level
   const icons = {
     'Trace': (
