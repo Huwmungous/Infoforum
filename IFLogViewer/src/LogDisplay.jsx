@@ -40,6 +40,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const herculesListRef = useRef(null);
   const tableListRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const scrollToBottomRef = useRef(true); // Scroll to bottom on initial load
   
   // Container size for virtualized list
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
@@ -157,12 +158,27 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     };
   }, []);
 
-  // Auto-scroll to bottom when new logs arrive in live mode
+  // Scroll to bottom on initial load, mode switch, or when new logs arrive in live mode
   useEffect(() => {
-    if (isRealTime && autoScroll && herculesListRef.current && filteredLogs.length > 0) {
-      herculesListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
-    }
-  }, [filteredLogs.length, isRealTime, autoScroll]);
+    if (filteredLogs.length === 0 || containerSize.height === 0) return;
+    
+    // Check if we should scroll (initial/mode-switch, or live auto-scroll)
+    const shouldScroll = scrollToBottomRef.current || (isRealTime && autoScroll);
+    if (!shouldScroll) return;
+    
+    // Small delay to ensure list has rendered
+    const timer = setTimeout(() => {
+      if (isRealTime && herculesListRef.current) {
+        herculesListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
+      } else if (!isRealTime && tableListRef.current) {
+        tableListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
+      }
+      // Clear the one-time scroll flag
+      scrollToBottomRef.current = false;
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [filteredLogs.length, isRealTime, autoScroll, containerSize.height]);
 
   // Real-time connection management
   useEffect(() => {
@@ -285,16 +301,14 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }
   };
 
-  const handleRealTimeToggle = (enabled) => {
+  const handleRealTimeToggle = async (enabled) => {
     setIsRealTime(enabled);
-    if (enabled) {
-      setLogs([]);
-      setFocusedLog(null);
-      setAutoScroll(true);
-    } else {
-      loadAllLogs(true);
-      setAutoScroll(true);
-    }
+    setFocusedLog(null);
+    setAutoScroll(true);
+    scrollToBottomRef.current = true; // Scroll to bottom after loading
+    
+    // Load recent logs for both modes
+    await loadAllLogs(true);
   };
 
   const focusedLogData = useMemo(() => {
