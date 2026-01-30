@@ -12,11 +12,45 @@ namespace LoggerWebService.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-public class LogController(
-    LogEntryService service,
-    IHubContext<LogHub> hubContext,
-    ILogger<LogController> logger) : ControllerBase
+public class LogController : ControllerBase
 {
+    private readonly LogEntryService _service;
+    private readonly IHubContext<LogHub> _hubContext;
+    private readonly ILogger<LogController> _logger;
+    private readonly string _minimumLogLevel;
+
+    private static readonly Dictionary<string, int> LogLevelPriority = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Trace"] = 0,
+        ["Debug"] = 1,
+        ["Information"] = 2,
+        ["Warning"] = 3,
+        ["Error"] = 4,
+        ["Critical"] = 5
+    };
+
+    public LogController(
+        LogEntryService service,
+        IHubContext<LogHub> hubContext,
+        ILogger<LogController> logger,
+        IConfiguration configuration)
+    {
+        _service = service;
+        _hubContext = hubContext;
+        _logger = logger;
+        _minimumLogLevel = configuration.GetValue<string>("LoggerService:MinimumLogLevel") ?? "Information";
+    }
+
+    private bool IsLogLevelEnabled(string? logLevel)
+    {
+        if(string.IsNullOrEmpty(logLevel)) return true; // Default to enabled if no level specified
+
+        var minPriority = LogLevelPriority.GetValueOrDefault(_minimumLogLevel, 2);
+        var logPriority = LogLevelPriority.GetValueOrDefault(logLevel, 2);
+
+        return logPriority >= minPriority;
+    }
+
     /// <summary>
     /// Create a new log entry.
     /// </summary>
@@ -31,7 +65,20 @@ public class LogController(
     {
         try
         {
-            var idx = await service.AddLogEntryAsync(request);
+            // Check if log level meets minimum threshold
+            string? logLevel = null;
+            if(request.LogData?.RootElement.TryGetProperty("level", out var levelElement) == true)
+            {
+                logLevel = levelElement.GetString();
+            }
+
+            if(!IsLogLevelEnabled(logLevel))
+            {
+                // Silently accept but don't store or broadcast
+                return Ok(new LogCreatedResponse(-1, "Log entry below minimum level, not stored"));
+            }
+
+            var idx = await _service.AddLogEntryAsync(request);
             var createdAt = DateTime.UtcNow;
 
             // Broadcast to SignalR clients
@@ -45,7 +92,7 @@ public class LogController(
         }
         catch(ArgumentException ex)
         {
-            logger.LogWarning(ex, "Invalid log entry request");
+            _logger.LogWarning(ex, "Invalid log entry request");
             return BadRequest(new ProblemDetails
             {
                 Title = "Invalid request",
@@ -55,7 +102,7 @@ public class LogController(
         }
         catch(PostgresException ex)
         {
-            logger.LogError(ex, "Database error creating log entry");
+            _logger.LogError(ex, "Database error creating log entry");
             return Problem(
                 detail: ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError,
@@ -73,7 +120,7 @@ public class LogController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLogEntry(int idx)
     {
-        var logEntry = await service.GetLogEntryAsync(idx);
+        var logEntry = await _service.GetLogEntryAsync(idx);
 
         if(logEntry is null)
         {
@@ -95,7 +142,7 @@ public class LogController(
         [FromQuery] int limit = 1000,
         [FromQuery] int offset = 0)
     {
-        var logs = await service.GetLogEntriesAsync(limit, offset);
+        var logs = await _service.GetLogEntriesAsync(limit, offset);
         return Ok(logs);
     }
 
@@ -112,12 +159,12 @@ public class LogController(
     {
         try
         {
-            var logs = await service.SearchLogEntriesAsync(request);
+            var logs = await _service.SearchLogEntriesAsync(request);
             return Ok(logs);
         }
         catch(Exception ex)
         {
-            logger.LogError(ex, "Error searching logs");
+            _logger.LogError(ex, "Error searching logs");
             return Problem(
                 detail: ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError,
@@ -138,12 +185,12 @@ public class LogController(
     {
         try
         {
-            var logs = await service.AdvancedSearchLogEntriesAsync(request);
+            var logs = await _service.AdvancedSearchLogEntriesAsync(request);
             return Ok(logs);
         }
         catch(Exception ex)
         {
-            logger.LogError(ex, "Error in advanced search");
+            _logger.LogError(ex, "Error in advanced search");
             return Problem(
                 detail: ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError,
@@ -168,6 +215,6 @@ public class LogController(
 
     private async Task BroadcastLogEntryAsync(LogEntryResponse logEntry)
     {
-        await hubContext.Clients.All.SendAsync("NewLogEntry", logEntry);
+        await _hubContext.Clients.All.SendAsync("NewLogEntry", logEntry);
     }
 }
