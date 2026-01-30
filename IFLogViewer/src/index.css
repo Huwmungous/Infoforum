@@ -245,7 +245,8 @@
 .table-row {
   cursor: pointer;
   border-bottom: 1px solid rgba(33, 76, 140, 0.1);
-  transition: background var(--if-transition-fast);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 40px;
 }
 
 .table-row:hover {
@@ -546,14 +547,6 @@
   font-size: 13px;
   line-height: 1.4;
   background: #0a0a0a;
-  /* Subtle scanline effect */
-  background-image: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 20, 0, 0.1) 2px,
-    rgba(0, 20, 0, 0.1) 4px
-  );
 }
 
 /* Custom scrollbar for Hercules terminal */
@@ -605,6 +598,8 @@
   white-space: nowrap;
   padding: 1px 0;
   color: #33ff33;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 20px;
 }
 
 .hercules-line:hover {
