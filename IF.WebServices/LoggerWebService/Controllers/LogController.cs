@@ -12,45 +12,11 @@ namespace LoggerWebService.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-public class LogController : ControllerBase
+public class LogController(
+    LogEntryService service,
+    IHubContext<LogHub> hubContext,
+    ILogger<LogController> logger) : ControllerBase
 {
-    private readonly LogEntryService _service;
-    private readonly IHubContext<LogHub> _hubContext;
-    private readonly ILogger<LogController> _logger;
-    private readonly string _minimumLogLevel;
-
-    private static readonly Dictionary<string, int> LogLevelPriority = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["Trace"] = 0,
-        ["Debug"] = 1,
-        ["Information"] = 2,
-        ["Warning"] = 3,
-        ["Error"] = 4,
-        ["Critical"] = 5
-    };
-
-    public LogController(
-        LogEntryService service,
-        IHubContext<LogHub> hubContext,
-        ILogger<LogController> logger,
-        IConfiguration configuration)
-    {
-        _service = service;
-        _hubContext = hubContext;
-        _logger = logger;
-        _minimumLogLevel = configuration.GetValue<string>("LoggerService:MinimumLogLevel") ?? "Information";
-    }
-
-    private bool IsLogLevelEnabled(string? logLevel)
-    {
-        if(string.IsNullOrEmpty(logLevel)) return true; // Default to enabled if no level specified
-
-        var minPriority = LogLevelPriority.GetValueOrDefault(_minimumLogLevel, 2);
-        var logPriority = LogLevelPriority.GetValueOrDefault(logLevel, 2);
-
-        return logPriority >= minPriority;
-    }
-
     /// <summary>
     /// Create a new log entry.
     /// </summary>
@@ -65,25 +31,20 @@ public class LogController : ControllerBase
     {
         try
         {
-            // Check if log level meets minimum threshold
+            // Store everything - no filtering on receipt
+            var idx = await service.AddLogEntryAsync(request);
+            var createdAt = DateTime.UtcNow;
+
+            // Get log level for filtered broadcast
             string? logLevel = null;
             if(request.LogData?.RootElement.TryGetProperty("level", out var levelElement) == true)
             {
                 logLevel = levelElement.GetString();
             }
 
-            if(!IsLogLevelEnabled(logLevel))
-            {
-                // Silently accept but don't store or broadcast
-                return Ok(new LogCreatedResponse(-1, "Log entry below minimum level, not stored"));
-            }
-
-            var idx = await _service.AddLogEntryAsync(request);
-            var createdAt = DateTime.UtcNow;
-
-            // Broadcast to SignalR clients
+            // Broadcast to SignalR clients (filtered by their level preferences)
             var logEntry = new LogEntryResponse(idx, request.Realm, request.Client, request.LogData, createdAt);
-            await BroadcastLogEntryAsync(logEntry);
+            await BroadcastLogEntryAsync(logEntry, logLevel);
 
             return CreatedAtAction(
                 nameof(GetLogEntry),
@@ -92,7 +53,7 @@ public class LogController : ControllerBase
         }
         catch(ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Invalid log entry request");
+            logger.LogWarning(ex, "Invalid log entry request");
             return BadRequest(new ProblemDetails
             {
                 Title = "Invalid request",
@@ -102,7 +63,7 @@ public class LogController : ControllerBase
         }
         catch(PostgresException ex)
         {
-            _logger.LogError(ex, "Database error creating log entry");
+            logger.LogError(ex, "Database error creating log entry");
             return Problem(
                 detail: ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError,
@@ -120,7 +81,7 @@ public class LogController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLogEntry(int idx)
     {
-        var logEntry = await _service.GetLogEntryAsync(idx);
+        var logEntry = await service.GetLogEntryAsync(idx);
 
         if(logEntry is null)
         {
@@ -142,7 +103,7 @@ public class LogController : ControllerBase
         [FromQuery] int limit = 1000,
         [FromQuery] int offset = 0)
     {
-        var logs = await _service.GetLogEntriesAsync(limit, offset);
+        var logs = await service.GetLogEntriesAsync(limit, offset);
         return Ok(logs);
     }
 
@@ -159,12 +120,12 @@ public class LogController : ControllerBase
     {
         try
         {
-            var logs = await _service.SearchLogEntriesAsync(request);
+            var logs = await service.SearchLogEntriesAsync(request);
             return Ok(logs);
         }
         catch(Exception ex)
         {
-            _logger.LogError(ex, "Error searching logs");
+            logger.LogError(ex, "Error searching logs");
             return Problem(
                 detail: ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError,
@@ -185,12 +146,12 @@ public class LogController : ControllerBase
     {
         try
         {
-            var logs = await _service.AdvancedSearchLogEntriesAsync(request);
+            var logs = await service.AdvancedSearchLogEntriesAsync(request);
             return Ok(logs);
         }
         catch(Exception ex)
         {
-            _logger.LogError(ex, "Error in advanced search");
+            logger.LogError(ex, "Error in advanced search");
             return Problem(
                 detail: ex.Message,
                 statusCode: StatusCodes.Status500InternalServerError,
@@ -209,12 +170,23 @@ public class LogController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> NotifyLogEntry([FromBody] LogEntryResponse logEntry)
     {
-        await BroadcastLogEntryAsync(logEntry);
+        string? logLevel = null;
+        if(logEntry.LogData?.RootElement.TryGetProperty("level", out var levelElement) == true)
+        {
+            logLevel = levelElement.GetString();
+        }
+        await BroadcastLogEntryAsync(logEntry, logLevel);
         return Ok();
     }
 
-    private async Task BroadcastLogEntryAsync(LogEntryResponse logEntry)
+    private async Task BroadcastLogEntryAsync(LogEntryResponse logEntry, string? logLevel)
     {
-        await _hubContext.Clients.All.SendAsync("NewLogEntry", logEntry);
+        // Get connections that want this log level
+        var eligibleConnections = LogHub.GetEligibleConnections(logLevel).ToList();
+
+        if(eligibleConnections.Count > 0)
+        {
+            await hubContext.Clients.Clients(eligibleConnections).SendAsync("NewLogEntry", logEntry);
+        }
     }
 }

@@ -189,6 +189,12 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         await connection.start();
         console.log('Connected to log stream');
         setIsConnected(true);
+        
+        // Set initial log level filter on the server
+        if (levelFilter) {
+          await connection.invoke('SetMinimumLogLevel', levelFilter);
+          console.log('Set server-side log level filter to:', levelFilter);
+        }
       } catch (err) {
         console.error('SignalR connection error:', err);
         setError(`Failed to connect to real-time log stream: ${err.message || err}`);
@@ -204,6 +210,23 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       }
     };
   }, [isRealTime, maxLogs, getAccessToken, isAuthenticated, initialized, apiBase]);
+
+  // Update server-side log level filter when levelFilter changes during real-time mode
+  useEffect(() => {
+    const updateServerLogLevel = async () => {
+      if (isRealTime && connectionRef.current?.state === signalR.HubConnectionState.Connected) {
+        try {
+          // Empty string means "All Levels" = Trace (show everything)
+          const level = levelFilter || 'Trace';
+          await connectionRef.current.invoke('SetMinimumLogLevel', level);
+          console.log('Updated server-side log level filter to:', level);
+        } catch (err) {
+          console.error('Failed to update log level filter:', err);
+        }
+      }
+    };
+    updateServerLogLevel();
+  }, [levelFilter, isRealTime]);
 
   const handleSearch = async () => {
     if (!apiBase) return;
@@ -245,7 +268,26 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   };
 
   // Enhanced search to include all key fields
+  // Log level priority for filtering (show this level and above)
+  const levelPriority = {
+    'Trace': 0,
+    'Debug': 1,
+    'Information': 2,
+    'Warning': 3,
+    'Error': 4,
+    'Critical': 5
+  };
+
   const showRow = log => {
+    // Level filter - show selected level and above
+    if (levelFilter) {
+      const logLevel = log?.logData?.level;
+      const minPriority = levelPriority[levelFilter] ?? 0;
+      const logPriority = levelPriority[logLevel] ?? 0;
+      if (logPriority < minPriority) return false;
+    }
+    
+    // Text search filter
     if (!searchString) return true;
     const searchLower = searchString.toLowerCase();
     const message = log?.logData?.message?.toLowerCase() || '';
@@ -406,11 +448,11 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             className="filter-select"
           >
             <option value="">All Levels</option>
-            <option value="Trace">Trace</option>
-            <option value="Debug">Debug</option>
-            <option value="Information">Information</option>
-            <option value="Warning">Warning</option>
-            <option value="Error">Error</option>
+            <option value="Trace">Trace+</option>
+            <option value="Debug">Debug+</option>
+            <option value="Information">Info+</option>
+            <option value="Warning">Warning+</option>
+            <option value="Error">Error+</option>
             <option value="Critical">Critical</option>
           </select>
 

@@ -52,3 +52,4 @@ node_modules
 /IF.Web.Common/dist
 /IFLogViewer/dist
 /IFLogViewer/package-lock.json
+/IF.WebServices/LoggerWebService/bin
