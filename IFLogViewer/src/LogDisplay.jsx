@@ -445,7 +445,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           <select
             value={levelFilter}
             onChange={e => setLevelFilter(e.target.value)}
-            className="filter-select"
+            className="if-header-select"
           >
             <option value="">All Levels</option>
             <option value="Trace">Trace+</option>
@@ -462,20 +462,20 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             onChange={(e) => setMessageFilter(e.target.value)}
             placeholder="Message..."
             disabled={isRealTime}
-            className="filter-input"
+            className="if-header-input"
           />
 
           <button
             onClick={handleSearch}
             disabled={isRealTime}
-            className="btn-primary"
+            className="if-btn if-btn-primary if-btn-sm"
           >
             Search
           </button>
           <button
             onClick={loadAllLogs}
             disabled={isRealTime}
-            className="btn-secondary"
+            className="if-btn if-btn-secondary if-btn-sm"
           >
             Clear
           </button>
@@ -487,7 +487,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             value={maxLogs}
             onChange={(e) => setMaxLogs(parseInt(e.target.value))}
             disabled={isRealTime}
-            className="theme-select"
+            className="if-header-select"
           >
             {[25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500].map(n => (
               <option key={n} value={n}>{n}</option>
@@ -497,7 +497,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           <select
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            className="theme-select"
+            className="if-header-select"
           >
             <option value="light">Light</option>
             <option value="dark">Dark</option>
@@ -505,7 +505,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
 
           <button
             onClick={signout}
-            className="btn-warning"
+            className="if-btn if-btn-warning if-btn-sm"
           >
             Sign Out
           </button>

@@ -224,6 +224,12 @@
     outline: none;
   }
 
+  .if-form-input:disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+  }
+
   .if-form-input::placeholder {
     color: #777;
   }
@@ -243,6 +249,12 @@
     outline: none;
   }
 
+  .if-form-select:disabled {
+    background: #f0f0f0;
+    color: #999;
+    cursor: not-allowed;
+  }
+
   /* Header-style selects (dark background) */
   .if-header-select {
     height: 28px;
@@ -254,6 +266,22 @@
     font-size: 0.75rem;
   }
 
+  .if-header-select:focus {
+    border-color: var(--if-light-colour);
+    outline: none;
+  }
+
+  .if-header-select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Dropdown options need dark text on light background (browser default) */
+  .if-header-select option {
+    background: var(--if-paper-colour);
+    color: var(--if-dark-colour);
+  }
+
   .if-header-input {
     height: 28px;
     padding: 0 var(--if-space-sm);
@@ -262,6 +290,16 @@
     border: 1px solid rgba(33, 76, 140, 0.5);
     border-radius: var(--if-radius-md);
     font-size: 0.75rem;
+  }
+
+  .if-header-input:focus {
+    border-color: var(--if-light-colour);
+    outline: none;
+  }
+
+  .if-header-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .if-header-input::placeholder {
