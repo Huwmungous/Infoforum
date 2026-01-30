@@ -514,45 +514,45 @@ const LogDisplay = ({ loggerServiceUrl }) => {
 
       {/* Main container */}
       <div className="main-content">
-        {/* Results section */}
-        <div className="results-panel">
-          {/* Filter row with toggle, search, and count */}
-          <div className="filter-row">
-            {/* Left: Realtime toggle */}
-            <div className="filter-row-left">
-              <button
-                onClick={() => handleRealTimeToggle(!isRealTime)}
-                className={`toggle-switch ${isRealTime ? 'toggle-switch-active' : ''}`}
-              >
-                <span className="toggle-switch-knob"></span>
-              </button>
-              <span>Live</span>
-              {isRealTime && (
-                <span className={isConnected ? 'status-connected' : 'status-disconnected'}>
-                  {isConnected ? '●' : '○'}
-                </span>
-              )}
-            </div>
-
-            {/* Center: Search input */}
-            <div className="filter-row-center">
-              <input
-                type="text"
-                value={searchString}
-                onChange={(e) => setSearchString(e.target.value)}
-                placeholder="Filter Results..."
-                className="search-input"
-              />
-            </div>
-
-            {/* Right: Count */}
-            <div className="filter-row-right">
-              <span className="results-count">
-                {logs.filter(showRow).length} log{logs.filter(showRow).length === 1 ? '' : 's'}
+        {/* Filter row with toggle, search, and count - outside scrolling area */}
+        <div className="filter-row">
+          {/* Left: Realtime toggle */}
+          <div className="filter-row-left">
+            <button
+              onClick={() => handleRealTimeToggle(!isRealTime)}
+              className={`toggle-switch ${isRealTime ? 'toggle-switch-active' : ''}`}
+            >
+              <span className="toggle-switch-knob"></span>
+            </button>
+            <span>Live</span>
+            {isRealTime && (
+              <span className={isConnected ? 'status-connected' : 'status-disconnected'}>
+                {isConnected ? '●' : '○'}
               </span>
-            </div>
+            )}
           </div>
 
+          {/* Center: Search input */}
+          <div className="filter-row-center">
+            <input
+              type="text"
+              value={searchString}
+              onChange={(e) => setSearchString(e.target.value)}
+              placeholder="Filter Results..."
+              className="search-input"
+            />
+          </div>
+
+          {/* Right: Count */}
+          <div className="filter-row-right">
+            <span className="results-count">
+              {logs.filter(showRow).length} log{logs.filter(showRow).length === 1 ? '' : 's'}
+            </span>
+          </div>
+        </div>
+
+        {/* Results section - scrollable */}
+        <div className="results-panel">
           {/* Error message */}
           {error && (
             <div className="error-message">
