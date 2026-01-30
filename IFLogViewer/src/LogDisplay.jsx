@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { FixedSizeList as List } from 'react-window';
 import { useAppContext, useAuth } from '@if/web-common-react';
 import { useTheme } from './context/ThemeContext.jsx';
 import LevelIcon from './LevelIcon';
@@ -10,6 +11,10 @@ const logo = new URL('/IF-Logo.png', import.meta.url).href;
 // Constants for live log trimming
 const MAX_LIVE_LOGS = 300;
 const TRIM_COUNT = 100;
+
+// Row heights for virtualization
+const HERCULES_ROW_HEIGHT = 22;
+const TABLE_ROW_HEIGHT = 44;
 
 const LogDisplay = ({ loggerServiceUrl }) => {
   const { auth } = useAppContext();
@@ -31,14 +36,19 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const [maxLogs, setMaxLogs] = useState(100);
   const connectionRef = useRef(null);
   
-  // Ref for auto-scrolling - points to the cursor at the bottom
-  const cursorRef = useRef(null);
+  // Refs for virtualized lists
+  const herculesListRef = useRef(null);
+  const tableListRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  
+  // Container size for virtualized list
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const containerRef = useRef(null);
 
   // Use Vite proxy in dev mode to avoid CORS issues
   const apiBase = import.meta.env.DEV ? '/logger' : loggerServiceUrl;
 
-  // Simple fetch helper - auth handled by AppInitializer interceptor
+  // Simple fetch helper
   const apiFetch = async (url, options = {}) => {
     const response = await fetch(url, {
       ...options,
@@ -49,71 +59,114 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     return response.json();
   };
 
-  const scrollToBottom = useCallback(() => {
-    if (cursorRef.current) {
-      cursorRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
-    }
-  }, []);
+  // Load all logs
+  const loadAllLogs = useCallback(async (preserveLogs = false) => {
+    if (!apiBase) return;
 
-  const loadAllLogs = useCallback(async (shouldScrollToBottom = false) => {
-    if (!apiBase) {
-      console.error('loggerServiceUrl prop is required');
-      return;
+    if (!preserveLogs) {
+      setLoading(true);
     }
-
-    setLoading(true);
     setError(null);
     try {
-      console.log('Loading logs from:', `${apiBase}/logs?limit=${maxLogs}`);
-      const data = await apiFetch(`${apiBase}/logs?limit=${maxLogs}`);
-      setLogs(data);
+      const data = await apiFetch(`${apiBase}/logs?limit=${maxLogs}&offset=0`);
+      setLogs(data || []);
+      setFocusedLog(null);
     } catch (err) {
-      setError(err.message);
+      console.error('Failed to load logs:', err);
+      setError(`Failed to load logs: ${err.message}`);
     } finally {
       setLoading(false);
-      // Scroll to bottom AFTER loading is complete (DOM will update on next tick)
-      if (shouldScrollToBottom) {
-        setTimeout(scrollToBottom, 100);
-      }
     }
-  }, [apiBase, maxLogs, scrollToBottom]);
+  }, [apiBase, maxLogs]);
 
-  // Load logs when authenticated
+  // Initial load when authenticated
   useEffect(() => {
-    if (isAuthenticated && initialized && apiBase) {
-      console.log('Auth ready, loading logs from:', apiBase);
+    if (isAuthenticated && initialized && apiBase && !isRealTime) {
       loadAllLogs();
     }
-  }, [isAuthenticated, initialized, apiBase, loadAllLogs]);
+  }, [isAuthenticated, initialized, apiBase, loadAllLogs, isRealTime]);
 
-  // Auto-scroll to cursor when new logs arrive in live mode
-  // useLayoutEffect runs synchronously after DOM mutations
-  useLayoutEffect(() => {
-    if (isRealTime && autoScroll && !loading && cursorRef.current) {
-      cursorRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
+  // Log level filtering
+  const levelPriority = useMemo(() => ({
+    'Trace': 0,
+    'Debug': 1,
+    'Information': 2,
+    'Warning': 3,
+    'Error': 4,
+    'Critical': 5
+  }), []);
+
+  const showRow = useCallback((log) => {
+    if (levelFilter) {
+      const logLevel = log?.logData?.level;
+      const minPriority = levelPriority[levelFilter] ?? 0;
+      const logPriority = levelPriority[logLevel] ?? 0;
+      if (logPriority < minPriority) return false;
     }
-  }, [logs, isRealTime, autoScroll, loading]);
+    
+    if (!searchString) return true;
+    const searchLower = searchString.toLowerCase();
+    const message = log?.logData?.message?.toLowerCase() || '';
+    const text = log?.logData?.text?.toLowerCase() || '';
+    const category = log?.logData?.category?.toLowerCase() || '';
+    const environment = log?.logData?.environment?.toLowerCase() || '';
+    const application = log?.logData?.application?.toLowerCase() || '';
+    const pathname = log?.logData?.pathname?.toLowerCase() || '';
+    const machineName = log?.logData?.machineName?.toLowerCase() || '';
+    const host = log?.logData?.host?.toLowerCase() || '';
+    return message.includes(searchLower) ||
+           text.includes(searchLower) ||
+           category.includes(searchLower) ||
+           environment.includes(searchLower) ||
+           application.includes(searchLower) ||
+           pathname.includes(searchLower) ||
+           machineName.includes(searchLower) ||
+           host.includes(searchLower);
+  }, [levelFilter, searchString, levelPriority]);
 
-  // Handle scroll to detect if user scrolled up (disable auto-scroll)
-  const handleTerminalScroll = (e) => {
-    const el = e.currentTarget;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    // If user is within 50px of bottom, re-enable auto-scroll
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
-    setAutoScroll(isAtBottom);
-  };
+  const filteredLogs = useMemo(() => logs.filter(showRow), [logs, showRow]);
+
+  // Measure container size for virtualized list
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerSize({ width: rect.width, height: rect.height });
+      }
+    };
+    
+    // Initial measurement with small delay to ensure DOM is ready
+    const timer = setTimeout(updateSize, 50);
+    window.addEventListener('resize', updateSize);
+    
+    const resizeObserver = new ResizeObserver(updateSize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateSize);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  // Auto-scroll to bottom when new logs arrive in live mode
+  useEffect(() => {
+    if (isRealTime && autoScroll && herculesListRef.current && filteredLogs.length > 0) {
+      herculesListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
+    }
+  }, [filteredLogs.length, isRealTime, autoScroll]);
 
   // Real-time connection management
   useEffect(() => {
     if (!isRealTime) {
-      // Disconnect if real-time is disabled
       if (connectionRef.current) {
         connectionRef.current.stop();
         connectionRef.current = null;
@@ -122,19 +175,16 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       return;
     }
 
-    // Don't connect until authenticated and we have the URL
     if (!isAuthenticated || !initialized || !apiBase) {
       return;
     }
 
-    // Create SignalR connection with auth token
     const createConnection = async () => {
       let token = null;
 
       try {
         token = await getAccessToken();
       } catch (e) {
-        console.warn('getAccessToken failed for SignalR:', e);
         setError('No token available for real-time connection');
         return;
       }
@@ -149,17 +199,15 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           accessTokenFactory: () => token
         })
         .withAutomaticReconnect()
-        .configureLogging(signalR.LogLevel.Information)
+        .configureLogging(signalR.LogLevel.Warning)
         .build();
 
       connectionRef.current = connection;
 
-      // Handle incoming logs with trimming logic
       connection.on('NewLogEntry', (log) => {
         log._isNew = true;
         setLogs(prevLogs => {
           const newLogs = [...prevLogs, log];
-          // Trim oldest 100 entries when count exceeds 300
           if (newLogs.length > MAX_LIVE_LOGS) {
             return newLogs.slice(TRIM_COUNT);
           }
@@ -167,58 +215,36 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         });
       });
 
-      // Handle connection state changes
-      connection.onreconnecting(() => {
-        console.log('Reconnecting...');
-        setIsConnected(false);
-      });
+      connection.onreconnecting(() => setIsConnected(false));
+      connection.onreconnected(() => setIsConnected(true));
+      connection.onclose(() => setIsConnected(false));
 
-      connection.onreconnected(() => {
-        console.log('Reconnected');
-        setIsConnected(true);
-      });
-
-      connection.onclose(() => {
-        console.log('Connection closed');
-        setIsConnected(false);
-      });
-
-      // Start connection
       try {
         await connection.start();
-        console.log('Connected to log stream');
         setIsConnected(true);
-        
-        // Set initial log level filter on the server
         if (levelFilter) {
           await connection.invoke('SetMinimumLogLevel', levelFilter);
-          console.log('Set server-side log level filter to:', levelFilter);
         }
       } catch (err) {
-        console.error('SignalR connection error:', err);
-        setError(`Failed to connect to real-time log stream: ${err.message || err}`);
+        setError(`Failed to connect: ${err.message || err}`);
       }
     };
 
     createConnection();
 
-    // Cleanup
     return () => {
       if (connectionRef.current) {
         connectionRef.current.stop();
       }
     };
-  }, [isRealTime, maxLogs, getAccessToken, isAuthenticated, initialized, apiBase]);
+  }, [isRealTime, getAccessToken, isAuthenticated, initialized, apiBase, levelFilter]);
 
-  // Update server-side log level filter when levelFilter changes during real-time mode
+  // Update server-side log level filter
   useEffect(() => {
     const updateServerLogLevel = async () => {
       if (isRealTime && connectionRef.current?.state === signalR.HubConnectionState.Connected) {
         try {
-          // Empty string means "All Levels" = Trace (show everything)
-          const level = levelFilter || 'Trace';
-          await connectionRef.current.invoke('SetMinimumLogLevel', level);
-          console.log('Updated server-side log level filter to:', level);
+          await connectionRef.current.invoke('SetMinimumLogLevel', levelFilter || 'Trace');
         } catch (err) {
           console.error('Failed to update log level filter:', err);
         }
@@ -244,14 +270,16 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       const data = await apiFetch(`${apiBase}/logs/search`, {
         method: 'POST',
         body: JSON.stringify({
+          limit: maxLogs,
+          offset: 0,
           filters: filters,
           filterLogic: 'And',
-          limit: maxLogs
-        })
+        }),
       });
-      setLogs(data);
+      setLogs(data || []);
+      setFocusedLog(null);
     } catch (err) {
-      setError(err.message);
+      setError(`Search failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -260,57 +288,20 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const handleRealTimeToggle = (enabled) => {
     setIsRealTime(enabled);
     if (enabled) {
-      // When enabling real-time, load recent logs and scroll to bottom
+      setLogs([]);
+      setFocusedLog(null);
+      setAutoScroll(true);
+    } else {
       loadAllLogs(true);
       setAutoScroll(true);
     }
   };
 
-  // Enhanced search to include all key fields
-  // Log level priority for filtering (show this level and above)
-  const levelPriority = {
-    'Trace': 0,
-    'Debug': 1,
-    'Information': 2,
-    'Warning': 3,
-    'Error': 4,
-    'Critical': 5
-  };
+  const focusedLogData = useMemo(() => {
+    if (focusedLog === null) return null;
+    return filteredLogs.find(log => log.idx === focusedLog);
+  }, [focusedLog, filteredLogs]);
 
-  const showRow = useCallback((log) => {
-    // Level filter - show selected level and above
-    if (levelFilter) {
-      const logLevel = log?.logData?.level;
-      const minPriority = levelPriority[levelFilter] ?? 0;
-      const logPriority = levelPriority[logLevel] ?? 0;
-      if (logPriority < minPriority) return false;
-    }
-    
-    // Text search filter
-    if (!searchString) return true;
-    const searchLower = searchString.toLowerCase();
-    const message = log?.logData?.message?.toLowerCase() || '';
-    const text = log?.logData?.text?.toLowerCase() || '';
-    const category = log?.logData?.category?.toLowerCase() || '';
-    const environment = log?.logData?.environment?.toLowerCase() || '';
-    const application = log?.logData?.application?.toLowerCase() || '';
-    const pathname = log?.logData?.pathname?.toLowerCase() || '';
-    const machineName = log?.logData?.machineName?.toLowerCase() || '';
-    const host = log?.logData?.host?.toLowerCase() || '';
-    return message.includes(searchLower) ||
-           text.includes(searchLower) ||
-           category.includes(searchLower) ||
-           environment.includes(searchLower) ||
-           application.includes(searchLower) ||
-           pathname.includes(searchLower) ||
-           machineName.includes(searchLower) ||
-           host.includes(searchLower);
-  }, [levelFilter, searchString]);
-
-  // Memoize filtered logs to prevent recalculation on every render
-  const filteredLogs = useMemo(() => logs.filter(showRow), [logs, showRow]);
-
-  // Badge color configs using CSS classes
   const getEnvironmentBadgeClass = (env) => {
     const envLower = env?.toLowerCase();
     switch (envLower) {
@@ -321,132 +312,209 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }
   };
 
-  // Format timestamp for Hercules display
   const formatHerculesTime = (dateStr) => {
     const d = new Date(dateStr);
     return d.toLocaleTimeString('en-GB', { hour12: false }) + '.' + 
            d.getMilliseconds().toString().padStart(3, '0');
   };
 
-  // Get level indicator character
   const getLevelChar = (level) => {
-    const chars = {
-      'Trace': '·',
-      'Debug': '●',      // Solid circle (grey)
-      'Information': '●',
-      'Warning': '▲',
-      'Error': '✗',
-      'Critical': '◆'
-    };
+    const chars = { 'Trace': '·', 'Debug': '○', 'Information': '●', 'Warning': '▲', 'Error': '✗', 'Critical': '◆' };
     return chars[level] || '•';
   };
 
-  // Get level color for Hercules display
   const getLevelColor = (level) => {
-    const colors = {
-      'Trace': '#336633',
-      'Debug': '#888888',   // Light grey
-      'Information': '#33ff33',
-      'Warning': '#ffcc00',
-      'Error': '#ff6633',
-      'Critical': '#ff3333'
-    };
+    const colors = { 'Trace': '#336633', 'Debug': '#669966', 'Information': '#33ff33', 'Warning': '#ffcc00', 'Error': '#ff6633', 'Critical': '#ff3333' };
     return colors[level] || '#33ff33';
   };
 
-  // Check if level should blink
   const shouldBlink = (level) => level === 'Critical';
 
-  // Render Hercules-style terminal for live logs
-  // Get just the class name from a fully-qualified category
   const getShortCategory = (category) => {
-    if (!category) return 'System';
-    // Extract the last part after the final dot
+    if (!category) return 'General';
     const parts = category.split('.');
     return parts[parts.length - 1];
   };
 
+  // Hercules row renderer
+  const HerculesRow = useCallback(({ index, style }) => {
+    const log = filteredLogs[index];
+    if (!log) return null;
+    
+    return (
+      <div style={style} className={`hercules-line ${log._isNew ? 'hercules-new' : ''}`}>
+        <span className="hercules-time">{formatHerculesTime(log.createdAt)}</span>
+        <span 
+          className={`hercules-level ${shouldBlink(log.logData?.level) ? 'hercules-blink' : ''}`}
+          style={{ color: getLevelColor(log.logData?.level) }}
+        >
+          {getLevelChar(log.logData?.level)}
+        </span>
+        <span className="hercules-source">
+          [{log.logData?.application || 'System'}.{getShortCategory(log.logData?.category)}]
+        </span>
+        <span className="hercules-message">{log.logData?.message || ''}</span>
+      </div>
+    );
+  }, [filteredLogs]);
+
+  // Table row renderer
+  const TableRow = useCallback(({ index, style }) => {
+    const log = filteredLogs[index];
+    if (!log) return null;
+    
+    return (
+      <div 
+        style={style} 
+        className={`table-row-virtual ${focusedLog === log.idx ? 'table-row-focused' : ''}`}
+        onClick={() => setFocusedLog(idx => idx === log.idx ? null : log.idx)}
+      >
+        <div className="table-cell-icon">{focusedLog === log.idx ? '▼' : '▶'}</div>
+        <div className="table-cell table-cell-id">{log.idx}</div>
+        <div className="table-cell table-cell-level"><LevelIcon level={log.logData?.level} /></div>
+        <div className="table-cell table-cell-badges">
+          <div className="badge-container">
+            {log.logData?.environment && (
+              <span className={`badge ${getEnvironmentBadgeClass(log.logData.environment)}`}>{log.logData.environment}</span>
+            )}
+            {log.logData?.application && (
+              <span className="badge badge-application">{log.logData.application}</span>
+            )}
+            {log.logData?.category && (
+              <span className="badge badge-category">{getShortCategory(log.logData.category)}</span>
+            )}
+          </div>
+        </div>
+        <div className="table-cell table-cell-message">{log.logData?.message || ''}</div>
+        <div className="table-cell table-cell-date">
+          {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString()}
+        </div>
+      </div>
+    );
+  }, [filteredLogs, focusedLog]);
+
+  const handleHerculesScroll = useCallback(({ scrollOffset }) => {
+    if (herculesListRef.current) {
+      const listHeight = containerSize.height - 40;
+      const contentHeight = filteredLogs.length * HERCULES_ROW_HEIGHT;
+      const maxScroll = contentHeight - listHeight;
+      setAutoScroll(scrollOffset >= maxScroll - 50);
+    }
+  }, [containerSize.height, filteredLogs.length]);
+
   const renderHerculesTerminal = () => {
+    // Account for: hercules-container margins (8px each side), header (~40px), padding
+    const listHeight = Math.max(containerSize.height - 70, 200);
+    
     return (
       <div className="hercules-container">
         <div className="hercules-header">
           <span>═══ LIVE LOG STREAM ═══</span>
-          <span className="hercules-status">
-            {isConnected ? '● CONNECTED' : '○ DISCONNECTED'}
-          </span>
+          <span className="hercules-status">{isConnected ? '● CONNECTED' : '○ DISCONNECTED'}</span>
           <span className="hercules-count">{filteredLogs.length} entries</span>
           {!autoScroll && (
-            <button 
-              className="hercules-scroll-btn"
-              onClick={() => {
-                setAutoScroll(true);
-                if (cursorRef.current) {
-                  cursorRef.current.scrollIntoView({ behavior: 'auto', block: 'end' });
-                }
-              }}
-            >
-              ↓ SCROLL TO BOTTOM
-            </button>
+            <button className="hercules-scroll-btn" onClick={() => {
+              setAutoScroll(true);
+              herculesListRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
+            }}>↓ SCROLL TO BOTTOM</button>
           )}
         </div>
-        <div 
-          className="hercules-terminal"
-          onScroll={handleTerminalScroll}
-        >
-          {filteredLogs.map((log, index) => (
-            <div 
-              key={log.idx || index} 
-              className={`hercules-line ${log._isNew ? 'hercules-new' : ''}`}
+        <div className="hercules-terminal">
+          {containerSize.height > 0 && (
+            <List
+              ref={herculesListRef}
+              height={listHeight}
+              width={containerSize.width || 800}
+              itemCount={filteredLogs.length}
+              itemSize={HERCULES_ROW_HEIGHT}
+              onScroll={handleHerculesScroll}
+              overscanCount={20}
             >
-              <span className="hercules-time">
-                {formatHerculesTime(log.createdAt)}
-              </span>
-              <span 
-                className={`hercules-level ${shouldBlink(log.logData?.level) ? 'hercules-blink' : ''}`}
-                style={{ color: getLevelColor(log.logData?.level) }}
-              >
-                {getLevelChar(log.logData?.level)}
-              </span>
-              <span className="hercules-source">
-                [{log.logData?.application || log.logData?.serviceName || 'System'}.{getShortCategory(log.logData?.category)}]
-              </span>
-              <span className="hercules-message">
-                {log.logData?.message || ''}
+              {HerculesRow}
+            </List>
+          )}
+          {filteredLogs.length === 0 && (
+            <div className="hercules-waiting">{isConnected ? 'Waiting for log entries...' : 'Connecting...'}</div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDetailPanel = () => {
+    if (!focusedLogData) return null;
+    
+    return (
+      <div className="detail-panel">
+        <div className="detail-header">
+          <span>Log Details - ID: {focusedLogData.idx}</span>
+          <button onClick={() => {
+            navigator.clipboard.writeText(JSON.stringify(focusedLogData.logData, null, 2));
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }} className={`btn-copy ${copied ? 'btn-copy-success' : ''}`}>{copied ? 'Copied!' : 'Copy'}</button>
+          <button onClick={() => setFocusedLog(null)} className="btn-close">✕</button>
+        </div>
+        <div className="detail-grid">
+          {Object.entries(focusedLogData.logData || {}).map(([key, value]) => (
+            <div key={key} className="detail-row">
+              <span className="detail-key">{key}:</span>
+              <span className="detail-value">
+                {value === null ? <span className="detail-null">null</span> : typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
               </span>
             </div>
           ))}
-          {/* Blinking cursor line - always at bottom */}
-          <div className="hercules-cursor-line" ref={cursorRef}>
-            <span className="hercules-cursor">▌</span>
-            {filteredLogs.length === 0 && (
-              <span className="hercules-waiting-text">
-                {isConnected ? ' Waiting for log entries...' : ' Connecting...'}
-              </span>
-            )}
-          </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderTableView = () => {
+    // Account for: table header (~40px), and optionally detail panel (~220px)
+    const headerHeight = 40;
+    const detailHeight = focusedLogData ? 220 : 0;
+    const listHeight = Math.max(containerSize.height - headerHeight - detailHeight, 200);
+    
+    return (
+      <div className="table-view-container">
+        <div className="table-header-virtual">
+          <div className="table-header-cell table-header-icon"></div>
+          <div className="table-header-cell table-header-id">ID</div>
+          <div className="table-header-cell table-header-level">Level</div>
+          <div className="table-header-cell table-header-badges">Attributes</div>
+          <div className="table-header-cell table-header-message">Message</div>
+          <div className="table-header-cell table-header-date">Created</div>
+        </div>
+        
+        {containerSize.height > 0 && (
+          <List
+            ref={tableListRef}
+            height={listHeight}
+            width={containerSize.width || 800}
+            itemCount={filteredLogs.length}
+            itemSize={TABLE_ROW_HEIGHT}
+            overscanCount={10}
+          >
+            {TableRow}
+          </List>
+        )}
+        
+        {renderDetailPanel()}
       </div>
     );
   };
 
   return (
     <div className="app-container">
-      {/* Header */}
       <header className="app-header">
-        {/* Left: Logo and Title */}
         <div className="header-left">
           <img src={logo} alt="IF" className="if-logo" />
           <h1 className="app-title">IF Log Viewer</h1>
           <span className="version-label">v1.0</span>
         </div>
 
-        {/* Center: Search controls */}
         <div className="header-center">
-          <select
-            value={levelFilter}
-            onChange={e => setLevelFilter(e.target.value)}
-            className="if-header-select"
-          >
+          <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)} className="if-header-select">
             <option value="">All Levels</option>
             <option value="Trace">Trace+</option>
             <option value="Debug">Debug+</option>
@@ -456,253 +524,52 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             <option value="Critical">Critical</option>
           </select>
 
-          <input
-            type="text"
-            value={messageFilter}
-            onChange={(e) => setMessageFilter(e.target.value)}
-            placeholder="Message..."
-            disabled={isRealTime}
-            className="if-header-input"
-          />
+          <input type="text" value={messageFilter} onChange={(e) => setMessageFilter(e.target.value)}
+            placeholder="Message..." disabled={isRealTime} className="if-header-input" />
 
-          <button
-            onClick={handleSearch}
-            disabled={isRealTime}
-            className="if-btn if-btn-primary if-btn-sm"
-          >
-            Search
-          </button>
-          <button
-            onClick={loadAllLogs}
-            disabled={isRealTime}
-            className="if-btn if-btn-secondary if-btn-sm"
-          >
-            Clear
-          </button>
+          <button onClick={handleSearch} disabled={isRealTime} className="if-btn if-btn-primary if-btn-sm">Search</button>
+          <button onClick={loadAllLogs} disabled={isRealTime} className="if-btn if-btn-secondary if-btn-sm">Clear</button>
         </div>
 
-        {/* Right: Settings (Max logs + Theme) */}
         <div className="header-right">
-          <select
-            value={maxLogs}
-            onChange={(e) => setMaxLogs(parseInt(e.target.value))}
-            disabled={isRealTime}
-            className="if-header-select"
-          >
-            {[25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400, 425, 450, 475, 500].map(n => (
-              <option key={n} value={n}>{n}</option>
-            ))}
+          <select value={maxLogs} onChange={(e) => setMaxLogs(parseInt(e.target.value))} disabled={isRealTime} className="if-header-select">
+            {[25, 50, 75, 100, 150, 200, 300, 500].map(n => <option key={n} value={n}>{n}</option>)}
           </select>
 
-          <select
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            className="if-header-select"
-          >
+          <select value={theme} onChange={(e) => setTheme(e.target.value)} className="if-header-select">
             <option value="light">Light</option>
             <option value="dark">Dark</option>
           </select>
 
-          <button
-            onClick={signout}
-            className="if-btn if-btn-warning if-btn-sm"
-          >
-            Sign Out
-          </button>
+          <button onClick={signout} className="if-btn if-btn-warning if-btn-sm">Sign Out</button>
         </div>
       </header>
 
-      {/* Main container */}
       <div className="main-content">
-        {/* Filter row with toggle, search, and count - outside scrolling area */}
         <div className="filter-row">
-          {/* Left: Realtime toggle */}
           <div className="filter-row-left">
-            <button
-              onClick={() => handleRealTimeToggle(!isRealTime)}
-              className={`toggle-switch ${isRealTime ? 'toggle-switch-active' : ''}`}
-            >
+            <button onClick={() => handleRealTimeToggle(!isRealTime)} className={`toggle-switch ${isRealTime ? 'toggle-switch-active' : ''}`}>
               <span className="toggle-switch-knob"></span>
             </button>
             <span>Live</span>
-            {isRealTime && (
-              <span className={isConnected ? 'status-connected' : 'status-disconnected'}>
-                {isConnected ? '●' : '○'}
-              </span>
-            )}
+            {isRealTime && <span className={isConnected ? 'status-connected' : 'status-disconnected'}>{isConnected ? '●' : '○'}</span>}
           </div>
 
-          {/* Center: Search input */}
           <div className="filter-row-center">
-            <input
-              type="text"
-              value={searchString}
-              onChange={(e) => setSearchString(e.target.value)}
-              placeholder="Filter Results..."
-              className="search-input"
-            />
+            <input type="text" value={searchString} onChange={(e) => setSearchString(e.target.value)} placeholder="Filter Results..." className="search-input" />
           </div>
 
-          {/* Right: Count */}
           <div className="filter-row-right">
-            <span className="results-count">
-              {filteredLogs.length} log{filteredLogs.length === 1 ? '' : 's'}
-            </span>
+            <span className="results-count">{filteredLogs.length} log{filteredLogs.length === 1 ? '' : 's'}</span>
           </div>
         </div>
 
-        {/* Results section - scrollable */}
-        <div className="results-panel">
-          {/* Error message */}
-          {error && (
-            <div className="error-message">
-              {error}
-            </div>
-          )}
-
-          {/* Loading state */}
-          {loading && (
-            <div className="loading-message">
-              Loading...
-            </div>
-          )}
-
-          {/* Hercules Terminal for Live Mode */}
+        <div className="results-panel" ref={containerRef}>
+          {error && <div className="error-message">{error}</div>}
+          {loading && <div className="loading-message">Loading...</div>}
           {isRealTime && !loading && renderHerculesTerminal()}
-
-          {/* Standard Table View for non-live mode */}
-          {!isRealTime && !loading && logs.length === 0 && (
-            <div className="empty-message">
-              No logs found
-            </div>
-          )}
-
-          {/* Log table (only shown when NOT in real-time mode) */}
-          {!isRealTime && !loading && logs.length > 0 && (
-            <>
-              {/* Table */}
-              <div className="table-container">
-                <table className="log-table">
-                  <thead>
-                    <tr className="table-header-row">
-                      <th className="table-header-cell"></th>
-                      <th className="table-header-cell">ID</th>
-                      <th className="table-header-cell">Level</th>
-                      <th className="table-header-cell">Attributes</th>
-                      <th className="table-header-cell">Message</th>
-                      <th className="table-header-cell">Created</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredLogs.map(log => (
-                        <React.Fragment key={log.idx}>
-                          <tr
-                            className={`table-row ${focusedLog === log.idx ? 'table-row-focused' : ''} ${log._isNew ? 'animate-new-log' : ''}`}
-                            onClick={() => setFocusedLog(idx => idx === log.idx ? null : log.idx)}
-                          >
-                            <td className="table-cell-icon">
-                              {focusedLog === log.idx ? '▼' : '▶'}
-                            </td>
-                            <td className="table-cell">{log.idx}</td>
-                            <td className="table-cell">
-                              <LevelIcon level={log.logData?.level} />
-                            </td>
-                            <td className="table-cell">
-                              <div className="badge-container">
-                                {log.logData?.environment && (
-                                  <span className={`badge ${getEnvironmentBadgeClass(log.logData.environment)}`}>
-                                    {log.logData.environment}
-                                  </span>
-                                )}
-                                {log.logData?.application && (
-                                  <span className="badge badge-application">
-                                    {log.logData.application}
-                                  </span>
-                                )}
-                                {(log.logData?.machineName || log.logData?.host) && (
-                                  <span className="badge badge-machine">
-                                    {log.logData.machineName || log.logData.host}
-                                  </span>
-                                )}
-                                {log.logData?.pathname && (
-                                  <span className="badge badge-pathname">
-                                    {log.logData.pathname}
-                                  </span>
-                                )}
-                                {log.logData?.category && (
-                                  <span className="badge badge-category">
-                                    {log.logData.category}
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="table-cell">
-                              {log.logData?.message || ''}
-                            </td>
-                            <td className="table-cell-date">
-                              {new Date(log.createdAt).toLocaleDateString()}
-                              {' '}
-                              {new Date(log.createdAt).toLocaleTimeString()}
-                            </td>
-                          </tr>
-
-                          {/* Expanded detail row */}
-                          {focusedLog === log.idx && (
-                            <tr>
-                              <td colSpan={6}>
-                                <div className="detail-panel">
-                                  {/* Copy button */}
-                                  <div className="detail-actions">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const fullLog = JSON.stringify(log.logData, null, 2);
-                                        navigator.clipboard.writeText(fullLog);
-                                        setCopied(true);
-                                        setTimeout(() => setCopied(false), 2000);
-                                      }}
-                                      className={`btn-copy ${copied ? 'btn-copy-success' : ''}`}
-                                    >
-                                      {copied ? 'Copied!' : 'Copy'}
-                                    </button>
-                                  </div>
-
-                                  {/* Log properties */}
-                                  <div className="detail-grid">
-                                    {typeof log.logData === 'string' ? (
-                                      <div className="detail-value">
-                                        {log.logData}
-                                      </div>
-                                    ) : (
-                                      Object.entries(log.logData || {}).map(([key, value]) => (
-                                        <div key={key} className="detail-row">
-                                          <span className="detail-key">
-                                            {key}:
-                                          </span>
-                                          <span className="detail-value">
-                                            {value === null || value === undefined ? (
-                                              <span className="detail-null">null</span>
-                                            ) : typeof value === 'object' ? (
-                                              JSON.stringify(value, null, 2)
-                                            ) : (
-                                              String(value)
-                                            )}
-                                          </span>
-                                        </div>
-                                      ))
-                                    )}
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
+          {!isRealTime && !loading && logs.length === 0 && <div className="empty-message">No logs found</div>}
+          {!isRealTime && !loading && logs.length > 0 && renderTableView()}
         </div>
       </div>
     </div>
