@@ -13,25 +13,25 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
     public async Task<int> AddLogEntryAsync(LogEntryRequest logEntry)
     {
 
-        if (logEntry.Realm is null || logEntry.Client is null || logEntry.LogData is null)
+        if(logEntry.Realm is null || logEntry.Client is null || logEntry.LogData is null)
         {
             throw new ArgumentNullException(nameof(logEntry), "Realm, Client and LogData cannot be null");
         }
 
-        if (string.IsNullOrEmpty(logEntry.Environment))
+        if(string.IsNullOrEmpty(logEntry.Environment))
             logEntry.Environment ??= TryGetString(logEntry.LogData, "environment");
 
-        if (string.IsNullOrEmpty(logEntry.Application))
+        if(string.IsNullOrEmpty(logEntry.Application))
             logEntry.Application ??= TryGetString(logEntry.LogData, "application");
 
-        if (string.IsNullOrEmpty(logEntry.LogLevel))
+        if(string.IsNullOrEmpty(logEntry.LogLevel))
             logEntry.LogLevel ??= TryGetString(logEntry.LogData, "level");
 
         try
         {
             LogInsertingEntry(_logger);
 #pragma warning disable CA1873 // Unnecessary evaluation is guarded by IsEnabled check
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if(_logger.IsEnabled(LogLevel.Debug))
             {
                 LogJsonData(_logger, logEntry.LogData.RootElement.GetRawText());
             }
@@ -60,7 +60,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
             var result = await cmd.ExecuteScalarAsync();
 
 #pragma warning disable CA1873 // Unnecessary evaluation is guarded by IsEnabled check
-            if (_logger.IsEnabled(LogLevel.Debug))
+            if(_logger.IsEnabled(LogLevel.Debug))
             {
                 LogQueryResult(_logger, result?.ToString() ?? "null");
             }
@@ -72,17 +72,17 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
             return returnValue;
         }
-        catch (PostgresException pgEx)
+        catch(PostgresException pgEx)
         {
             LogPostgresError(_logger, pgEx, pgEx.SqlState ?? "", pgEx.Detail ?? "", pgEx.Hint ?? "");
             throw;
         }
-        catch (NpgsqlException npgEx)
+        catch(NpgsqlException npgEx)
         {
             LogNpgsqlError(_logger, npgEx, npgEx.InnerException?.Message ?? "");
             throw;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             LogGeneralError(_logger, ex);
             throw;
@@ -130,7 +130,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         cmd.Parameters.AddWithValue("idx", idx);
 
         await using var reader = await cmd.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
+        if(await reader.ReadAsync())
         {
             var jsonString = reader.GetString(3);
             var jsonDoc = JsonDocument.Parse(jsonString);
@@ -158,17 +158,17 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
                 FROM (
                   SELECT idx, realm, client, log_data, created_at, environment, application, log_level
                   FROM log_entries
-                  ORDER BY created_at DESC
+                  ORDER BY idx DESC
                   LIMIT @limit
                 ) t
-                ORDER BY created_at ASC;",
+                ORDER BY idx ASC;",
             connection);
 
         cmd.Parameters.AddWithValue("limit", limit);
         cmd.Parameters.AddWithValue("offset", offset);
 
         await using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        while(await reader.ReadAsync())
         {
             var jsonString = reader.GetString(3);
             var jsonDoc = JsonDocument.Parse(jsonString);
@@ -203,9 +203,9 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         await using var cmd = new NpgsqlCommand(sql, connection);
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        while(await reader.ReadAsync(ct))
         {
-            if (!reader.IsDBNull(0))
+            if(!reader.IsDBNull(0))
                 results.Add(reader.GetString(0));
         }
 
@@ -225,7 +225,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
             WHERE realm IS NOT NULL
               AND realm <> ''";
 
-        if (!string.IsNullOrEmpty(environment))
+        if(!string.IsNullOrEmpty(environment))
         {
             sql += " AND environment = @environment";
         }
@@ -234,15 +234,15 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
         await using var cmd = new NpgsqlCommand(sql, connection);
 
-        if (!string.IsNullOrEmpty(environment))
+        if(!string.IsNullOrEmpty(environment))
         {
             cmd.Parameters.AddWithValue("environment", environment);
         }
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        while(await reader.ReadAsync(ct))
         {
-            if (!reader.IsDBNull(0))
+            if(!reader.IsDBNull(0))
                 results.Add(reader.GetString(0));
         }
 
@@ -262,12 +262,12 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
             WHERE client IS NOT NULL
               AND client <> ''";
 
-        if (!string.IsNullOrEmpty(environment))
+        if(!string.IsNullOrEmpty(environment))
         {
             sql += " AND environment = @environment";
         }
 
-        if (!string.IsNullOrEmpty(realm))
+        if(!string.IsNullOrEmpty(realm))
         {
             sql += " AND realm = @realm";
         }
@@ -276,20 +276,20 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
         await using var cmd = new NpgsqlCommand(sql, connection);
 
-        if (!string.IsNullOrEmpty(environment))
+        if(!string.IsNullOrEmpty(environment))
         {
             cmd.Parameters.AddWithValue("environment", environment);
         }
 
-        if (!string.IsNullOrEmpty(realm))
+        if(!string.IsNullOrEmpty(realm))
         {
             cmd.Parameters.AddWithValue("realm", realm);
         }
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        while(await reader.ReadAsync(ct))
         {
-            if (!reader.IsDBNull(0))
+            if(!reader.IsDBNull(0))
                 results.Add(reader.GetString(0));
         }
 
@@ -313,17 +313,17 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
             WHERE application IS NOT NULL
               AND application <> ''";
 
-        if (!string.IsNullOrEmpty(environment))
+        if(!string.IsNullOrEmpty(environment))
         {
             sql += " AND environment = @environment";
         }
 
-        if (!string.IsNullOrEmpty(realm))
+        if(!string.IsNullOrEmpty(realm))
         {
             sql += " AND realm = @realm";
         }
 
-        if (!string.IsNullOrEmpty(client))
+        if(!string.IsNullOrEmpty(client))
         {
             sql += " AND client = @client";
         }
@@ -332,25 +332,25 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
         await using var cmd = new NpgsqlCommand(sql, connection);
 
-        if (!string.IsNullOrEmpty(environment))
+        if(!string.IsNullOrEmpty(environment))
         {
             cmd.Parameters.AddWithValue("environment", environment);
         }
 
-        if (!string.IsNullOrEmpty(realm))
+        if(!string.IsNullOrEmpty(realm))
         {
             cmd.Parameters.AddWithValue("realm", realm);
         }
 
-        if (!string.IsNullOrEmpty(client))
+        if(!string.IsNullOrEmpty(client))
         {
             cmd.Parameters.AddWithValue("client", client);
         }
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        while(await reader.ReadAsync(ct))
         {
-            if (!reader.IsDBNull(0))
+            if(!reader.IsDBNull(0))
                 results.Add(reader.GetString(0));
         }
 
@@ -374,9 +374,9 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         await using var cmd = new NpgsqlCommand(sql, connection);
 
         await using var reader = await cmd.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        while(await reader.ReadAsync(ct))
         {
-            if (!reader.IsDBNull(0))
+            if(!reader.IsDBNull(0))
                 results.Add(reader.GetString(0));
         }
 
@@ -385,7 +385,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
     // ============ SEARCH OPERATIONS ============
 
-    public async Task<List<LogEntryResponse>> SearchLogEntriesAsync(LogSearchRequest request) 
+    public async Task<List<LogEntryResponse>> SearchLogEntriesAsync(LogSearchRequest request)
     {
         var results = new List<LogEntryResponse>();
 
@@ -398,12 +398,12 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         int paramIndex = 0;
 
         // Add JSON field filters
-        if (request.Filters is { Count: > 0 })
+        if(request.Filters is { Count: > 0 })
         {
-            foreach (var filter in request.Filters)
+            foreach(var filter in request.Filters)
             {
                 var clause = BuildFilterClause(filter, ref paramIndex, parameters);
-                if (!string.IsNullOrEmpty(clause))
+                if(!string.IsNullOrEmpty(clause))
                 {
                     whereClauses.Add(clause);
                 }
@@ -411,18 +411,35 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         }
 
         // Add date range filters
-        if (request.CreatedAfter.HasValue)
+        if(request.CreatedAfter.HasValue)
         {
             var paramName = $"@p{paramIndex++}";
             whereClauses.Add($"created_at >= {paramName}");
             parameters.Add(new NpgsqlParameter(paramName, request.CreatedAfter.Value));
         }
 
-        if (request.CreatedBefore.HasValue)
+        if(request.CreatedBefore.HasValue)
         {
             var paramName = $"@p{paramIndex++}";
             whereClauses.Add($"created_at <= {paramName}");
             parameters.Add(new NpgsqlParameter(paramName, request.CreatedBefore.Value));
+        }
+
+        // Cursor-based pagination: add idx filter if FromIdx is specified
+        if(request.FromIdx.HasValue)
+        {
+            var paramName = $"@p{paramIndex++}";
+            if(request.Back == 1)
+            {
+                // Backwards: fetch older logs (idx < fromIdx)
+                whereClauses.Add($"idx < {paramName}");
+            }
+            else
+            {
+                // Forwards: fetch newer logs (idx > fromIdx)
+                whereClauses.Add($"idx > {paramName}");
+            }
+            parameters.Add(new NpgsqlParameter(paramName, request.FromIdx.Value));
         }
 
         // Build WHERE clause with AND/OR logic
@@ -442,31 +459,58 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
             ? request.OrderDirection
             : "ASC";
 
-        // Build complete query
-        var sql = $@"SELECT *
-            FROM (
-                SELECT idx, realm, client, log_data, created_at, environment, application, log_level
-                FROM log_entries 
-                {whereClause}
-                ORDER BY created_at DESC
-                LIMIT @limit OFFSET @offset
-            ) t
-            ORDER BY {orderBy} {orderDirection}";
+        string sql;
+
+        if(request.FromIdx.HasValue)
+        {
+            // Cursor-based pagination
+            // When going backwards (back=1): ORDER BY idx DESC to get the N logs just before fromIdx
+            // When going forwards (back=0): ORDER BY idx ASC to get the N logs just after fromIdx
+            // Always return results in ascending idx order for consistent display
+            var fetchDirection = request.Back == 1 ? "DESC" : "ASC";
+
+            sql = $@"SELECT *
+                FROM (
+                    SELECT idx, realm, client, log_data, created_at, environment, application, log_level
+                    FROM log_entries 
+                    {whereClause}
+                    ORDER BY idx {fetchDirection}
+                    LIMIT @limit
+                ) t
+                ORDER BY idx ASC";
+        }
+        else
+        {
+            // Offset-based pagination - use idx for consistent ordering
+            sql = $@"SELECT *
+                FROM (
+                    SELECT idx, realm, client, log_data, created_at, environment, application, log_level
+                    FROM log_entries 
+                    {whereClause}
+                    ORDER BY idx DESC
+                    LIMIT @limit OFFSET @offset
+                ) t
+                ORDER BY idx ASC";
+        }
 
         await using var cmd = new NpgsqlCommand(sql, connection);
 
         // Add all parameters
-        foreach (var param in parameters)
+        foreach(var param in parameters)
         {
             cmd.Parameters.Add(param);
         }
 
         cmd.Parameters.AddWithValue("limit", request.Limit);
-        cmd.Parameters.AddWithValue("offset", request.Offset);
+
+        if(!request.FromIdx.HasValue)
+        {
+            cmd.Parameters.AddWithValue("offset", request.Offset);
+        }
 
         // Execute query
         await using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        while(await reader.ReadAsync())
         {
             var jsonString = reader.GetString(3);
             var jsonDoc = JsonDocument.Parse(jsonString);
@@ -494,24 +538,24 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         int paramIndex = 0;
 
         // Process filter groups
-        if (request.FilterGroups is { Count: > 0 })
+        if(request.FilterGroups is { Count: > 0 })
         {
-            foreach (var group in request.FilterGroups)
+            foreach(var group in request.FilterGroups)
             {
-                if (group.Conditions.Count > 0)
+                if(group.Conditions.Count > 0)
                 {
                     var conditionClauses = new List<string>();
 
-                    foreach (var condition in group.Conditions)
+                    foreach(var condition in group.Conditions)
                     {
                         var clause = BuildFilterClause(condition, ref paramIndex, parameters);
-                        if (!string.IsNullOrEmpty(clause))
+                        if(!string.IsNullOrEmpty(clause))
                         {
                             conditionClauses.Add(clause);
                         }
                     }
 
-                    if (conditionClauses.Count > 0)
+                    if(conditionClauses.Count > 0)
                     {
                         var logicalOp = group.Logic == LogicalOperator.Or ? " OR " : " AND ";
                         groupClauses.Add($"({string.Join(logicalOp, conditionClauses)})");
@@ -521,14 +565,14 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         }
 
         // Add date range filters
-        if (request.CreatedAfter.HasValue)
+        if(request.CreatedAfter.HasValue)
         {
             var paramName = $"@p{paramIndex++}";
             groupClauses.Add($"created_at >= {paramName}");
             parameters.Add(new NpgsqlParameter(paramName, request.CreatedAfter.Value));
         }
 
-        if (request.CreatedBefore.HasValue)
+        if(request.CreatedBefore.HasValue)
         {
             var paramName = $"@p{paramIndex++}";
             groupClauses.Add($"created_at <= {paramName}");
@@ -559,7 +603,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
         await using var cmd = new NpgsqlCommand(sql, connection);
 
-        foreach (var param in parameters)
+        foreach(var param in parameters)
         {
             cmd.Parameters.Add(param);
         }
@@ -568,7 +612,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         cmd.Parameters.AddWithValue("offset", request.Offset);
 
         await using var reader = await cmd.ExecuteReaderAsync();
-        while (await reader.ReadAsync())
+        while(await reader.ReadAsync())
         {
             var jsonString = reader.GetString(3);
             var jsonDoc = JsonDocument.Parse(jsonString);
@@ -593,7 +637,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
     {
         var fieldAccessor = $"log_data->>'{filter.Field}'";
 
-        switch (filter.Operator)
+        switch(filter.Operator)
         {
             case FilterOperator.Equals:
                 {
@@ -667,11 +711,11 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
             case FilterOperator.In:
                 {
-                    if (filter.Values is not { Count: > 0 })
+                    if(filter.Values is not { Count: > 0 })
                         return string.Empty;
 
                     var inParams = new List<string>();
-                    foreach (var value in filter.Values)
+                    foreach(var value in filter.Values)
                     {
                         var paramName = $"@p{paramIndex++}";
                         parameters.Add(new NpgsqlParameter(paramName, value));
@@ -682,11 +726,11 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
             case FilterOperator.NotIn:
                 {
-                    if (filter.Values is not { Count: > 0 })
+                    if(filter.Values is not { Count: > 0 })
                         return string.Empty;
 
                     var inParams = new List<string>();
-                    foreach (var value in filter.Values)
+                    foreach(var value in filter.Values)
                     {
                         var paramName = $"@p{paramIndex++}";
                         parameters.Add(new NpgsqlParameter(paramName, value));
@@ -697,7 +741,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
             case FilterOperator.Between:
                 {
-                    if (string.IsNullOrEmpty(filter.Value) || string.IsNullOrEmpty(filter.ValueTo))
+                    if(string.IsNullOrEmpty(filter.Value) || string.IsNullOrEmpty(filter.ValueTo))
                         return string.Empty;
 
                     var paramFrom = $"@p{paramIndex++}";
@@ -720,13 +764,13 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
     private static string? TryGetString(JsonDocument? doc, string propertyName)
     {
-        if (doc is null) return null;
+        if(doc is null) return null;
 
         var root = doc.RootElement;
-        if (root.ValueKind != JsonValueKind.Object) return null;
+        if(root.ValueKind != JsonValueKind.Object) return null;
 
-        if (!root.TryGetProperty(propertyName, out var prop)) return null;
-        if (prop.ValueKind != JsonValueKind.String) return null;
+        if(!root.TryGetProperty(propertyName, out var prop)) return null;
+        if(prop.ValueKind != JsonValueKind.String) return null;
 
         var value = prop.GetString();
         return string.IsNullOrWhiteSpace(value) ? null : value;

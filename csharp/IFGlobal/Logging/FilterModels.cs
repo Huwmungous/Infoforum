@@ -13,6 +13,19 @@ public record LogSearchRequest
     [JsonPropertyName("offset")] public int Offset { get; init; } = 0;
     [JsonPropertyName("order_by")] public string OrderBy { get; init; } = "created_at";
     [JsonPropertyName("order_direction")] public string OrderDirection { get; init; } = "DESC";
+
+    /// <summary>
+    /// Cursor-based pagination: fetch logs relative to this idx.
+    /// If null, uses offset-based pagination.
+    /// </summary>
+    [JsonPropertyName("from_idx")] public int? FromIdx { get; init; }
+
+    /// <summary>
+    /// Direction for cursor-based pagination.
+    /// 1 = backwards (older logs, idx &lt; fromIdx), 0 = forwards (newer logs, idx &gt; fromIdx).
+    /// Only used when FromIdx is specified.
+    /// </summary>
+    [JsonPropertyName("back")] public int Back { get; init; } = 1;
 }
 
 public record AdvancedLogSearchRequest
