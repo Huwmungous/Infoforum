@@ -83,6 +83,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       limit,
       filters: [],
       filterLogic: 'And',
+      order_by: 'idx',
+      order_direction: 'ASC',
     };
     
     if (levelFilter) {
@@ -607,11 +609,10 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         <div className="hercules-header">
           <span>═══ LIVE LOG STREAM ═══</span>
           <span className="hercules-status">{isConnected ? '● CONNECTED' : '○ DISCONNECTED'}</span>
-          <span className="hercules-count">{filteredLogs.length} entries</span>
           {loadingMore && <span className="hercules-loading">Loading...</span>}
           {!isAtLiveEdge && (
             <button className="hercules-scroll-btn hercules-live-btn" onClick={goToLiveEdge}>
-              ⚡ GO LIVE
+              Show Live
             </button>
           )}
           {isAtLiveEdge && !autoScroll && (
@@ -768,7 +769,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           </div>
 
           <div className="filter-row-right">
-            <span className="results-count">{filteredLogs.length} log{filteredLogs.length === 1 ? '' : 's'}</span>
           </div>
         </div>
 
