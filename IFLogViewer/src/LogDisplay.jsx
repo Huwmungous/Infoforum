@@ -28,7 +28,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const [levelFilter, setLevelFilter] = useState('');
+  const [levelFilter, setLevelFilter] = useState('Information');
   const [messageFilter, setMessageFilter] = useState('');
   const [searchString, setSearchString] = useState('');
   const [focusedLog, setFocusedLog] = useState(null);
@@ -266,6 +266,70 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     };
   }, []);
 
+  // Keyboard navigation
+  const scrollPositionRef = useRef(0);
+  
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const listRef = isRealTime ? herculesListRef : tableListRef;
+      const rowHeight = isRealTime ? HERCULES_ROW_HEIGHT : TABLE_ROW_HEIGHT;
+      
+      if (!listRef.current || filteredLogs.length === 0) return;
+      
+      // Calculate visible rows
+      const listHeight = containerSize.height - (isRealTime ? 70 : 40);
+      const visibleRows = Math.floor(listHeight / rowHeight);
+      const currentIndex = Math.floor(scrollPositionRef.current / rowHeight);
+      
+      let newIndex = currentIndex;
+      let handled = false;
+      
+      switch (e.key) {
+        case 'ArrowUp':
+          newIndex = Math.max(0, currentIndex - 1);
+          handled = true;
+          break;
+        case 'ArrowDown':
+          newIndex = Math.min(filteredLogs.length - 1, currentIndex + 1);
+          handled = true;
+          break;
+        case 'PageUp':
+          newIndex = Math.max(0, currentIndex - visibleRows);
+          handled = true;
+          break;
+        case 'PageDown':
+          newIndex = Math.min(filteredLogs.length - 1, currentIndex + visibleRows);
+          handled = true;
+          break;
+        case 'Home':
+          if (e.ctrlKey) {
+            newIndex = 0;
+            handled = true;
+          }
+          break;
+        case 'End':
+          if (e.ctrlKey) {
+            newIndex = filteredLogs.length - 1;
+            handled = true;
+          }
+          break;
+      }
+      
+      if (handled) {
+        e.preventDefault();
+        listRef.current.scrollToItem(newIndex, 'start');
+        
+        // Disable auto-scroll when manually navigating
+        if (isRealTime && newIndex < filteredLogs.length - visibleRows) {
+          setAutoScroll(false);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRealTime, filteredLogs.length, containerSize.height]);
+
   // Scroll to bottom effect
   useEffect(() => {
     if (filteredLogs.length === 0 || containerSize.height === 0) return;
@@ -489,6 +553,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     const rowHeight = isRealTime ? HERCULES_ROW_HEIGHT : TABLE_ROW_HEIGHT;
     
     if (!listRef.current) return;
+    
+    // Track position for keyboard navigation
+    scrollPositionRef.current = scrollOffset;
     
     const visibleStartIndex = Math.floor(scrollOffset / rowHeight);
     const visibleEndIndex = visibleStartIndex + Math.ceil(containerSize.height / rowHeight);
