@@ -8,21 +8,25 @@ import LevelIcon from './LevelIcon';
 // Logo import for base path compatibility
 const logo = new URL('/IF-Logo.png', import.meta.url).href;
 
-// Constants for live log trimming
-const MAX_LIVE_LOGS = 300;
-const TRIM_COUNT = 100;
-
 // Row heights for virtualization
 const HERCULES_ROW_HEIGHT = 22;
 const TABLE_ROW_HEIGHT = 44;
+
+// Buffer management constants
+const DEFAULT_BUFFER_SIZE = 500;
+const FETCH_BATCH_SIZE = 50;
+const SCROLL_THRESHOLD = 5; // items from edge to trigger fetch
 
 const LogDisplay = ({ loggerServiceUrl }) => {
   const { auth } = useAppContext();
   const { getAccessToken, isAuthenticated, initialized } = auth;
   const { theme, setTheme } = useTheme();
   const { signout } = useAuth();
+  
+  // Core state
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [levelFilter, setLevelFilter] = useState('');
   const [messageFilter, setMessageFilter] = useState('');
@@ -34,19 +38,26 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   const [isRealTime, setIsRealTime] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [maxLogs, setMaxLogs] = useState(100);
+  const [bufferSize, setBufferSize] = useState(DEFAULT_BUFFER_SIZE);
   const connectionRef = useRef(null);
+  
+  // Buffer tracking for infinite scroll
+  const [hasMoreBefore, setHasMoreBefore] = useState(true);
+  const [isAtLiveEdge, setIsAtLiveEdge] = useState(true);
+  const oldestIdxRef = useRef(null);
+  const newestIdxRef = useRef(null);
   
   // Refs for virtualized lists
   const herculesListRef = useRef(null);
   const tableListRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
-  const scrollToBottomRef = useRef(true); // Scroll to bottom on initial load
+  const scrollToBottomRef = useRef(true);
   
   // Container size for virtualized list
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef(null);
 
-  // Use Vite proxy in dev mode to avoid CORS issues
+  // Use Vite proxy in dev mode
   const apiBase = import.meta.env.DEV ? '/logger' : loggerServiceUrl;
 
   // Simple fetch helper
@@ -66,41 +77,153 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     return response.json();
   };
 
-  // Load all logs
-  const loadAllLogs = useCallback(async (preserveLogs = false) => {
+  // Build search request with current filters
+  const buildSearchRequest = useCallback((limit, fromIdx = null, back = 1) => {
+    const request = {
+      limit,
+      filters: [],
+      filterLogic: 'And',
+    };
+    
+    if (levelFilter) {
+      request.filters.push({ field: 'level', operator: 'Equals', value: levelFilter });
+    }
+    if (messageFilter) {
+      request.filters.push({ field: 'message', operator: 'Contains', value: messageFilter });
+    }
+    
+    if (fromIdx !== null) {
+      request.from_idx = fromIdx;
+      request.back = back;
+    }
+    
+    return request;
+  }, [levelFilter, messageFilter]);
+
+  // Update buffer tracking refs when logs change
+  useEffect(() => {
+    if (logs.length > 0) {
+      oldestIdxRef.current = Math.min(...logs.map(l => l.idx));
+      newestIdxRef.current = Math.max(...logs.map(l => l.idx));
+    } else {
+      oldestIdxRef.current = null;
+      newestIdxRef.current = null;
+    }
+  }, [logs]);
+
+  // Load initial logs (most recent)
+  const loadInitialLogs = useCallback(async () => {
     if (!apiBase) return;
 
-    if (!preserveLogs) {
-      setLoading(true);
-    }
+    setLoading(true);
     setError(null);
     try {
-      const data = await apiFetch(`${apiBase}/logs?limit=${maxLogs}&offset=0`);
+      const request = buildSearchRequest(maxLogs);
+      const data = await apiFetch(`${apiBase}/logs/search`, {
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
+      
       setLogs(data || []);
       setFocusedLog(null);
+      setHasMoreBefore(data?.length >= maxLogs);
+      setIsAtLiveEdge(true);
+      scrollToBottomRef.current = true;
     } catch (err) {
       console.error('Failed to load logs:', err);
       setError(`Failed to load logs: ${err.message}`);
     } finally {
       setLoading(false);
     }
-  }, [apiBase, maxLogs]);
+  }, [apiBase, maxLogs, buildSearchRequest]);
+
+  // Fetch older logs (backwards)
+  const fetchOlderLogs = useCallback(async () => {
+    if (!apiBase || !hasMoreBefore || loadingMore || oldestIdxRef.current === null) return;
+
+    setLoadingMore(true);
+    try {
+      const request = buildSearchRequest(FETCH_BATCH_SIZE, oldestIdxRef.current, 1);
+      const data = await apiFetch(`${apiBase}/logs/search`, {
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
+      
+      if (data && data.length > 0) {
+        setLogs(prevLogs => {
+          const newLogs = [...data, ...prevLogs];
+          // Prune from end if buffer exceeds max
+          if (newLogs.length > bufferSize) {
+            const pruned = newLogs.slice(0, bufferSize);
+            setIsAtLiveEdge(false);
+            return pruned;
+          }
+          return newLogs;
+        });
+        setHasMoreBefore(data.length >= FETCH_BATCH_SIZE);
+      } else {
+        setHasMoreBefore(false);
+      }
+    } catch (err) {
+      console.error('Failed to fetch older logs:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [apiBase, hasMoreBefore, loadingMore, bufferSize, buildSearchRequest]);
+
+  // Fetch newer logs (forwards)
+  const fetchNewerLogs = useCallback(async () => {
+    if (!apiBase || isAtLiveEdge || loadingMore || newestIdxRef.current === null) return;
+
+    setLoadingMore(true);
+    try {
+      const request = buildSearchRequest(FETCH_BATCH_SIZE, newestIdxRef.current, 0);
+      const data = await apiFetch(`${apiBase}/logs/search`, {
+        method: 'POST',
+        body: JSON.stringify(request),
+      });
+      
+      if (data && data.length > 0) {
+        setLogs(prevLogs => {
+          const newLogs = [...prevLogs, ...data];
+          // Prune from start if buffer exceeds max
+          if (newLogs.length > bufferSize) {
+            const pruned = newLogs.slice(-bufferSize);
+            setHasMoreBefore(true);
+            return pruned;
+          }
+          return newLogs;
+        });
+        // Check if we've reached the live edge
+        if (data.length < FETCH_BATCH_SIZE) {
+          setIsAtLiveEdge(true);
+        }
+      } else {
+        setIsAtLiveEdge(true);
+      }
+    } catch (err) {
+      console.error('Failed to fetch newer logs:', err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [apiBase, isAtLiveEdge, loadingMore, bufferSize, buildSearchRequest]);
+
+  // Go to live edge
+  const goToLiveEdge = useCallback(async () => {
+    await loadInitialLogs();
+    setAutoScroll(true);
+  }, [loadInitialLogs]);
 
   // Initial load when authenticated
   useEffect(() => {
     if (isAuthenticated && initialized && apiBase && !isRealTime) {
-      loadAllLogs();
+      loadInitialLogs();
     }
-  }, [isAuthenticated, initialized, apiBase, loadAllLogs, isRealTime]);
+  }, [isAuthenticated, initialized, apiBase, isRealTime]);
 
   // Log level filtering
   const levelPriority = useMemo(() => ({
-    'Trace': 0,
-    'Debug': 1,
-    'Information': 2,
-    'Warning': 3,
-    'Error': 4,
-    'Critical': 5
+    'Trace': 0, 'Debug': 1, 'Information': 2, 'Warning': 3, 'Error': 4, 'Critical': 5
   }), []);
 
   const showRow = useCallback((log) => {
@@ -113,27 +236,13 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     
     if (!searchString) return true;
     const searchLower = searchString.toLowerCase();
-    const message = log?.logData?.message?.toLowerCase() || '';
-    const text = log?.logData?.text?.toLowerCase() || '';
-    const category = log?.logData?.category?.toLowerCase() || '';
-    const environment = log?.logData?.environment?.toLowerCase() || '';
-    const application = log?.logData?.application?.toLowerCase() || '';
-    const pathname = log?.logData?.pathname?.toLowerCase() || '';
-    const machineName = log?.logData?.machineName?.toLowerCase() || '';
-    const host = log?.logData?.host?.toLowerCase() || '';
-    return message.includes(searchLower) ||
-           text.includes(searchLower) ||
-           category.includes(searchLower) ||
-           environment.includes(searchLower) ||
-           application.includes(searchLower) ||
-           pathname.includes(searchLower) ||
-           machineName.includes(searchLower) ||
-           host.includes(searchLower);
+    const fields = ['message', 'text', 'category', 'environment', 'application', 'pathname', 'machineName', 'host'];
+    return fields.some(f => (log?.logData?.[f]?.toLowerCase() || '').includes(searchLower));
   }, [levelFilter, searchString, levelPriority]);
 
   const filteredLogs = useMemo(() => logs.filter(showRow), [logs, showRow]);
 
-  // Measure container size for virtualized list
+  // Measure container size
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
@@ -142,7 +251,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       }
     };
     
-    // Initial measurement with small delay to ensure DOM is ready
     const timer = setTimeout(updateSize, 50);
     window.addEventListener('resize', updateSize);
     
@@ -158,27 +266,24 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     };
   }, []);
 
-  // Scroll to bottom on initial load, mode switch, or when new logs arrive in live mode
+  // Scroll to bottom effect
   useEffect(() => {
     if (filteredLogs.length === 0 || containerSize.height === 0) return;
     
-    // Check if we should scroll (initial/mode-switch, or live auto-scroll)
-    const shouldScroll = scrollToBottomRef.current || (isRealTime && autoScroll);
+    const shouldScroll = scrollToBottomRef.current || (isRealTime && autoScroll && isAtLiveEdge);
     if (!shouldScroll) return;
     
-    // Small delay to ensure list has rendered
     const timer = setTimeout(() => {
       if (isRealTime && herculesListRef.current) {
         herculesListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
       } else if (!isRealTime && tableListRef.current) {
         tableListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
       }
-      // Clear the one-time scroll flag
       scrollToBottomRef.current = false;
     }, 50);
     
     return () => clearTimeout(timer);
-  }, [filteredLogs.length, isRealTime, autoScroll, containerSize.height]);
+  }, [filteredLogs.length, isRealTime, autoScroll, containerSize.height, isAtLiveEdge]);
 
   // Real-time connection management
   useEffect(() => {
@@ -191,13 +296,10 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       return;
     }
 
-    if (!isAuthenticated || !initialized || !apiBase) {
-      return;
-    }
+    if (!isAuthenticated || !initialized || !apiBase) return;
 
     const createConnection = async () => {
       let token = null;
-
       try {
         token = await getAccessToken();
       } catch (e) {
@@ -211,9 +313,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       }
 
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${apiBase}/loghub`, {
-          accessTokenFactory: () => token
-        })
+        .withUrl(`${apiBase}/loghub`, { accessTokenFactory: () => token })
         .withAutomaticReconnect()
         .configureLogging(signalR.LogLevel.Warning)
         .build();
@@ -221,11 +321,16 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       connectionRef.current = connection;
 
       connection.on('NewLogEntry', (log) => {
+        // Only append if we're at the live edge
+        if (!isAtLiveEdge) return;
+        
         log._isNew = true;
         setLogs(prevLogs => {
           const newLogs = [...prevLogs, log];
-          if (newLogs.length > MAX_LIVE_LOGS) {
-            return newLogs.slice(TRIM_COUNT);
+          // Prune from start if buffer exceeds max
+          if (newLogs.length > bufferSize) {
+            setHasMoreBefore(true);
+            return newLogs.slice(-bufferSize);
           }
           return newLogs;
         });
@@ -253,7 +358,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         connectionRef.current.stop();
       }
     };
-  }, [isRealTime, getAccessToken, isAuthenticated, initialized, apiBase, levelFilter]);
+  }, [isRealTime, getAccessToken, isAuthenticated, initialized, apiBase, levelFilter, isAtLiveEdge, bufferSize]);
 
   // Update server-side log level filter
   useEffect(() => {
@@ -270,45 +375,16 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   }, [levelFilter, isRealTime]);
 
   const handleSearch = async () => {
-    if (!apiBase) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const filters = [];
-      if (levelFilter) {
-        filters.push({ field: 'level', operator: 'Equals', value: levelFilter });
-      }
-      if (messageFilter) {
-        filters.push({ field: 'message', operator: 'Contains', value: messageFilter });
-      }
-
-      const data = await apiFetch(`${apiBase}/logs/search`, {
-        method: 'POST',
-        body: JSON.stringify({
-          limit: maxLogs,
-          offset: 0,
-          filters: filters,
-          filterLogic: 'And',
-        }),
-      });
-      setLogs(data || []);
-      setFocusedLog(null);
-    } catch (err) {
-      setError(`Search failed: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
+    await loadInitialLogs();
   };
 
   const handleRealTimeToggle = async (enabled) => {
     setIsRealTime(enabled);
     setFocusedLog(null);
     setAutoScroll(true);
-    scrollToBottomRef.current = true; // Scroll to bottom after loading
-    
-    // Load recent logs for both modes
-    await loadAllLogs(true);
+    setIsAtLiveEdge(true);
+    scrollToBottomRef.current = true;
+    await loadInitialLogs();
   };
 
   const focusedLogData = useMemo(() => {
@@ -407,17 +483,38 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     );
   }, [filteredLogs, focusedLog]);
 
-  const handleHerculesScroll = useCallback(({ scrollOffset }) => {
-    if (herculesListRef.current) {
-      const listHeight = containerSize.height - 40;
-      const contentHeight = filteredLogs.length * HERCULES_ROW_HEIGHT;
-      const maxScroll = contentHeight - listHeight;
-      setAutoScroll(scrollOffset >= maxScroll - 50);
+  // Handle scroll for infinite loading
+  const handleListScroll = useCallback(({ scrollOffset, scrollDirection }) => {
+    const listRef = isRealTime ? herculesListRef : tableListRef;
+    const rowHeight = isRealTime ? HERCULES_ROW_HEIGHT : TABLE_ROW_HEIGHT;
+    
+    if (!listRef.current) return;
+    
+    const visibleStartIndex = Math.floor(scrollOffset / rowHeight);
+    const visibleEndIndex = visibleStartIndex + Math.ceil(containerSize.height / rowHeight);
+    
+    // Fetch older logs when near the top
+    if (visibleStartIndex < SCROLL_THRESHOLD && hasMoreBefore && !loadingMore) {
+      fetchOlderLogs();
     }
-  }, [containerSize.height, filteredLogs.length]);
+    
+    // Fetch newer logs when near the bottom (only if not at live edge)
+    if (!isAtLiveEdge && visibleEndIndex > filteredLogs.length - SCROLL_THRESHOLD && !loadingMore) {
+      fetchNewerLogs();
+    }
+    
+    // Update autoScroll based on position
+    const contentHeight = filteredLogs.length * rowHeight;
+    const listHeight = containerSize.height - (isRealTime ? 70 : 40);
+    const maxScroll = contentHeight - listHeight;
+    const isNearBottom = scrollOffset >= maxScroll - 50;
+    
+    if (isRealTime) {
+      setAutoScroll(isNearBottom && isAtLiveEdge);
+    }
+  }, [isRealTime, containerSize.height, hasMoreBefore, isAtLiveEdge, loadingMore, filteredLogs.length, fetchOlderLogs, fetchNewerLogs]);
 
   const renderHerculesTerminal = () => {
-    // Account for: hercules-container margins (8px each side), header (~40px), padding
     const listHeight = Math.max(containerSize.height - 70, 200);
     
     return (
@@ -426,7 +523,13 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           <span>═══ LIVE LOG STREAM ═══</span>
           <span className="hercules-status">{isConnected ? '● CONNECTED' : '○ DISCONNECTED'}</span>
           <span className="hercules-count">{filteredLogs.length} entries</span>
-          {!autoScroll && (
+          {loadingMore && <span className="hercules-loading">Loading...</span>}
+          {!isAtLiveEdge && (
+            <button className="hercules-scroll-btn hercules-live-btn" onClick={goToLiveEdge}>
+              ⚡ GO LIVE
+            </button>
+          )}
+          {isAtLiveEdge && !autoScroll && (
             <button className="hercules-scroll-btn" onClick={() => {
               setAutoScroll(true);
               herculesListRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
@@ -434,6 +537,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           )}
         </div>
         <div className="hercules-terminal">
+          {hasMoreBefore && (
+            <div className="hercules-more-indicator">↑ Scroll up for older logs</div>
+          )}
           {containerSize.height > 0 && (
             <List
               ref={herculesListRef}
@@ -441,7 +547,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
               width={containerSize.width || 800}
               itemCount={filteredLogs.length}
               itemSize={HERCULES_ROW_HEIGHT}
-              onScroll={handleHerculesScroll}
+              onScroll={handleListScroll}
               overscanCount={20}
             >
               {HerculesRow}
@@ -449,6 +555,12 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           )}
           {filteredLogs.length === 0 && (
             <div className="hercules-waiting">{isConnected ? 'Waiting for log entries...' : 'Connecting...'}</div>
+          )}
+          {/* Blinking cursor at bottom when at live edge */}
+          {isAtLiveEdge && filteredLogs.length > 0 && (
+            <div className="hercules-cursor-line">
+              <span className="hercules-cursor">▌</span>
+            </div>
           )}
         </div>
       </div>
@@ -484,7 +596,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
   };
 
   const renderTableView = () => {
-    // Account for: table header (~40px), and optionally detail panel (~220px)
     const headerHeight = 40;
     const detailHeight = focusedLogData ? 220 : 0;
     const listHeight = Math.max(containerSize.height - headerHeight - detailHeight, 200);
@@ -500,6 +611,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           <div className="table-header-cell table-header-date">Created</div>
         </div>
         
+        {loadingMore && <div className="loading-more-indicator">Loading more...</div>}
+        
         {containerSize.height > 0 && (
           <List
             ref={tableListRef}
@@ -507,6 +620,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             width={containerSize.width || 800}
             itemCount={filteredLogs.length}
             itemSize={TABLE_ROW_HEIGHT}
+            onScroll={handleListScroll}
             overscanCount={10}
           >
             {TableRow}
@@ -524,7 +638,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
         <div className="header-left">
           <img src={logo} alt="IF" className="if-logo" />
           <h1 className="app-title">IF Log Viewer</h1>
-          <span className="version-label">v1.0</span>
+          <span className="version-label">v1.1</span>
         </div>
 
         <div className="header-center">
@@ -542,7 +656,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             placeholder="Message..." disabled={isRealTime} className="if-header-input" />
 
           <button onClick={handleSearch} disabled={isRealTime} className="if-btn if-btn-primary if-btn-sm">Search</button>
-          <button onClick={loadAllLogs} disabled={isRealTime} className="if-btn if-btn-secondary if-btn-sm">Clear</button>
+          <button onClick={loadInitialLogs} disabled={isRealTime} className="if-btn if-btn-secondary if-btn-sm">Clear</button>
         </div>
 
         <div className="header-right">
@@ -567,6 +681,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             </button>
             <span>Live</span>
             {isRealTime && <span className={isConnected ? 'status-connected' : 'status-disconnected'}>{isConnected ? '●' : '○'}</span>}
+            {isRealTime && !isAtLiveEdge && <span className="status-not-live">⏸ Paused</span>}
           </div>
 
           <div className="filter-row-center">
