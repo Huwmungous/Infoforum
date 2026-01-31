@@ -128,7 +128,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       
       setLogs(data || []);
       setFocusedLog(null);
-      setHasMoreBefore(data?.length >= maxLogs);
+      // Always assume there are older logs - we'll find out when fetch returns empty
+      setHasMoreBefore(true);
       setIsAtLiveEdge(true);
       scrollToBottomRef.current = true;
     } catch (err) {
@@ -162,7 +163,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           }
           return newLogs;
         });
-        setHasMoreBefore(data.length >= FETCH_BATCH_SIZE);
+        // Only stop when we get zero results, not when fewer than batch size
+        // (filters may cause sparse results)
       } else {
         setHasMoreBefore(false);
       }
@@ -196,10 +198,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           }
           return newLogs;
         });
-        // Check if we've reached the live edge
-        if (data.length < FETCH_BATCH_SIZE) {
-          setIsAtLiveEdge(true);
-        }
+        // Don't assume live edge based on batch size - filters may cause sparse results
       } else {
         setIsAtLiveEdge(true);
       }
