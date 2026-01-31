@@ -621,16 +621,10 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           <span>═══ LIVE LOG STREAM ═══</span>
           <span className="hercules-status">{isConnected ? '● CONNECTED' : '○ DISCONNECTED'}</span>
           {loadingMore && <span className="hercules-loading">Loading...</span>}
-          {!isAtLiveEdge && (
+          {(!isAtLiveEdge || !autoScroll) && (
             <button className="hercules-scroll-btn hercules-live-btn" onClick={goToLiveEdge}>
               Show Live
             </button>
-          )}
-          {isAtLiveEdge && !autoScroll && (
-            <button className="hercules-scroll-btn" onClick={() => {
-              setAutoScroll(true);
-              herculesListRef.current?.scrollToItem(filteredLogs.length, 'end');
-            }}>↓ SCROLL TO BOTTOM</button>
           )}
         </div>
         <div className="hercules-terminal">
