@@ -321,8 +321,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           break;
         case 'End':
           if (e.ctrlKey) {
-            newIndex = filteredLogs.length - 1;
-            handled = true;
+            e.preventDefault();
+            goToLiveEdge();
+            return;
           }
           break;
       }
@@ -340,7 +341,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRealTime, filteredLogs.length, containerSize.height]);
+  }, [isRealTime, filteredLogs.length, containerSize.height, goToLiveEdge]);
 
   // Scroll to bottom effect
   useEffect(() => {
