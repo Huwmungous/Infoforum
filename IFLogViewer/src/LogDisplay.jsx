@@ -339,7 +339,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     
     const timer = setTimeout(() => {
       if (isRealTime && herculesListRef.current) {
-        herculesListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
+        // Scroll to cursor row (last item) when at live edge
+        const lastIndex = isAtLiveEdge ? filteredLogs.length : filteredLogs.length - 1;
+        herculesListRef.current.scrollToItem(lastIndex, 'end');
       } else if (!isRealTime && tableListRef.current) {
         tableListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
       }
@@ -468,8 +470,12 @@ const LogDisplay = ({ loggerServiceUrl }) => {
 
   const formatHerculesTime = (dateStr) => {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString('en-GB', { hour12: false }) + '.' + 
-           d.getMilliseconds().toString().padStart(3, '0');
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[d.getMonth()];
+    const day = d.getDate().toString().padStart(2, '0');
+    const time = d.toLocaleTimeString('en-GB', { hour12: false });
+    const ms = d.getMilliseconds().toString().padStart(3, '0');
+    return `${month}-${day} ${time}.${ms}`;
   };
 
   const getLevelChar = (level) => {
@@ -490,8 +496,17 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     return parts[parts.length - 1];
   };
 
-  // Hercules row renderer
+  // Hercules row renderer - includes cursor as extra row when at live edge
   const HerculesRow = useCallback(({ index, style }) => {
+    // Cursor row at the end
+    if (index === filteredLogs.length) {
+      return (
+        <div style={style} className="hercules-cursor-line">
+          <span className="hercules-cursor">▌</span>
+        </div>
+      );
+    }
+    
     const log = filteredLogs[index];
     if (!log) return null;
     
@@ -557,6 +572,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     // Track position for keyboard navigation
     scrollPositionRef.current = scrollOffset;
     
+    // Item count includes cursor row when at live edge in hercules mode
+    const itemCount = isRealTime && isAtLiveEdge ? filteredLogs.length + 1 : filteredLogs.length;
+    
     const visibleStartIndex = Math.floor(scrollOffset / rowHeight);
     const visibleEndIndex = visibleStartIndex + Math.ceil(containerSize.height / rowHeight);
     
@@ -571,7 +589,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }
     
     // Update autoScroll based on position
-    const contentHeight = filteredLogs.length * rowHeight;
+    const contentHeight = itemCount * rowHeight;
     const listHeight = containerSize.height - (isRealTime ? 70 : 40);
     const maxScroll = contentHeight - listHeight;
     const isNearBottom = scrollOffset >= maxScroll - 50;
@@ -599,7 +617,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           {isAtLiveEdge && !autoScroll && (
             <button className="hercules-scroll-btn" onClick={() => {
               setAutoScroll(true);
-              herculesListRef.current?.scrollToItem(filteredLogs.length - 1, 'end');
+              herculesListRef.current?.scrollToItem(filteredLogs.length, 'end');
             }}>↓ SCROLL TO BOTTOM</button>
           )}
         </div>
@@ -612,7 +630,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
               ref={herculesListRef}
               height={listHeight}
               width={containerSize.width || 800}
-              itemCount={filteredLogs.length}
+              itemCount={filteredLogs.length + (isAtLiveEdge ? 1 : 0)}
               itemSize={HERCULES_ROW_HEIGHT}
               onScroll={handleListScroll}
               overscanCount={20}
@@ -622,12 +640,6 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           )}
           {filteredLogs.length === 0 && (
             <div className="hercules-waiting">{isConnected ? 'Waiting for log entries...' : 'Connecting...'}</div>
-          )}
-          {/* Blinking cursor at bottom when at live edge */}
-          {isAtLiveEdge && filteredLogs.length > 0 && (
-            <div className="hercules-cursor-line">
-              <span className="hercules-cursor">▌</span>
-            </div>
           )}
         </div>
       </div>
