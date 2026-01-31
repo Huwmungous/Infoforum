@@ -153,6 +153,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       });
       
       if (data && data.length > 0) {
+        const prependCount = data.length;
+        
         setLogs(prevLogs => {
           const newLogs = [...data, ...prevLogs];
           // Prune from end if buffer exceeds max
@@ -163,8 +165,17 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           }
           return newLogs;
         });
-        // Only stop when we get zero results, not when fewer than batch size
-        // (filters may cause sparse results)
+        
+        // Adjust scroll position to maintain visual position after prepending
+        // This allows continued scrolling up to fetch more
+        setTimeout(() => {
+          const rowHeight = isRealTime ? HERCULES_ROW_HEIGHT : TABLE_ROW_HEIGHT;
+          const scrollAdjustment = prependCount * rowHeight;
+          const listRef = isRealTime ? herculesListRef : tableListRef;
+          if (listRef.current) {
+            listRef.current.scrollTo(scrollPositionRef.current + scrollAdjustment);
+          }
+        }, 0);
       } else {
         setHasMoreBefore(false);
       }
@@ -173,7 +184,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     } finally {
       setLoadingMore(false);
     }
-  }, [apiBase, hasMoreBefore, loadingMore, bufferSize, buildSearchRequest]);
+  }, [apiBase, hasMoreBefore, loadingMore, bufferSize, buildSearchRequest, isRealTime]);
 
   // Fetch newer logs (forwards)
   const fetchNewerLogs = useCallback(async () => {
