@@ -302,7 +302,13 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           handled = true;
           break;
         case 'ArrowDown':
-          newIndex = Math.min(filteredLogs.length - 1, currentIndex + 1);
+          newIndex = currentIndex + 1;
+          // In realtime mode, cursor row is always present at the end
+          if (isRealTime) {
+            newIndex = Math.min(filteredLogs.length, newIndex); // can go to cursor row
+          } else {
+            newIndex = Math.min(filteredLogs.length - 1, newIndex);
+          }
           handled = true;
           break;
         case 'PageUp':
@@ -310,7 +316,13 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           handled = true;
           break;
         case 'PageDown':
-          newIndex = Math.min(filteredLogs.length - 1, currentIndex + visibleRows);
+          newIndex = currentIndex + visibleRows;
+          // In realtime mode, cursor row is always present at the end
+          if (isRealTime) {
+            newIndex = Math.min(filteredLogs.length, newIndex); // can go to cursor row
+          } else {
+            newIndex = Math.min(filteredLogs.length - 1, newIndex);
+          }
           handled = true;
           break;
         case 'Home':
@@ -330,31 +342,39 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       
       if (handled) {
         e.preventDefault();
-        listRef.current.scrollToItem(newIndex, 'start');
+        // Use 'end' alignment when scrolling to cursor row to ensure it's visible
+        const alignment = (isRealTime && newIndex === filteredLogs.length) ? 'end' : 'start';
+        listRef.current.scrollToItem(newIndex, alignment);
         
-        // Disable auto-scroll when manually navigating
-        if (isRealTime && newIndex < filteredLogs.length - visibleRows) {
-          setAutoScroll(false);
+        // Update auto-scroll based on position - restore realtime when at bottom
+        if (isRealTime) {
+          const itemCount = filteredLogs.length + 1; // cursor always present
+          const atBottom = newIndex >= itemCount - visibleRows;
+          if (atBottom) {
+            setIsAtLiveEdge(true);
+            setAutoScroll(true);
+          } else {
+            setAutoScroll(false);
+          }
         }
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isRealTime, filteredLogs.length, containerSize.height, goToLiveEdge]);
+  }, [isRealTime, filteredLogs.length, containerSize.height, goToLiveEdge, isAtLiveEdge]);
 
   // Scroll to bottom effect
   useEffect(() => {
     if (filteredLogs.length === 0 || containerSize.height === 0) return;
     
-    const shouldScroll = scrollToBottomRef.current || (isRealTime && autoScroll && isAtLiveEdge);
+    const shouldScroll = scrollToBottomRef.current || (isRealTime && autoScroll);
     if (!shouldScroll) return;
     
     const timer = setTimeout(() => {
       if (isRealTime && herculesListRef.current) {
-        // Scroll to cursor row (last item) when at live edge
-        const lastIndex = isAtLiveEdge ? filteredLogs.length : filteredLogs.length - 1;
-        herculesListRef.current.scrollToItem(lastIndex, 'end');
+        // Scroll to cursor row (always present at filteredLogs.length)
+        herculesListRef.current.scrollToItem(filteredLogs.length, 'end');
       } else if (!isRealTime && tableListRef.current) {
         tableListRef.current.scrollToItem(filteredLogs.length - 1, 'end');
       }
@@ -362,7 +382,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     }, 50);
     
     return () => clearTimeout(timer);
-  }, [filteredLogs.length, isRealTime, autoScroll, containerSize.height, isAtLiveEdge]);
+  }, [filteredLogs.length, isRealTime, autoScroll, containerSize.height]);
 
   // Real-time connection management
   useEffect(() => {
@@ -585,8 +605,8 @@ const LogDisplay = ({ loggerServiceUrl }) => {
     // Track position for keyboard navigation
     scrollPositionRef.current = scrollOffset;
     
-    // Item count includes cursor row when at live edge in hercules mode
-    const itemCount = isRealTime && isAtLiveEdge ? filteredLogs.length + 1 : filteredLogs.length;
+    // In realtime mode, cursor row is always present at the end
+    const itemCount = isRealTime ? filteredLogs.length + 1 : filteredLogs.length;
     
     const visibleStartIndex = Math.floor(scrollOffset / rowHeight);
     const visibleEndIndex = visibleStartIndex + Math.ceil(containerSize.height / rowHeight);
@@ -601,14 +621,20 @@ const LogDisplay = ({ loggerServiceUrl }) => {
       fetchNewerLogs();
     }
     
-    // Update autoScroll based on position
+    // Update autoScroll and live edge based on position
     const contentHeight = itemCount * rowHeight;
     const listHeight = containerSize.height - (isRealTime ? 70 : 40);
     const maxScroll = contentHeight - listHeight;
     const isNearBottom = scrollOffset >= maxScroll - 50;
     
     if (isRealTime) {
-      setAutoScroll(isNearBottom && isAtLiveEdge);
+      // When user scrolls to bottom, restore realtime mode
+      if (isNearBottom) {
+        setIsAtLiveEdge(true);
+        setAutoScroll(true);
+      } else {
+        setAutoScroll(false);
+      }
     }
   }, [isRealTime, containerSize.height, hasMoreBefore, isAtLiveEdge, loadingMore, filteredLogs.length, fetchOlderLogs, fetchNewerLogs]);
 
@@ -621,9 +647,9 @@ const LogDisplay = ({ loggerServiceUrl }) => {
           <span>═══ LIVE LOG STREAM ═══</span>
           <span className="hercules-status">{isConnected ? '● CONNECTED' : '○ DISCONNECTED'}</span>
           {loadingMore && <span className="hercules-loading">Loading...</span>}
-          {(!isAtLiveEdge || !autoScroll) && (
+          {!autoScroll && (
             <button className="hercules-scroll-btn hercules-live-btn" onClick={goToLiveEdge}>
-              Show Live
+              Show Realtime
             </button>
           )}
         </div>
@@ -636,7 +662,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
               ref={herculesListRef}
               height={listHeight}
               width={containerSize.width || 800}
-              itemCount={filteredLogs.length + (isAtLiveEdge ? 1 : 0)}
+              itemCount={filteredLogs.length + 1}
               itemSize={HERCULES_ROW_HEIGHT}
               onScroll={handleListScroll}
               overscanCount={20}
@@ -766,7 +792,7 @@ const LogDisplay = ({ loggerServiceUrl }) => {
             </button>
             <span>Live</span>
             {isRealTime && <span className={isConnected ? 'status-connected' : 'status-disconnected'}>{isConnected ? '●' : '○'}</span>}
-            {isRealTime && !isAtLiveEdge && <span className="status-not-live">⏸ Paused</span>}
+            {isRealTime && !autoScroll && <span className="status-not-live">⏸ Paused</span>}
           </div>
 
           <div className="filter-row-center">
