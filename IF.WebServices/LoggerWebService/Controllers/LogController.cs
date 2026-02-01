@@ -31,13 +31,23 @@ public class LogController(
     {
         try
         {
+            if(request.LogData is null)
+            {
+                return BadRequest(new ProblemDetails
+                {
+                    Title = "Invalid request",
+                    Detail = "LogData is required",
+                    Status = StatusCodes.Status400BadRequest
+                });
+            }
+
             // Store everything - no filtering on receipt
             var idx = await service.AddLogEntryAsync(request);
             var createdAt = DateTime.UtcNow;
 
             // Get log level for filtered broadcast
             string? logLevel = null;
-            if(request.LogData?.RootElement.TryGetProperty("level", out var levelElement) == true)
+            if(request.LogData.RootElement.TryGetProperty("level", out var levelElement))
             {
                 logLevel = levelElement.GetString();
             }
