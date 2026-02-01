@@ -27,7 +27,7 @@ namespace IFGlobal
                 case "IFOllama": return 5008;
                 case "File-Manager": return 5009;
                 case "ClipboardSyncService": return 5010;
-                case "OllamaMcpServer": return 5011;
+                case "SampleWebService": return 5011;
 
                 // MCP Servers (5012-5027)
                 case "BraveSearchMcpServer": return 5012;
