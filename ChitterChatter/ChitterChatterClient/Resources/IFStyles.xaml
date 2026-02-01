@@ -1,0 +1,339 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         IF DESIGN SYSTEM - WPF RESOURCE DICTIONARY
+         Translated from IF.Styles CSS for consistent branding
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Primary IF Palette -->
+    <Color x:Key="IFLightColor">#1d97a6</Color>
+    <Color x:Key="IFMediumColor">#214c8c</Color>
+    <Color x:Key="IFDarkColor">#0b2144</Color>
+
+    <!-- Highlight/Accent Colours -->
+    <Color x:Key="IFHighlightLightColor">#faa236</Color>
+    <Color x:Key="IFHighlightMediumColor">#fa7733</Color>
+    <Color x:Key="IFHighlightDarkColor">#db592e</Color>
+
+    <!-- Background Colours -->
+    <Color x:Key="IFWindowColor">#f5f5f5</Color>
+    <Color x:Key="IFPaperColor">#fcfcfc</Color>
+    <Color x:Key="IFHeaderColor">#333333</Color>
+
+    <!-- Status Colours -->
+    <Color x:Key="IFSuccessColor">#22c55e</Color>
+    <Color x:Key="IFErrorColor">#db592e</Color>
+    <Color x:Key="IFWarningColor">#fa7733</Color>
+
+    <!-- Brushes from Colours -->
+    <SolidColorBrush x:Key="IFLightBrush" Color="{StaticResource IFLightColor}" />
+    <SolidColorBrush x:Key="IFMediumBrush" Color="{StaticResource IFMediumColor}" />
+    <SolidColorBrush x:Key="IFDarkBrush" Color="{StaticResource IFDarkColor}" />
+    <SolidColorBrush x:Key="IFHighlightLightBrush" Color="{StaticResource IFHighlightLightColor}" />
+    <SolidColorBrush x:Key="IFHighlightMediumBrush" Color="{StaticResource IFHighlightMediumColor}" />
+    <SolidColorBrush x:Key="IFHighlightDarkBrush" Color="{StaticResource IFHighlightDarkColor}" />
+    <SolidColorBrush x:Key="IFWindowBrush" Color="{StaticResource IFWindowColor}" />
+    <SolidColorBrush x:Key="IFPaperBrush" Color="{StaticResource IFPaperColor}" />
+    <SolidColorBrush x:Key="IFHeaderBrush" Color="{StaticResource IFHeaderColor}" />
+    <SolidColorBrush x:Key="IFSuccessBrush" Color="{StaticResource IFSuccessColor}" />
+    <SolidColorBrush x:Key="IFErrorBrush" Color="{StaticResource IFErrorColor}" />
+    <SolidColorBrush x:Key="IFWarningBrush" Color="{StaticResource IFWarningColor}" />
+
+    <!-- Semi-transparent brushes for hover/selection -->
+    <SolidColorBrush x:Key="IFLightTransparentBrush" Color="{StaticResource IFLightColor}" Opacity="0.1" />
+    <SolidColorBrush x:Key="IFMediumTransparentBrush" Color="{StaticResource IFMediumColor}" Opacity="0.2" />
+
+    <!-- Font Families -->
+    <FontFamily x:Key="IFFontSans">Segoe UI, Roboto, Helvetica Neue, sans-serif</FontFamily>
+    <FontFamily x:Key="IFFontMono">Cascadia Code, JetBrains Mono, Consolas, monospace</FontFamily>
+
+    <!-- Corner Radii -->
+    <CornerRadius x:Key="IFRadiusSm">3</CornerRadius>
+    <CornerRadius x:Key="IFRadiusMd">5</CornerRadius>
+    <CornerRadius x:Key="IFRadiusLg">10</CornerRadius>
+
+    <!-- Spacing -->
+    <Thickness x:Key="IFSpaceXs">2</Thickness>
+    <Thickness x:Key="IFSpaceSm">4</Thickness>
+    <Thickness x:Key="IFSpaceMd">8</Thickness>
+    <Thickness x:Key="IFSpaceLg">12</Thickness>
+    <Thickness x:Key="IFSpaceXl">16</Thickness>
+
+    <!-- Drop Shadow Effect -->
+    <DropShadowEffect x:Key="IFShadow" 
+                      BlurRadius="6" 
+                      ShadowDepth="2" 
+                      Color="{StaticResource IFDarkColor}" 
+                      Opacity="0.15" 
+                      Direction="270" />
+
+    <DropShadowEffect x:Key="IFShadowLg" 
+                      BlurRadius="10" 
+                      ShadowDepth="4" 
+                      Color="{StaticResource IFDarkColor}" 
+                      Opacity="0.2" 
+                      Direction="270" />
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         BUTTON STYLES
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Base Button Style -->
+    <Style x:Key="IFButtonBase" TargetType="Button">
+        <Setter Property="FontFamily" Value="{StaticResource IFFontSans}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="MinWidth" Value="120" />
+        <Setter Property="MinHeight" Value="35" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="BorderThickness" Value="0.5" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource IFRadiusMd}"
+                            Padding="{TemplateBinding Padding}"
+                            Effect="{StaticResource IFShadow}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Opacity" Value="0.9" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Opacity" Value="0.8" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Primary Button -->
+    <Style x:Key="IFButtonPrimary" TargetType="Button" BasedOn="{StaticResource IFButtonBase}">
+        <Setter Property="Background" Value="{StaticResource IFLightBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource IFPaperBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource IFDarkBrush}" />
+    </Style>
+
+    <!-- Secondary Button -->
+    <Style x:Key="IFButtonSecondary" TargetType="Button" BasedOn="{StaticResource IFButtonBase}">
+        <Setter Property="Background" Value="{StaticResource IFPaperBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource IFDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource IFMediumBrush}" />
+    </Style>
+
+    <!-- Warning Button -->
+    <Style x:Key="IFButtonWarning" TargetType="Button" BasedOn="{StaticResource IFButtonBase}">
+        <Setter Property="Background" Value="{StaticResource IFHighlightMediumBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="{StaticResource IFHighlightDarkBrush}" />
+    </Style>
+
+    <!-- Success Button -->
+    <Style x:Key="IFButtonSuccess" TargetType="Button" BasedOn="{StaticResource IFButtonBase}">
+        <Setter Property="Background" Value="{StaticResource IFSuccessBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderBrush" Value="{StaticResource IFSuccessBrush}" />
+    </Style>
+
+    <!-- Danger Button -->
+    <Style x:Key="IFButtonDanger" TargetType="Button" BasedOn="{StaticResource IFButtonBase}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource IFHighlightDarkBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource IFHighlightDarkBrush}" />
+    </Style>
+
+    <!-- Small Button Modifier -->
+    <Style x:Key="IFButtonSm" TargetType="Button" BasedOn="{StaticResource IFButtonPrimary}">
+        <Setter Property="MinWidth" Value="80" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <!-- Icon Button (circular) -->
+    <Style x:Key="IFButtonIcon" TargetType="Button">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Background" Value="{StaticResource IFLightBrush}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="20"
+                            Effect="{StaticResource IFShadow}">
+                        <ContentPresenter HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" 
+                                    Value="{StaticResource IFMediumBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Background" 
+                                    Value="{StaticResource IFDarkBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         TEXT STYLES
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="IFTextTitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IFFontSans}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource IFDarkBrush}" />
+    </Style>
+
+    <Style x:Key="IFTextSubtitle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IFFontSans}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="Foreground" Value="{StaticResource IFMediumBrush}" />
+    </Style>
+
+    <Style x:Key="IFTextBody" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IFFontSans}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Foreground" Value="{StaticResource IFDarkBrush}" />
+    </Style>
+
+    <Style x:Key="IFTextMuted" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IFFontSans}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="#777777" />
+    </Style>
+
+    <Style x:Key="IFTextMono" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource IFFontMono}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Foreground" Value="{StaticResource IFDarkBrush}" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         CARD STYLES
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="IFCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource IFPaperBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource IFMediumBrush}" />
+        <Setter Property="BorderThickness" Value="0.5" />
+        <Setter Property="CornerRadius" Value="{StaticResource IFRadiusLg}" />
+        <Setter Property="Effect" Value="{StaticResource IFShadow}" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         LIST ITEM STYLES
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="IFListBoxItem" TargetType="ListBoxItem">
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ListBoxItem">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource IFRadiusSm}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Background" 
+                                    Value="{StaticResource IFLightTransparentBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="border" Property="Background" 
+                                    Value="{StaticResource IFMediumTransparentBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         TOGGLE BUTTON (for Mute/Deafen)
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="IFToggleButton" TargetType="ToggleButton">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="border"
+                            Background="{StaticResource IFWindowBrush}"
+                            BorderBrush="#dddddd"
+                            BorderThickness="1"
+                            CornerRadius="12">
+                        <Ellipse x:Name="knob"
+                                 Width="18" Height="18"
+                                 Fill="#777777"
+                                 HorizontalAlignment="Left"
+                                 Margin="2,0,0,0" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="border" Property="Background" 
+                                    Value="{StaticResource IFLightBrush}" />
+                            <Setter TargetName="border" Property="BorderBrush" 
+                                    Value="{StaticResource IFLightBrush}" />
+                            <Setter TargetName="knob" Property="Fill" Value="White" />
+                            <Setter TargetName="knob" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="knob" Property="Margin" Value="0,0,2,0" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         SCROLLBAR STYLES
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="IFScrollBar" TargetType="ScrollBar">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Background" Value="{StaticResource IFWindowBrush}" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════════
+         STATUS INDICATOR (Online/In Room/In Call)
+         ═══════════════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="IFStatusIndicator" TargetType="Ellipse">
+        <Setter Property="Width" Value="10" />
+        <Setter Property="Height" Value="10" />
+        <Setter Property="Fill" Value="{StaticResource IFSuccessBrush}" />
+    </Style>
+
+</ResourceDictionary>

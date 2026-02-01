@@ -1,0 +1,25 @@
+<Application x:Class="ChitterChatterClient.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:ChitterChatterClient.Converters"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/IFStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters -->
+            <converters:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+            <converters:ConnectionStateToColorConverter x:Key="ConnectionStateToColor" />
+            <converters:UserStatusToColorConverter x:Key="UserStatusToColor" />
+            <converters:UserStatusToTextConverter x:Key="UserStatusToText" />
+            <converters:MuteToIconConverter x:Key="MuteToIcon" />
+            <converters:DeafenToIconConverter x:Key="DeafenToIcon" />
+            <converters:LevelToWidthConverter x:Key="LevelToWidth" />
+            <converters:SpeakingToGlowConverter x:Key="SpeakingToGlow" />
+            <converters:InverseBoolConverter x:Key="InverseBool" />
+            <converters:NotNullToVisibilityConverter x:Key="NotNullToVisibility" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

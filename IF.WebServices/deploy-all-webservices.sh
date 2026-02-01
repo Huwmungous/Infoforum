@@ -91,9 +91,11 @@ LOGGER_SYSTEMD="logger-ws"
 # Other services that depend on ConfigWebService AND LoggerWebService
 DEPENDENT_SERVICES=(
     "SampleWebService" 
+    "ChitterChatterWebService"
 )
 declare -A SERVERS=(
     ["SampleWebService"]="sample-ws"
+    ["ChitterChatterWebService"]="chitterchatter-ws"
 )
 
 # Ensure deploy root exists
