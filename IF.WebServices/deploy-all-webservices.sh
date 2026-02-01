@@ -87,7 +87,7 @@ CONFIG_SYSTEMD="config-ws"
 LOGGER_SERVICE="LoggerWebService"
 LOGGER_SYSTEMD="logger-ws"
 
-# Other services that depend on ConfigWebService
+# Other services that depend on ConfigWebService AND LoggerWebService
 DEPENDENT_SERVICES=(
     "SampleWebService" 
 )
@@ -105,6 +105,34 @@ chmod +x "$SCRIPT_DIR/deploy-one-webservice.sh"
 FAILED_SERVICES=()
 DEPLOYED_SERVICES=()
 SKIPPED_SERVICES=()
+
+# ============================================================================
+# PHASE 0: Stop all dependent services to prevent auto-restart during deployment
+# ============================================================================
+echo "======================================"
+echo -e "${BLUE}  Phase 0: Stopping Dependent Services${NC}"
+echo "======================================"
+echo ""
+
+for SERVER_NAME in "${DEPENDENT_SERVICES[@]}"; do
+    SERVICE_NAME="${SERVERS[$SERVER_NAME]}"
+    
+    if systemctl is-active --quiet "$SERVICE_NAME" 2>/dev/null; then
+        echo -e "${YELLOW}Stopping $SERVICE_NAME...${NC}"
+        sudo systemctl stop "$SERVICE_NAME" 2>/dev/null || true
+        # Reset failed state to prevent immediate auto-restart
+        sudo systemctl reset-failed "$SERVICE_NAME" 2>/dev/null || true
+        echo -e "${GREEN}[OK] $SERVICE_NAME stopped${NC}"
+    elif systemctl list-unit-files | grep -q "^$SERVICE_NAME.service"; then
+        # Service exists but not running - reset any failed state
+        sudo systemctl reset-failed "$SERVICE_NAME" 2>/dev/null || true
+        echo -e "${YELLOW}$SERVICE_NAME was not running (reset failed state)${NC}"
+    else
+        echo -e "${YELLOW}$SERVICE_NAME not installed yet${NC}"
+    fi
+done
+
+echo ""
 
 # ============================================================================
 # PHASE 1: Deploy and start ConfigWebService (self-contained, no dependencies)
@@ -222,10 +250,10 @@ fi
 echo ""
 
 # ============================================================================
-# PHASE 3: Deploy dependent services
+# PHASE 3: Deploy dependent services (without starting them)
 # ============================================================================
 echo "======================================"
-echo -e "${BLUE}  Phase 3: Dependent Services${NC}"
+echo -e "${BLUE}  Phase 3: Deploy Dependent Services${NC}"
 echo "======================================"
 echo ""
 
@@ -251,7 +279,7 @@ for SERVER_NAME in "${DEPENDENT_SERVICES[@]}"; do
 done
 
 # ============================================================================
-# PHASE 4: Start dependent services
+# PHASE 4: Start dependent services (after confirming infrastructure is ready)
 # ============================================================================
 echo "======================================"
 echo -e "${BLUE}  Phase 4: Starting Dependent Services${NC}"
@@ -260,6 +288,22 @@ echo ""
 
 # Reload systemd to pick up any changes
 sudo systemctl daemon-reload
+
+# Verify ConfigWebService is still ready
+echo -e "${YELLOW}Verifying ConfigWebService is ready...${NC}"
+if ! wait_for_config_service; then
+    echo -e "${RED}[ERROR] ConfigWebService is not responding. Cannot start dependent services.${NC}"
+    exit 1
+fi
+
+# Verify LoggerWebService is still ready
+echo -e "${YELLOW}Verifying LoggerWebService is ready...${NC}"
+if ! wait_for_logger_service; then
+    echo -e "${RED}[ERROR] LoggerWebService is not responding. Cannot start dependent services.${NC}"
+    exit 1
+fi
+
+echo ""
 
 # Start all dependent services
 for SERVER_NAME in "${DEPENDENT_SERVICES[@]}"; do
