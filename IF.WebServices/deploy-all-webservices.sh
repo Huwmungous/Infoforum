@@ -27,6 +27,7 @@ if [[ $EUID -ne 0 ]] && ! sudo -n true 2>/dev/null; then
 fi
 
 # Ports are defined by PortResolver in the services themselves
+# but we need these to check health
 CONFIG_PORT=5000
 LOGGER_PORT=5001
 
@@ -59,8 +60,8 @@ wait_for_config_service() {
     local max_attempts=30
     local attempt=1
     local wait_seconds=2
-    # Use bootstrap endpoint with appDomain parameter
-    local url="http://localhost:${CONFIG_PORT}/Config?cfg=bootstrap&type=service&appDomain=Infoforum"
+    # Use bootstrap endpoint with appDomain parameter and identify ourselves
+    local url="http://localhost:${CONFIG_PORT}/Config?cfg=bootstrap&type=service&appDomain=Infoforum&app=ConfigService.deploy-script"
     
     echo -e "${YELLOW}Waiting for ConfigWebService to be ready on port ${CONFIG_PORT}...${NC}"
     
