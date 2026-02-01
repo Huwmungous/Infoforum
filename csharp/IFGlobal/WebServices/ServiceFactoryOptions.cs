@@ -56,7 +56,6 @@ public class ServiceFactoryOptions
     /// The type of application for authentication purposes.
     /// Affects how the ClientId is resolved:
     /// - Service: Uses the standard service client (e.g., "dev-login-svc")
-    /// - Patient: Uses the patient portal client (e.g., "dev-login-pps")
     /// - User: Uses the user client (e.g., "dev-login")
     /// Default is Service.
     /// </summary>

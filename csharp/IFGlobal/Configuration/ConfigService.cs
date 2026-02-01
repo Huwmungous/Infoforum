@@ -14,6 +14,11 @@ public partial class ConfigService(
         PropertyNameCaseInsensitive = true
     };
 
+    /// <summary>
+    /// Default cache duration for configuration values (24 hours).
+    /// </summary>
+    public static readonly TimeSpan DefaultCacheDuration = TimeSpan.FromHours(24);
+
     private readonly IFConfiguration _config = options.Value;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly ILogger<ConfigService> _logger = logger;
@@ -22,16 +27,29 @@ public partial class ConfigService(
     private DateTime? _bootstrapFetchedAt;
     private readonly SemaphoreSlim _initLock = new(1, 1);
 
+    // Configuration cache with thread-safe access
+    private readonly Dictionary<string, ConfigCacheEntry> _configCache = new();
+    private readonly SemaphoreSlim _cacheLock = new(1, 1);
+
+    /// <summary>
+    /// Represents a cached configuration entry with expiry time.
+    /// </summary>
+    private sealed class ConfigCacheEntry
+    {
+        public required string JsonContent { get; init; }
+        public required DateTime FetchedAt { get; init; }
+        public required DateTime ExpiresAt { get; init; }
+        public bool IsExpired => DateTime.UtcNow >= ExpiresAt;
+    }
+
     /// <summary>
     /// Returns the appropriate ClientId for JWT audience validation based on AppType.
-    /// For Patient apps, returns "{client}-pps" (e.g., "dev-login-pps").
-    /// For other apps, returns the standard service ClientId from bootstrap config.
     /// </summary>
     public string ClientId
     {
         get
         {
-            if (_bootstrapConfig == null)
+            if(_bootstrapConfig == null)
                 throw new InvalidOperationException("ConfigService not initialized. Call InitializeAsync first.");
 
             return _bootstrapConfig.ClientId;
@@ -72,10 +90,20 @@ public partial class ConfigService(
 
     public bool IsInitialized => _initialized;
 
+    /// <summary>
+    /// Maximum number of retry attempts for bootstrap configuration fetch.
+    /// </summary>
+    private const int MaxBootstrapRetries = 5;
+
+    /// <summary>
+    /// Initial delay between retry attempts (doubles with each retry).
+    /// </summary>
+    private static readonly TimeSpan InitialRetryDelay = TimeSpan.FromSeconds(2);
+
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         // Fast path: if already initialized, return cached config
-        if (_initialized)
+        if(_initialized)
         {
             LogReturningCachedBootstrapConfig(_logger, _bootstrapFetchedAt!.Value);
             return;
@@ -85,7 +113,7 @@ public partial class ConfigService(
         try
         {
             // Double-check after acquiring lock
-            if (_initialized)
+            if(_initialized)
             {
                 LogReturningCachedBootstrapConfig(_logger, _bootstrapFetchedAt!.Value);
                 return;
@@ -97,47 +125,75 @@ public partial class ConfigService(
             var serviceName = Uri.EscapeDataString(_config.ServiceName);
             var url = $"{_config.ConfigService}/Config?cfg=bootstrap&type=service&appDomain={_config.AppDomain}&app={serviceName}";
 
-            LogFetchingBootstrapConfigFromService(_logger, url);
+            // Retry with exponential backoff
+            Exception? lastException = null;
+            var delay = InitialRetryDelay;
 
-            var httpClient = _httpClientFactory.CreateClient();
-            var response = await httpClient.GetAsync(url, cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
+            for(int attempt = 1; attempt <= MaxBootstrapRetries; attempt++)
             {
-                throw new InvalidOperationException(
-                   $"Failed to fetch bootstrap configuration: {response.StatusCode} {response.ReasonPhrase}");
+                try
+                {
+                    LogFetchingBootstrapConfigFromService(_logger, url);
+
+                    var httpClient = _httpClientFactory.CreateClient();
+                    httpClient.Timeout = TimeSpan.FromSeconds(30); // Explicit timeout
+                    var response = await httpClient.GetAsync(url, cancellationToken);
+
+                    if(!response.IsSuccessStatusCode)
+                    {
+                        var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                        throw new HttpRequestException(
+                           $"Failed to fetch bootstrap configuration: {response.StatusCode} {response.ReasonPhrase}. Body: {errorBody}");
+                    }
+
+                    var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                    _bootstrapConfig = JsonSerializer.Deserialize<BootstrapConfig>(content, JsonOptions);
+
+                    if(_bootstrapConfig == null ||
+                        string.IsNullOrEmpty(_bootstrapConfig.Realm) ||
+                        string.IsNullOrEmpty(_bootstrapConfig.ClientId) ||
+                        string.IsNullOrEmpty(_bootstrapConfig.OpenIdConfig))
+                    {
+                        throw new InvalidOperationException("Invalid bootstrap configuration: missing realm, clientId or openIdConfig");
+                    }
+
+                    // Append realm to OpenIdConfig
+                    _bootstrapConfig.OpenIdConfig = $"{_bootstrapConfig.OpenIdConfig}/{_bootstrapConfig.Realm}";
+
+                    _bootstrapFetchedAt = DateTime.UtcNow;
+
+                    LogBootstrapConfigLoaded(_logger, _bootstrapFetchedAt.Value);
+                    LogServiceClientId(_logger, ServiceClientId);
+                    LogClientId(_logger, ClientId);
+                    LogAuthority(_logger, _bootstrapConfig.OpenIdConfig);
+                    LogAppType(_logger, _config.AppType);
+
+                    if(!string.IsNullOrEmpty(_bootstrapConfig.LoggerService))
+                    {
+                        LogLoggerServiceUrl(_logger, _bootstrapConfig.LoggerService);
+                    }
+
+                    LogLogLevel(_logger, _bootstrapConfig.LogLevel);
+
+                    _initialized = true;
+                    return; // Success - exit the retry loop
+                }
+                catch(Exception ex) when(ex is not OperationCanceledException)
+                {
+                    lastException = ex;
+
+                    if(attempt < MaxBootstrapRetries)
+                    {
+                        LogBootstrapRetry(_logger, attempt, MaxBootstrapRetries, delay.TotalSeconds, ex.Message);
+                        await Task.Delay(delay, cancellationToken);
+                        delay *= 2; // Exponential backoff
+                    }
+                }
             }
 
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            _bootstrapConfig = JsonSerializer.Deserialize<BootstrapConfig>(content, JsonOptions);
-
-            if (_bootstrapConfig == null ||
-                string.IsNullOrEmpty(_bootstrapConfig.Realm) ||
-                string.IsNullOrEmpty(_bootstrapConfig.ClientId) ||
-                string.IsNullOrEmpty(_bootstrapConfig.OpenIdConfig))
-            {
-                throw new InvalidOperationException("Invalid bootstrap configuration: missing realm, clientId or openIdConfig");
-            }
-
-            // Append realm to OpenIdConfig
-            _bootstrapConfig.OpenIdConfig = $"{_bootstrapConfig.OpenIdConfig}/{_bootstrapConfig.Realm}";
-
-            _bootstrapFetchedAt = DateTime.UtcNow;
-
-            LogBootstrapConfigLoaded(_logger, _bootstrapFetchedAt.Value);
-            LogServiceClientId(_logger, ServiceClientId);
-            LogClientId(_logger, ClientId);
-            LogAuthority(_logger, _bootstrapConfig.OpenIdConfig);
-            LogAppType(_logger, _config.AppType);
-
-            if (!string.IsNullOrEmpty(_bootstrapConfig.LoggerService))
-            {
-                LogLoggerServiceUrl(_logger, _bootstrapConfig.LoggerService);
-            }
-
-            LogLogLevel(_logger, _bootstrapConfig.LogLevel);
-
-            _initialized = true;
+            // All retries exhausted
+            throw new InvalidOperationException(
+                $"Failed to fetch bootstrap configuration after {MaxBootstrapRetries} attempts", lastException);
         }
         finally
         {
@@ -148,7 +204,7 @@ public partial class ConfigService(
     private static LogLevel ParseLogLevel(string level)
     {
         // Handle numeric levels (0-5)
-        if (int.TryParse(level, out var numLevel))
+        if(int.TryParse(level, out var numLevel))
         {
             return numLevel switch
             {
@@ -176,30 +232,99 @@ public partial class ConfigService(
     }
 
     /// <summary>
-    /// Fetches authenticated configuration from the config service.
+    /// Fetches authenticated configuration from the config service with caching.
+    /// Cached values are returned for subsequent calls until they expire.
     /// </summary>
     /// <typeparam name="T">The type to deserialise the configuration into</typeparam>
     /// <param name="configName">The configuration key (e.g., "firebirddb", "loggerdb")</param>
     /// <param name="accessToken">Bearer token for authentication</param>
     /// <param name="cancellationToken">Optional cancellation token</param>
+    /// <param name="cacheDuration">Optional cache duration (defaults to 24 hours)</param>
     /// <returns>The deserialised configuration object, or null if not found</returns>
-    public async Task<T?> GetConfigAsync<T>(string configName, string accessToken, CancellationToken cancellationToken = default) where T : class
+    public async Task<T?> GetConfigAsync<T>(
+        string configName,
+        string accessToken,
+        CancellationToken cancellationToken = default,
+        TimeSpan? cacheDuration = null) where T : class
     {
-        if (!_initialized)
+        if(!_initialized)
         {
             throw new InvalidOperationException("ConfigService not initialised. Call InitializeAsync() first.");
         }
 
-        if (string.IsNullOrWhiteSpace(configName))
+        if(string.IsNullOrWhiteSpace(configName))
         {
             throw new ArgumentException("Configuration name cannot be null or empty.", nameof(configName));
         }
 
-        if (string.IsNullOrWhiteSpace(accessToken))
+        if(string.IsNullOrWhiteSpace(accessToken))
         {
             throw new ArgumentException("Access token cannot be null or empty.", nameof(accessToken));
         }
 
+        var effectiveCacheDuration = cacheDuration ?? DefaultCacheDuration;
+        var cacheKey = $"{_config.AppDomain}:{configName}";
+
+        // Fast path: check cache without lock
+        if(_configCache.TryGetValue(cacheKey, out var cachedEntry) && !cachedEntry.IsExpired)
+        {
+            LogReturningCachedConfig(_logger, configName, cachedEntry.FetchedAt);
+            return JsonSerializer.Deserialize<T>(cachedEntry.JsonContent, JsonOptions);
+        }
+
+        // Need to fetch - acquire lock to prevent multiple concurrent fetches for the same config
+        await _cacheLock.WaitAsync(cancellationToken);
+        try
+        {
+            // Double-check after acquiring lock
+            if(_configCache.TryGetValue(cacheKey, out cachedEntry) && !cachedEntry.IsExpired)
+            {
+                LogReturningCachedConfig(_logger, configName, cachedEntry.FetchedAt);
+                return JsonSerializer.Deserialize<T>(cachedEntry.JsonContent, JsonOptions);
+            }
+
+            // Fetch from config service
+            var content = await FetchConfigFromServiceAsync(configName, accessToken, cancellationToken);
+
+            if(content == null)
+            {
+                return null;
+            }
+
+            // Cache the raw JSON content
+            var now = DateTime.UtcNow;
+            _configCache[cacheKey] = new ConfigCacheEntry
+            {
+                JsonContent = content,
+                FetchedAt = now,
+                ExpiresAt = now.Add(effectiveCacheDuration)
+            };
+
+            LogConfigCached(_logger, configName, effectiveCacheDuration.TotalHours);
+
+            var config = JsonSerializer.Deserialize<T>(content, JsonOptions);
+
+            if(config == null)
+            {
+                LogConfigDeserializedNull(_logger, configName);
+            }
+
+            return config;
+        }
+        finally
+        {
+            _cacheLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Fetches configuration from the config service without caching.
+    /// </summary>
+    private async Task<string?> FetchConfigFromServiceAsync(
+        string configName,
+        string accessToken,
+        CancellationToken cancellationToken)
+    {
         try
         {
             // Config fetches always use "service" type - we're authenticated as a service
@@ -215,7 +340,7 @@ public partial class ConfigService(
 
             var response = await httpClient.GetAsync(url, cancellationToken);
 
-            if (!response.IsSuccessStatusCode)
+            if(!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
                 LogConfigFetchFailed(_logger, configName, (int)response.StatusCode, response.ReasonPhrase, errorContent);
@@ -225,27 +350,72 @@ public partial class ConfigService(
             }
 
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-
             LogConfigReceived(_logger, configName, content.Length);
 
-            var config = JsonSerializer.Deserialize<T>(content, JsonOptions);
-
-            if (config == null)
-            {
-                LogConfigDeserializedNull(_logger, configName);
-            }
-
-            return config;
+            return content;
         }
-        catch (HttpRequestException)
+        catch(HttpRequestException)
         {
             throw;
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             LogConfigFetchError(_logger, ex, configName);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Invalidates a specific cached configuration, forcing the next request to fetch fresh data.
+    /// </summary>
+    /// <param name="configName">The configuration key to invalidate</param>
+    /// <returns>True if the cache entry was found and removed, false otherwise</returns>
+    public async Task<bool> InvalidateCacheAsync(string configName)
+    {
+        var cacheKey = $"{_config.AppDomain}:{configName}";
+
+        await _cacheLock.WaitAsync();
+        try
+        {
+            var removed = _configCache.Remove(cacheKey);
+            if(removed)
+            {
+                LogConfigCacheInvalidated(_logger, configName);
+            }
+            return removed;
+        }
+        finally
+        {
+            _cacheLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Clears all cached configuration values.
+    /// </summary>
+    public async Task ClearCacheAsync()
+    {
+        await _cacheLock.WaitAsync();
+        try
+        {
+            var count = _configCache.Count;
+            _configCache.Clear();
+            LogConfigCacheCleared(_logger, count);
+        }
+        finally
+        {
+            _cacheLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Gets information about the current cache state.
+    /// </summary>
+    public IReadOnlyDictionary<string, (DateTime FetchedAt, DateTime ExpiresAt, bool IsExpired)> GetCacheInfo()
+    {
+        return _configCache.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (kvp.Value.FetchedAt, kvp.Value.ExpiresAt, kvp.Value.IsExpired));
     }
 
     // ============================================================================
@@ -254,6 +424,9 @@ public partial class ConfigService(
 
     [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Information, Message = "Returning CACHED bootstrap config (fetched at {FetchedAt:yyyy-MM-dd HH:mm:ss} UTC) - NOT calling ConfigWebService")]
     private static partial void LogReturningCachedBootstrapConfig(ILogger logger, DateTime fetchedAt);
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Warning, Message = "Bootstrap config fetch attempt {Attempt}/{MaxAttempts} failed. Retrying in {DelaySeconds:F1}s. Error: {ErrorMessage}")]
+    private static partial void LogBootstrapRetry(ILogger logger, int attempt, int maxAttempts, double delaySeconds, string errorMessage);
 
     [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Information, Message = "CALLING ConfigWebService to fetch bootstrap configuration from: {Url}")]
     private static partial void LogFetchingBootstrapConfigFromService(ILogger logger, string url);
@@ -293,4 +466,16 @@ public partial class ConfigService(
 
     [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Error, Message = "Error fetching configuration '{ConfigName}'")]
     private static partial void LogConfigFetchError(ILogger logger, Exception ex, string configName);
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Information, Message = "Returning CACHED configuration '{ConfigName}' (fetched at {FetchedAt:yyyy-MM-dd HH:mm:ss} UTC) - NOT calling ConfigWebService")]
+    private static partial void LogReturningCachedConfig(ILogger logger, string configName, DateTime fetchedAt);
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Debug, Message = "Configuration '{ConfigName}' cached for {CacheHours:F1} hours")]
+    private static partial void LogConfigCached(ILogger logger, string configName, double cacheHours);
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Information, Message = "Configuration cache invalidated for '{ConfigName}'")]
+    private static partial void LogConfigCacheInvalidated(ILogger logger, string configName);
+
+    [LoggerMessage(Level = Microsoft.Extensions.Logging.LogLevel.Information, Message = "Configuration cache cleared ({Count} entries removed)")]
+    private static partial void LogConfigCacheCleared(ILogger logger, int count);
 }
