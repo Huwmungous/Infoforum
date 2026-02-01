@@ -16,10 +16,8 @@ namespace IFGlobal
                 case "ConfigWebService": return 5000;
                 case "LoggerWebService": return 5001;
                 case "KeycloakWebService": return 5002;
+                case "ChitterChatterWebService": return 5003;
 
-                // Core applications (5000-5011)
-
-                case "BTAuthenticator": return 5003;
                 case "IFAuthenticator": return 5004;
                 case "SvgApi": return 5005;
                 case "KeyCloak_Reserved_1": return 5006;
