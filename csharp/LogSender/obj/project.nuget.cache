@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "5XMiZPXa75s=",
+  "dgSpecHash": "crArGajDMI4=",
   "success": true,
   "projectFilePath": "C:\\repos\\Infoforum\\csharp\\LogSender\\LogSender.csproj",
   "expectedPackageFiles": [
@@ -14,12 +14,12 @@
     "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.identitymodel.protocols\\8.0.1\\microsoft.identitymodel.protocols.8.0.1.nupkg.sha512",
     "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.identitymodel.protocols.openidconnect\\8.0.1\\microsoft.identitymodel.protocols.openidconnect.8.0.1.nupkg.sha512",
     "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.0.1\\microsoft.identitymodel.tokens.8.0.1.nupkg.sha512",
-    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.openapi\\2.3.0\\microsoft.openapi.2.3.0.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\microsoft.openapi\\2.4.1\\microsoft.openapi.2.4.1.nupkg.sha512",
     "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\npgsql\\10.0.1\\npgsql.10.0.1.nupkg.sha512",
-    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore\\10.1.0\\swashbuckle.aspnetcore.10.1.0.nupkg.sha512",
-    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\10.1.0\\swashbuckle.aspnetcore.swagger.10.1.0.nupkg.sha512",
-    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\10.1.0\\swashbuckle.aspnetcore.swaggergen.10.1.0.nupkg.sha512",
-    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\10.1.0\\swashbuckle.aspnetcore.swaggerui.10.1.0.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore\\10.1.1\\swashbuckle.aspnetcore.10.1.1.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\10.1.1\\swashbuckle.aspnetcore.swagger.10.1.1.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\10.1.1\\swashbuckle.aspnetcore.swaggergen.10.1.1.nupkg.sha512",
+    "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\10.1.1\\swashbuckle.aspnetcore.swaggerui.10.1.1.nupkg.sha512",
     "C:\\Users\\hugh.LONGMANRD.000\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.0.1\\system.identitymodel.tokens.jwt.8.0.1.nupkg.sha512"
   ],
   "logs": []
