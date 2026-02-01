@@ -125,7 +125,7 @@ public static partial class ServiceFactory
             var method = typeof(IConfigService).GetMethod(nameof(IConfigService.GetConfigAsync));
             var genericMethod = method!.MakeGenericMethod(options.DatabaseConfigType);
 
-            var task = (Task)genericMethod.Invoke(configService, [options.DatabaseConfigName, accessToken, CancellationToken.None])!;
+            var task = (Task)genericMethod.Invoke(configService, [options.DatabaseConfigName, accessToken, CancellationToken.None, null])!;
             await task;
 
             var resultProperty = task.GetType().GetProperty("Result");
