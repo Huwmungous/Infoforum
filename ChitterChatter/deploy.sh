@@ -172,6 +172,7 @@ User=hugh
 SELinuxContext=unconfined_u:unconfined_r:unconfined_t:s0
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5004
+EnvironmentFile=/etc/sysconfig/if-secrets
 
 [Install]
 WantedBy=multi-user.target
