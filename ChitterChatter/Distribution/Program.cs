@@ -14,10 +14,8 @@ public class Program
             Description = "ChitterChatter Download Server",
             UseAuthentication = true,
             AuthType = AuthType.Service,
-            // PathBase = "/infoforum/download",
             ConfigureServices = (services, context) =>
             {
-                services.AddRazorPages();
                 services.Configure<DistributionOptions>(opts =>
                 {
                     opts.DistributionPath = context.Configuration["DistributionPath"]
@@ -37,7 +35,6 @@ public class Program
             ConfigurePipeline = (app, context) =>
             {
                 app.UseStaticFiles();
-                app.MapRazorPages();
             }
         };
 
@@ -79,7 +76,7 @@ public class NginxProxyAuthorizationHandler : AuthorizationHandler<NginxOrJwtReq
         NginxOrJwtRequirement requirement)
     {
         // Check if authenticated via JWT
-        if(context.User.Identity?.IsAuthenticated == true)
+        if (context.User.Identity?.IsAuthenticated == true)
         {
             _logger.LogDebug("Authorization succeeded via JWT for user {User}", context.User.Identity.Name);
             context.Succeed(requirement);
@@ -87,9 +84,9 @@ public class NginxProxyAuthorizationHandler : AuthorizationHandler<NginxOrJwtReq
         }
 
         // Check if nginx validated the request
-        if(context.Resource is HttpContext httpContext)
+        if (context.Resource is HttpContext httpContext)
         {
-            if(httpContext.Request.Headers.TryGetValue("X-Nginx-Proxy", out var nginxHeader)
+            if (httpContext.Request.Headers.TryGetValue("X-Nginx-Proxy", out var nginxHeader)
                 && nginxHeader == "authenticated")
             {
                 _logger.LogDebug("Authorization succeeded via nginx proxy validation");

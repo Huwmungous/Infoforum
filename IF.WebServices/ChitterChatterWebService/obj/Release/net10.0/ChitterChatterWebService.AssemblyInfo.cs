@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChitterChatterWebService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9ea2bc800de35f3a4f2d49a010c775fd2f0504c0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6362cb43d676c78a78c6cad24960b164eb07b7f8")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChitterChatterWebService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChitterChatterWebService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
