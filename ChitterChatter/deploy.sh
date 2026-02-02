@@ -11,7 +11,7 @@
 #   - Inno Setup installed under Wine (see setup instructions below)
 #
 # Inno Setup Installation (one-time):
-#   1. Download Inno Setup from https://jrsoftware.org/isdl.php
+#   1. Download from https://jrsoftware.org/isdl.php
 #   2. Run: wine ~/Downloads/innosetup-6.x.x.exe
 #   3. Install to default location
 #
@@ -43,7 +43,7 @@ fi
 
 VERSION="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLIENT_DIR="${SCRIPT_DIR}/Client"
+CLIENT_DIR="${SCRIPT_DIR}/ChitterChatterClient"
 ISS_FILE="${SCRIPT_DIR}/ChitterChatter-Setup.iss"
 DIST_DIR="/var/www/chitterchatter-dist/dist"
 
@@ -110,16 +110,26 @@ dotnet publish -c Release -r win-x64 --self-contained \
     -p:AssemblyVersion="${VERSION}" \
     -p:FileVersion="${VERSION}"
 
-PUBLISH_DIR="${CLIENT_DIR}/bin/Release/net10.0-windows/win-x64/publish"
+# Find the publish directory - try various possible paths
+PUBLISH_DIR=""
+for path in \
+    "${CLIENT_DIR}/bin/Release/net10.0-windows/win-x64/publish" \
+    "${CLIENT_DIR}/bin/Release/net10.0/win-x64/publish" \
+    "${CLIENT_DIR}/bin/Release/net9.0-windows/win-x64/publish" \
+    "${CLIENT_DIR}/bin/Release/net9.0/win-x64/publish" \
+    "${CLIENT_DIR}/bin/Release/net8.0-windows/win-x64/publish" \
+    "${CLIENT_DIR}/bin/Release/net8.0/win-x64/publish"
+do
+    if [ -d "$path" ]; then
+        PUBLISH_DIR="$path"
+        break
+    fi
+done
 
-if [ ! -d "$PUBLISH_DIR" ]; then
-    # Try without -windows suffix
-    PUBLISH_DIR="${CLIENT_DIR}/bin/Release/net10.0/win-x64/publish"
-fi
-
-if [ ! -d "$PUBLISH_DIR" ]; then
+if [ -z "$PUBLISH_DIR" ]; then
     echo -e "${RED}Error: Publish directory not found${NC}"
-    echo -e "${YELLOW}Expected: ${CLIENT_DIR}/bin/Release/net10.0-windows/win-x64/publish${NC}"
+    echo -e "${YELLOW}Searched in: ${CLIENT_DIR}/bin/Release/*/win-x64/publish${NC}"
+    ls -la "${CLIENT_DIR}/bin/Release/" 2>/dev/null || true
     exit 1
 fi
 
