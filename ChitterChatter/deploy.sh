@@ -113,6 +113,13 @@ echo "$VERSION" > version.txt
 # Deploy
 echo ""
 echo "Deploying to $DEPLOY_DIR..."
+
+# Stop the service if running (to release file locks)
+if systemctl is-active --quiet chitterchatter-dist 2>/dev/null; then
+    echo "Stopping existing service..."
+    sudo systemctl stop chitterchatter-dist
+fi
+
 sudo mkdir -p "$DEPLOY_DIR/dist"
 sudo mkdir -p "$DEPLOY_DIR/wwwroot/images"
 
