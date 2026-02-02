@@ -12,6 +12,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChitterChatterWebService", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChitterChatterDistribution", "Distribution\ChitterChatterDistribution.csproj", "{8DE4FAE4-21FB-F61C-DBDC-FBA0C059EA74}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6E4B4829-36B6-4332-BE16-9D38DCA9BD81}"
+	ProjectSection(SolutionItems) = preProject
+		deploy-chitterchatter.sh = deploy-chitterchatter.sh
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
