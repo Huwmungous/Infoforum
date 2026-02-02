@@ -17,7 +17,7 @@ namespace IFGlobal
                 case "LoggerWebService": return 5001;
                 case "KeycloakWebService": return 5002;
                 case "ChitterChatterWebService": return 5003;
-                case "chitterchatter-download": return 5004;
+                case "ChitterChatterDistribution": return 5004;
 
                 case "SvgApi": return 5005;
                 case "KeyCloak_Reserved_1": return 5006;
