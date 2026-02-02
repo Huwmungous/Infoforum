@@ -127,6 +127,11 @@ sudo mkdir -p "$DEPLOY_DIR/wwwroot/images"
 sudo cp -r "$REPO_DIR/ChitterChatter/Distribution/publish/"* "$DEPLOY_DIR/"
 sudo chmod +x "$DEPLOY_DIR/ChitterChatterDistribution"
 
+# Set SELinux context to allow execution
+if command -v chcon &> /dev/null; then
+    sudo chcon -t bin_t "$DEPLOY_DIR/ChitterChatterDistribution"
+fi
+
 # Copy installer zip
 sudo cp ChitterChatter-Setup.zip "$DEPLOY_DIR/dist/"
 sudo cp version.txt "$DEPLOY_DIR/dist/"
