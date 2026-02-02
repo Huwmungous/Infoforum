@@ -1,194 +1,211 @@
 #!/bin/bash
-# deploy-chitterchatter.sh
-# Run this on gambit to build and deploy everything
+#===============================================================================
+# ChitterChatter Client Build & Deploy Script
+#
+# Builds the Windows client, creates an installer using Wine + Inno Setup,
+# and deploys to the distribution server.
+#
+# Prerequisites:
+#   - .NET SDK 10.0+
+#   - Wine installed (sudo dnf install wine)
+#   - Inno Setup installed under Wine (see setup instructions below)
+#
+# Inno Setup Installation (one-time):
+#   1. Download Inno Setup from https://jrsoftware.org/isdl.php
+#   2. Run: wine ~/Downloads/innosetup-6.x.x.exe
+#   3. Install to default location
+#
+# Usage:
+#   ./deploy.sh <version>
+#
+# Examples:
+#   ./deploy.sh 1.0.0
+#   ./deploy.sh 1.2.3
+#===============================================================================
 
-set -e
+set -e  # Exit on any error
 
-VERSION="${1:-1.0.0}"
-REPO_DIR="$HOME/repos/Infoforum"
-DEPLOY_DIR="/var/www/chitterchatter-dist"
+# Colours for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Colour
 
-echo "=========================================="
-echo "ChitterChatter Build & Deploy"
-echo "Version: $VERSION"
-echo "=========================================="
-
-# Build the Distribution web service (for Linux)
-echo ""
-echo "Building Distribution web service..."
-cd "$REPO_DIR/ChitterChatter/Distribution"
-dotnet publish -c Release -r linux-x64 --self-contained -o ./publish
-
-# Build the ChitterChatter client (for Windows - cross-compile from Linux)
-echo ""
-echo "Building ChitterChatter Windows client..."
-cd "$REPO_DIR/ChitterChatter/ChitterChatterClient"
-dotnet publish -c Release -r win-x64 --self-contained \
-    -p:PublishSingleFile=true \
-    -p:IncludeNativeLibrariesForSelfExtract=true \
-    -p:EnableWindowsTargeting=true \
-    -p:Version=$VERSION \
-    -o ./publish-win
-
-# Create the installer zip
-echo ""
-echo "Creating installer package..."
-cd ./publish-win
-
-# Create Install.ps1 inline
-cat > Install.ps1 << 'INSTALLSCRIPT'
-# ChitterChatter Install Script - Run as Administrator
-param([switch]$Silent, [switch]$NoDesktopShortcut)
-
-$ErrorActionPreference = "Stop"
-$installPath = "$env:ProgramFiles\Infoforum\ChitterChatterClient"
-$startMenuPath = "$env:ProgramData\Microsoft\Windows\Start Menu\Programs\Infoforum"
-$desktopPath = [Environment]::GetFolderPath("CommonDesktopDirectory")
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-function Write-Status($message, $color = "White") {
-    if (-not $Silent) { Write-Host $message -ForegroundColor $color }
-}
-
-$isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if (-not $isAdmin) {
-    Write-Status "ERROR: Run as Administrator" "Red"
-    if (-not $Silent) { Read-Host "Press Enter to exit" }
+# Check for required argument
+if [ -z "$1" ]; then
+    echo -e "${RED}Error: Version number required${NC}"
+    echo ""
+    echo "Usage: $0 <version>"
+    echo "Example: $0 1.0.0"
     exit 1
-}
-
-Write-Status "ChitterChatter Installer" "Cyan"
-Write-Status ""
-
-$running = Get-Process -Name "ChitterChatter" -ErrorAction SilentlyContinue
-if ($running) {
-    Write-Status "Stopping running instance..." "Gray"
-    $running | Stop-Process -Force
-    Start-Sleep -Seconds 1
-}
-
-if (Test-Path $installPath) { Remove-Item -Path $installPath -Recurse -Force }
-New-Item -Path $installPath -ItemType Directory -Force | Out-Null
-
-Write-Status "Installing to: $installPath" "Yellow"
-Get-ChildItem -Path $scriptDir -Exclude "Install.ps1" | Copy-Item -Destination $installPath -Recurse -Force
-Write-Status "Files installed: OK" "Green"
-
-if (-not (Test-Path $startMenuPath)) { New-Item -Path $startMenuPath -ItemType Directory -Force | Out-Null }
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut("$startMenuPath\ChitterChatter.lnk")
-$shortcut.TargetPath = "$installPath\ChitterChatter.exe"
-$shortcut.WorkingDirectory = $installPath
-$shortcut.Description = "ChitterChatter Voice Chat"
-$shortcut.Save()
-Write-Status "Start Menu shortcut: OK" "Green"
-
-if (-not $NoDesktopShortcut -and -not $Silent) {
-    $createDesktop = Read-Host "Create desktop shortcut? (Y/n)"
-    if ($createDesktop -ne "n") {
-        $ds = $shell.CreateShortcut("$desktopPath\ChitterChatter.lnk")
-        $ds.TargetPath = "$installPath\ChitterChatter.exe"
-        $ds.WorkingDirectory = $installPath
-        $ds.Save()
-        Write-Status "Desktop shortcut: OK" "Green"
-    }
-}
-
-Write-Status ""
-Write-Status "Installation complete!" "Green"
-Write-Status "Launch from: Start Menu > Infoforum > ChitterChatter" "Cyan"
-
-if (-not $Silent) {
-    $launch = Read-Host "Launch now? (Y/n)"
-    if ($launch -ne "n") { Start-Process "$installPath\ChitterChatter.exe" }
-}
-INSTALLSCRIPT
-
-# Create the zip
-cd "$REPO_DIR/ChitterChatter/ChitterChatterClient"
-rm -f ChitterChatter-Setup.zip
-zip -r ChitterChatter-Setup.zip publish-win/*
-echo "$VERSION" > version.txt
-
-# Deploy
-echo ""
-echo "Deploying to $DEPLOY_DIR..."
-
-# Stop the service if running (to release file locks)
-if systemctl is-active --quiet chitterchatter-dist 2>/dev/null; then
-    echo "Stopping existing service..."
-    sudo systemctl stop chitterchatter-dist
 fi
 
-sudo mkdir -p "$DEPLOY_DIR/dist"
-sudo mkdir -p "$DEPLOY_DIR/wwwroot/images"
+VERSION="$1"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLIENT_DIR="${SCRIPT_DIR}/Client"
+ISS_FILE="${SCRIPT_DIR}/ChitterChatter-Setup.iss"
+DIST_DIR="/var/www/chitterchatter-dist/dist"
 
-# Copy web service
-sudo cp -r "$REPO_DIR/ChitterChatter/Distribution/publish/"* "$DEPLOY_DIR/"
-sudo chmod +x "$DEPLOY_DIR/ChitterChatterDistribution"
+# Wine paths - adjust if your Inno Setup is installed elsewhere
+WINE_PREFIX="${WINEPREFIX:-$HOME/.wine}"
+INNO_SETUP="${WINE_PREFIX}/drive_c/Program Files (x86)/Inno Setup 6/ISCC.exe"
 
-# Set SELinux context to allow execution
-if command -v chcon &> /dev/null; then
-    sudo chcon -t bin_t "$DEPLOY_DIR/ChitterChatterDistribution"
+# Alternative path if installed to Program Files (not x86)
+if [ ! -f "$INNO_SETUP" ]; then
+    INNO_SETUP="${WINE_PREFIX}/drive_c/Program Files/Inno Setup 6/ISCC.exe"
 fi
 
-# Copy installer zip
-sudo cp ChitterChatter-Setup.zip "$DEPLOY_DIR/dist/"
-sudo cp version.txt "$DEPLOY_DIR/dist/"
+echo -e "${GREEN}==========================================${NC}"
+echo -e "${GREEN}ChitterChatter Client Build & Deploy${NC}"
+echo -e "${GREEN}Version: ${VERSION}${NC}"
+echo -e "${GREEN}==========================================${NC}"
 
-# Create/update appsettings.json
-sudo tee "$DEPLOY_DIR/appsettings.json" > /dev/null << EOF
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "IF": {
-    "ConfigService": "http://localhost:5000",
-    "AppDomain": "Infoforum"
-  },
-  "DistributionPath": "$DEPLOY_DIR/dist"
-}
-EOF
+# Verify prerequisites
+echo -e "${BLUE}Checking prerequisites...${NC}"
 
-# Set permissions - run as hugh to avoid SELinux issues
-sudo chown -R hugh:hugh "$DEPLOY_DIR"
+if [ ! -d "$CLIENT_DIR" ]; then
+    echo -e "${RED}Error: Client directory not found at: ${CLIENT_DIR}${NC}"
+    exit 1
+fi
 
-# Create/update systemd service
-sudo tee /etc/systemd/system/chitterchatter-dist.service > /dev/null << EOF
-[Unit]
-Description=ChitterChatter Distribution Service
-After=network.target
+if [ ! -f "$ISS_FILE" ]; then
+    echo -e "${RED}Error: Inno Setup script not found at: ${ISS_FILE}${NC}"
+    echo -e "${YELLOW}Please ensure ChitterChatter-Setup.iss is in the ChitterChatter directory${NC}"
+    exit 1
+fi
 
-[Service]
-WorkingDirectory=$DEPLOY_DIR
-ExecStart=$DEPLOY_DIR/ChitterChatterDistribution
-Restart=always
-RestartSec=10
-SyslogIdentifier=chitterchatter-dist
-User=hugh
-SELinuxContext=unconfined_u:unconfined_r:unconfined_t:s0
-Environment=ASPNETCORE_ENVIRONMENT=Production
-Environment=ASPNETCORE_URLS=http://localhost:5004
-EnvironmentFile=/etc/sysconfig/if-secrets
+if ! command -v wine &> /dev/null; then
+    echo -e "${RED}Error: Wine is not installed${NC}"
+    echo -e "${YELLOW}Install with: sudo dnf install wine${NC}"
+    exit 1
+fi
 
-[Install]
-WantedBy=multi-user.target
-EOF
+if [ ! -f "$INNO_SETUP" ]; then
+    echo -e "${RED}Error: Inno Setup not found under Wine${NC}"
+    echo -e "${YELLOW}Install Inno Setup:${NC}"
+    echo -e "  1. Download from https://jrsoftware.org/isdl.php"
+    echo -e "  2. Run: wine ~/Downloads/innosetup-6.x.x.exe"
+    exit 1
+fi
 
-# Restart service
-sudo systemctl daemon-reload
-sudo systemctl enable chitterchatter-dist
-sudo systemctl restart chitterchatter-dist
+echo -e "${GREEN}✓ All prerequisites met${NC}"
 
+# Step 1: Clean previous build
 echo ""
-echo "=========================================="
-echo "Deployment complete!"
-echo "Version: $VERSION"
-echo "URL: https://longmanrd.net/infoforum/download/"
-echo "=========================================="
+echo -e "${YELLOW}Step 1: Cleaning previous build...${NC}"
+rm -rf "${CLIENT_DIR}/bin/Release"
+rm -rf "${CLIENT_DIR}/obj/Release"
+rm -rf "${SCRIPT_DIR}/Output"
+
+# Step 2: Build the client
 echo ""
-echo "Check status: sudo systemctl status chitterchatter-dist"
-echo "View logs:    journalctl -u chitterchatter-dist -f"
+echo -e "${YELLOW}Step 2: Building ChitterChatter client for Windows...${NC}"
+cd "$CLIENT_DIR"
+
+dotnet publish -c Release -r win-x64 --self-contained \
+    -p:PublishSingleFile=false \
+    -p:IncludeNativeLibrariesForSelfExtract=false \
+    -p:Version="${VERSION}" \
+    -p:AssemblyVersion="${VERSION}" \
+    -p:FileVersion="${VERSION}"
+
+PUBLISH_DIR="${CLIENT_DIR}/bin/Release/net10.0-windows/win-x64/publish"
+
+if [ ! -d "$PUBLISH_DIR" ]; then
+    # Try without -windows suffix
+    PUBLISH_DIR="${CLIENT_DIR}/bin/Release/net10.0/win-x64/publish"
+fi
+
+if [ ! -d "$PUBLISH_DIR" ]; then
+    echo -e "${RED}Error: Publish directory not found${NC}"
+    echo -e "${YELLOW}Expected: ${CLIENT_DIR}/bin/Release/net10.0-windows/win-x64/publish${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Client built successfully${NC}"
+echo -e "  Published to: ${PUBLISH_DIR}"
+
+# Step 3: Create installer with Inno Setup
+echo ""
+echo -e "${YELLOW}Step 3: Creating Windows installer with Inno Setup...${NC}"
+cd "$SCRIPT_DIR"
+mkdir -p Output
+
+# Convert Linux paths to Windows paths for Wine
+PUBLISH_DIR_WIN=$(winepath -w "$PUBLISH_DIR" 2>/dev/null || echo "Z:${PUBLISH_DIR}")
+ISS_FILE_WIN=$(winepath -w "$ISS_FILE" 2>/dev/null || echo "Z:${ISS_FILE}")
+OUTPUT_DIR_WIN=$(winepath -w "${SCRIPT_DIR}/Output" 2>/dev/null || echo "Z:${SCRIPT_DIR}/Output")
+
+# Set environment variables for Inno Setup script
+export CHITTERCHATTER_VERSION="$VERSION"
+export CHITTERCHATTER_SOURCE="$PUBLISH_DIR_WIN"
+
+# Run Inno Setup compiler
+echo -e "  Running Inno Setup..."
+wine "$INNO_SETUP" \
+    "/DMyAppVersion=${VERSION}" \
+    "/DSourcePath=${PUBLISH_DIR_WIN}" \
+    "/O${OUTPUT_DIR_WIN}" \
+    "$ISS_FILE_WIN"
+
+INSTALLER_FILE="${SCRIPT_DIR}/Output/ChitterChatter-Setup-${VERSION}.exe"
+
+if [ ! -f "$INSTALLER_FILE" ]; then
+    echo -e "${RED}Error: Installer was not created${NC}"
+    exit 1
+fi
+
+INSTALLER_SIZE=$(du -h "$INSTALLER_FILE" | cut -f1)
+echo -e "${GREEN}✓ Installer created: ChitterChatter-Setup-${VERSION}.exe (${INSTALLER_SIZE})${NC}"
+
+# Step 4: Deploy to distribution folder
+echo ""
+echo -e "${YELLOW}Step 4: Deploying to distribution folder...${NC}"
+
+# Create dist directory if it doesn't exist
+sudo mkdir -p "$DIST_DIR"
+
+# Remove old installers (keep last 3 versions for rollback)
+echo -e "  Cleaning old installers (keeping last 3)..."
+cd "$DIST_DIR"
+ls -t ChitterChatter-Setup-*.exe 2>/dev/null | tail -n +4 | xargs -r sudo rm -f
+
+# Copy new installer
+sudo cp "$INSTALLER_FILE" "$DIST_DIR/"
+sudo chown hugh:hugh "${DIST_DIR}/ChitterChatter-Setup-${VERSION}.exe"
+sudo chmod 644 "${DIST_DIR}/ChitterChatter-Setup-${VERSION}.exe"
+
+# Update version file
+echo "$VERSION" | sudo tee "${DIST_DIR}/version.txt" > /dev/null
+sudo chown hugh:hugh "${DIST_DIR}/version.txt"
+
+echo -e "${GREEN}✓ Deployed to: ${DIST_DIR}/ChitterChatter-Setup-${VERSION}.exe${NC}"
+
+# Step 5: Restart distribution service (if running)
+echo ""
+echo -e "${YELLOW}Step 5: Restarting distribution service...${NC}"
+if systemctl is-active --quiet chitterchatter-dist; then
+    sudo systemctl restart chitterchatter-dist
+    echo -e "${GREEN}✓ Distribution service restarted${NC}"
+else
+    echo -e "${YELLOW}Distribution service not running - skipping restart${NC}"
+fi
+
+# Summary
+echo ""
+echo -e "${GREEN}==========================================${NC}"
+echo -e "${GREEN}Build & Deploy Complete!${NC}"
+echo -e "${GREEN}==========================================${NC}"
+echo ""
+echo -e "Version:    ${VERSION}"
+echo -e "Installer:  ChitterChatter-Setup-${VERSION}.exe"
+echo -e "Size:       ${INSTALLER_SIZE}"
+echo -e "Location:   ${DIST_DIR}/"
+echo ""
+echo -e "Download URL: ${BLUE}https://longmanrd.net/infoforum/downloads/${NC}"
+echo ""
+
+# List current installers
+echo -e "Available installers:"
+ls -lh "${DIST_DIR}"/ChitterChatter-Setup-*.exe 2>/dev/null | awk '{print "  " $9 " (" $5 ")"}'
