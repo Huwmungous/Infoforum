@@ -746,9 +746,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public void Dispose()
     {
-        _audioService.Dispose();
-        _authService.Dispose();
-        _configService.Dispose();
-        _hubService?.DisposeAsync().AsTask().Wait();
+        try
+        {
+            _audioService.Dispose();
+        }
+        catch { /* Ignore */ }
+        
+        try
+        {
+            _authService.Dispose();
+        }
+        catch { /* Ignore */ }
+        
+        try
+        {
+            _configService.Dispose();
+        }
+        catch { /* Ignore */ }
+        
+        try
+        {
+            // Don't block forever - give it 2 seconds max
+            _hubService?.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(2));
+        }
+        catch { /* Ignore */ }
     }
 }
