@@ -9,11 +9,14 @@ namespace ChitterChatterClient.ViewModels;
 
 /// <summary>
 /// Main ViewModel for the ChitterChatter client.
+/// Handles automatic authentication on startup.
 /// </summary>
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
-    private readonly ChatterHubService _hubService;
+    private ChatterHubService? _hubService;
     private readonly AudioService _audioService;
+    private readonly AuthService _authService;
+    private readonly ConfigServiceClient _configService;
     private readonly SynchronizationContext? _syncContext;
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -21,16 +24,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // ═══════════════════════════════════════════════════════════════════════════
 
     [ObservableProperty]
-    private string _serverUrl = "http://localhost:5003/chatter";
+    private string _serverUrl = "Not configured";
 
     [ObservableProperty]
-    private string _username = Environment.UserName;
+    private string _username = "Authenticating...";
 
     [ObservableProperty]
     private ConnectionState _connectionState = ConnectionState.Disconnected;
 
     [ObservableProperty]
-    private string _statusMessage = "Disconnected";
+    private string _statusMessage = "Initialising...";
+
+    [ObservableProperty]
+    private bool _isLoggedIn;
 
     [ObservableProperty]
     private bool _isConnected;
@@ -94,25 +100,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _syncContext = SynchronizationContext.Current;
 
-        _hubService = new ChatterHubService(_serverUrl);
         _audioService = new AudioService();
+        _authService = new AuthService();
+        _configService = new ConfigServiceClient();
 
-        // Wire up hub events
-        _hubService.ConnectionStateChanged += HandleConnectionStateChanged;
-        _hubService.InitialStateReceived += HandleInitialStateReceived;
-        _hubService.UserConnected += HandleUserConnected;
-        _hubService.UserDisconnected += HandleUserDisconnected;
-        _hubService.UserStatusChanged += HandleUserStatusChanged;
-        _hubService.UserJoinedRoom += HandleUserJoinedRoom;
-        _hubService.UserLeftRoom += HandleUserLeftRoom;
-        _hubService.IncomingCall += HandleIncomingCall;
-        _hubService.CallAccepted += HandleCallAccepted;
-        _hubService.CallDeclined += HandleCallDeclined;
-        _hubService.CallEnded += HandleCallEnded;
-        _hubService.AudioReceived += HandleAudioReceived;
-        _hubService.SpeakingStatusChanged += HandleSpeakingStatusChanged;
-        _hubService.UserMuteChanged += HandleUserMuteChanged;
-        _hubService.ErrorReceived += HandleError;
+        // Wire up auth events
+        _authService.AuthenticationChanged += HandleAuthenticationChanged;
 
         // Wire up audio events
         _audioService.AudioCaptured += HandleAudioCaptured;
@@ -122,6 +115,102 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         // Load audio devices
         LoadAudioDevices();
+
+        // Initialise and authenticate
+        _ = InitialiseAndAuthenticateAsync();
+    }
+
+    /// <summary>
+    /// Initialises configuration and handles authentication.
+    /// If no valid session exists, shows the login window.
+    /// </summary>
+    private async Task InitialiseAndAuthenticateAsync()
+    {
+        try
+        {
+            StatusMessage = "Fetching configuration...";
+            var bootstrap = await _configService.GetBootstrapConfigAsync();
+
+            if (bootstrap == null)
+            {
+                ErrorMessage = "Failed to fetch configuration";
+                StatusMessage = "Configuration error";
+                return;
+            }
+
+            // Set the authority for auth service
+            var authority = bootstrap.OpenIdConfig;
+            if (!authority.Contains(bootstrap.Realm))
+            {
+                authority = $"{authority}/{bootstrap.Realm}";
+            }
+            _authService.SetAuthority(authority);
+
+            // Try to restore a previous session
+            StatusMessage = "Checking authentication...";
+            var sessionRestored = await _authService.TryRestoreSessionAsync();
+
+            if (sessionRestored)
+            {
+                // Session restored - continue with login completion
+                await CompleteLoginAsync();
+            }
+            else
+            {
+                // No valid session - need to show login
+                Username = "Not logged in";
+                StatusMessage = "Authentication required";
+                
+                // Show login window
+                var success = await _authService.LoginAsync();
+                
+                if (success)
+                {
+                    await CompleteLoginAsync();
+                }
+                else
+                {
+                    // User cancelled or login failed - close the application
+                    StatusMessage = "Authentication required to continue";
+                    Application.Current.Dispatcher.Invoke(() => Application.Current.Shutdown());
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+            StatusMessage = "Initialisation error";
+        }
+    }
+
+    /// <summary>
+    /// Completes the login process after successful authentication and auto-connects.
+    /// </summary>
+    private async Task CompleteLoginAsync()
+    {
+        Username = _authService.Username ?? "Unknown";
+        StatusMessage = "Fetching service configuration...";
+
+        // Fetch ChitterChatter URL from ConfigService
+        var token = await _authService.GetAccessTokenAsync();
+        if (token != null)
+        {
+            var hubUrl = await _configService.GetConfigStringAsync("chitterchatterhub", token);
+            if (!string.IsNullOrEmpty(hubUrl))
+            {
+                ServerUrl = hubUrl;
+            }
+            else
+            {
+                // Fallback: use default URL
+                ServerUrl = "https://longmanrd.net/infoforum/chitterchatter/chatter";
+            }
+        }
+
+        IsLoggedIn = true;
+        
+        // Auto-connect to the hub
+        await ConnectAsync();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -131,13 +220,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task ConnectAsync()
     {
+        if (!IsLoggedIn)
+        {
+            ErrorMessage = "Not authenticated";
+            return;
+        }
+
         try
         {
             ErrorMessage = null;
             StatusMessage = "Connecting...";
 
-            // Reinitialise hub service with current URL
-            await _hubService.ConnectAsync(Username, Username);
+            // Create hub service with current URL and token provider
+            if (_hubService != null)
+            {
+                await _hubService.DisposeAsync();
+            }
+            _hubService = new ChatterHubService(ServerUrl, async () => await _authService.GetAccessTokenAsync());
+            WireUpHubEvents();
+
+            // Connect with user info from auth
+            await _hubService.ConnectAsync(_authService.UserId, _authService.Username);
 
             // Initialise audio
             _audioService.Initialise(SelectedInputDevice, SelectedOutputDevice);
@@ -177,13 +280,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    private void WireUpHubEvents()
+    {
+        if (_hubService == null) return;
+
+        _hubService.ConnectionStateChanged += HandleConnectionStateChanged;
+        _hubService.InitialStateReceived += HandleInitialStateReceived;
+        _hubService.UserConnected += HandleUserConnected;
+        _hubService.UserDisconnected += HandleUserDisconnected;
+        _hubService.UserStatusChanged += HandleUserStatusChanged;
+        _hubService.UserJoinedRoom += HandleUserJoinedRoom;
+        _hubService.UserLeftRoom += HandleUserLeftRoom;
+        _hubService.IncomingCall += HandleIncomingCall;
+        _hubService.CallAccepted += HandleCallAccepted;
+        _hubService.CallDeclined += HandleCallDeclined;
+        _hubService.CallEnded += HandleCallEnded;
+        _hubService.AudioReceived += HandleAudioReceived;
+        _hubService.SpeakingStatusChanged += HandleSpeakingStatusChanged;
+        _hubService.UserMuteChanged += HandleUserMuteChanged;
+        _hubService.ErrorReceived += HandleError;
+    }
+
     [RelayCommand]
     private async Task DisconnectAsync()
     {
         try
         {
             _audioService.StopCapture();
-            await _hubService.DisconnectAsync();
+            if (_hubService != null)
+            {
+                await _hubService.DisconnectAsync();
+            }
 
             RunOnUiThread(() =>
             {
@@ -193,6 +320,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 CurrentRoomId = null;
                 IsInCall = false;
                 CallPartner = null;
+                StatusMessage = "Disconnected - ready to connect";
             });
         }
         catch (Exception ex)
@@ -204,7 +332,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task JoinRoomAsync(ChatterRoom? room)
     {
-        if (room is null || !IsConnected) return;
+        if (room is null || !IsConnected || _hubService is null) return;
 
         try
         {
@@ -231,7 +359,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task LeaveRoomAsync()
     {
-        if (!IsConnected || CurrentRoomId is null) return;
+        if (!IsConnected || CurrentRoomId is null || _hubService is null) return;
 
         try
         {
@@ -250,7 +378,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task CallUserAsync(ChatterUser? user)
     {
-        if (user is null || !IsConnected || user.Status == UserStatus.InPrivateCall) return;
+        if (user is null || !IsConnected || user.Status == UserStatus.InPrivateCall || _hubService is null) return;
 
         try
         {
@@ -266,7 +394,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task AcceptCallAsync()
     {
-        if (IncomingCall is null) return;
+        if (IncomingCall is null || _hubService is null) return;
 
         try
         {
@@ -282,7 +410,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task DeclineCallAsync()
     {
-        if (IncomingCall is null) return;
+        if (IncomingCall is null || _hubService is null) return;
 
         try
         {
@@ -298,7 +426,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task EndCallAsync()
     {
-        if (!IsInCall) return;
+        if (!IsInCall || _hubService is null) return;
 
         try
         {
@@ -313,50 +441,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private async Task ToggleMuteAsync()
+    private void ToggleMute()
     {
         IsMuted = !IsMuted;
         _audioService.SetMuted(IsMuted);
 
-        if (IsConnected)
+        if (IsConnected && _hubService is not null)
         {
-            try
-            {
-                await _hubService.SetMutedAsync(IsMuted);
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
-            }
+            _ = _hubService.SetMutedAsync(IsMuted);
         }
     }
 
     [RelayCommand]
-    private async Task ToggleDeafenAsync()
+    private void ToggleDeafen()
     {
         IsDeafened = !IsDeafened;
         _audioService.SetDeafened(IsDeafened);
 
-        // Deafen implies mute
-        if (IsDeafened && !IsMuted)
+        if (IsConnected && _hubService is not null)
         {
-            IsMuted = true;
-            _audioService.SetMuted(true);
-        }
-
-        if (IsConnected)
-        {
-            try
+            _ = _hubService.SetDeafenedAsync(IsDeafened);
+            if (IsDeafened)
             {
-                await _hubService.SetDeafenedAsync(IsDeafened);
-                if (IsDeafened)
-                {
-                    await _hubService.SetMutedAsync(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = ex.Message;
+                _ = _hubService.SetMutedAsync(true);
             }
         }
     }
@@ -370,6 +477,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // EVENT HANDLERS
     // ═══════════════════════════════════════════════════════════════════════════
 
+    private void HandleAuthenticationChanged(bool isAuthenticated)
+    {
+        RunOnUiThread(() =>
+        {
+            IsLoggedIn = isAuthenticated;
+            if (!isAuthenticated)
+            {
+                Username = "Not logged in";
+                StatusMessage = "Authentication required";
+            }
+        });
+    }
+
     private void HandleConnectionStateChanged(ConnectionState state)
     {
         RunOnUiThread(() =>
@@ -380,7 +500,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 ConnectionState.Disconnected => "Disconnected",
                 ConnectionState.Connecting => "Connecting...",
-                ConnectionState.Connected => "Connected",
+                ConnectionState.Connected => $"Connected as {Username}",
                 ConnectionState.Reconnecting => "Reconnecting...",
                 ConnectionState.Failed => "Connection failed",
                 _ => "Unknown"
@@ -487,8 +607,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             IsInCall = true;
             StatusMessage = "In call";
-            // Find the call partner from the participants
-            // For simplicity, we'll update this when we receive more info
         });
     }
 
@@ -507,7 +625,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             IsInCall = false;
             CallPartner = null;
-            StatusMessage = "Call ended";
+            StatusMessage = IsConnected ? $"Connected as {Username}" : "Disconnected";
         });
     }
 
@@ -547,7 +665,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async void HandleAudioCaptured(byte[] audioData)
     {
-        if (IsConnected && (CurrentRoomId is not null || IsInCall))
+        if (IsConnected && _hubService is not null && (CurrentRoomId is not null || IsInCall))
         {
             try
             {
@@ -562,7 +680,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async void HandleLocalSpeakingStateChanged(bool isSpeaking)
     {
-        if (IsConnected)
+        if (IsConnected && _hubService is not null)
         {
             try
             {
@@ -629,6 +747,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _audioService.Dispose();
-        _hubService.DisposeAsync().AsTask().Wait();
+        _authService.Dispose();
+        _configService.Dispose();
+        _hubService?.DisposeAsync().AsTask().Wait();
     }
 }

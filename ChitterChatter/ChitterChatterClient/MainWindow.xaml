@@ -43,30 +43,26 @@
                                VerticalAlignment="Center" Margin="8,0,0,0" />
                 </StackPanel>
 
-                <!-- Connection Controls -->
+                <!-- Connection Info -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <TextBox Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="300" Height="28"
-                             Padding="8,4"
-                             FontSize="12"
-                             Background="#1a1a1a"
-                             Foreground="{StaticResource IFWindowBrush}"
-                             BorderBrush="{StaticResource IFMediumBrush}"
-                             BorderThickness="1"
-                             IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBool}}" />
+                    <TextBlock Text="{Binding ServerUrl}" 
+                               Width="300"
+                               Padding="8,4"
+                               FontSize="12"
+                               Foreground="{StaticResource IFWindowBrush}"
+                               Opacity="0.7"
+                               VerticalAlignment="Center" />
                     
-                    <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
-                             Width="120" Height="28"
-                             Padding="8,4" Margin="8,0,0,0"
-                             FontSize="12"
-                             Background="#1a1a1a"
-                             Foreground="{StaticResource IFWindowBrush}"
-                             BorderBrush="{StaticResource IFMediumBrush}"
-                             BorderThickness="1"
-                             IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBool}}" />
+                    <TextBlock Text="{Binding Username}" 
+                               Width="120"
+                               Padding="8,4" Margin="8,0,0,0"
+                               FontSize="12"
+                               Foreground="{StaticResource IFWindowBrush}"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
                 </StackPanel>
 
-                <!-- Connect/Disconnect Button -->
+                <!-- Connection Status -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="10" Height="10" 
                              Fill="{Binding ConnectionState, Converter={StaticResource ConnectionStateToColor}}"
@@ -74,19 +70,7 @@
                     <TextBlock Text="{Binding StatusMessage}" 
                                Foreground="{StaticResource IFWindowBrush}"
                                FontSize="12"
-                               VerticalAlignment="Center" Margin="0,0,12,0" />
-                    
-                    <Button Command="{Binding ConnectCommand}"
-                            Content="Connect"
-                            Style="{StaticResource IFButtonSuccess}"
-                            MinWidth="100"
-                            Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisibility}, ConverterParameter=invert}" />
-                    
-                    <Button Command="{Binding DisconnectCommand}"
-                            Content="Disconnect"
-                            Style="{StaticResource IFButtonWarning}"
-                            MinWidth="100"
-                            Visibility="{Binding IsConnected, Converter={StaticResource BoolToVisibility}}" />
+                               VerticalAlignment="Center" />
                 </StackPanel>
             </Grid>
         </Border>
