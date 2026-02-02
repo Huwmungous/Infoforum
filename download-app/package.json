@@ -1,0 +1,39 @@
+{
+  "name": "download-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dbg": "vite --mode dbg",
+    "dev": "vite --mode dev",
+    "build": "vite build",
+    "rebuild": "npm --prefix ../if-web-common-react run rebuild && npm install && rimraf node_modules/.vite && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "dev:fresh": "rimraf node_modules/.vite && vite"
+  },
+  
+  "dependencies": {
+    "@if/styles": "file:../IF.Styles",
+    "@if/web-common": "file:../if-web-common",
+    "@if/web-common-react": "file:../if-web-common-react",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "rimraf": "^5.0.5",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "tailwindcss": "^4.1.17",
+    "vite": "^7.2.2"
+  }
+}

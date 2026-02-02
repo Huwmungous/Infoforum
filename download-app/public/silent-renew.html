@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Silent Renew</title>
+</head>
+<body>
+  <script>
+    // Signal parent window that silent renew is complete
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage(window.location.href, window.location.origin);
+    }
+  </script>
+</body>
+</html>
