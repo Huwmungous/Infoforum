@@ -141,7 +141,7 @@ sudo tee "$DEPLOY_DIR/appsettings.json" > /dev/null << EOF
     }
   },
   "IF": {
-    "ConfigService": "https://longmanrd.net/config",
+    "ConfigService": "http://localhost:5000",
     "AppDomain": "Infoforum"
   },
   "DistributionPath": "$DEPLOY_DIR/dist"
