@@ -32,38 +32,47 @@ public class DownloadController : ControllerBase
         var downloads = new List<DownloadInfo>();
         var distPath = _options.DistributionPath;
 
-        // Scan for available downloads
-        if (Directory.Exists(distPath))
+        if (!Directory.Exists(distPath))
         {
-            // ChitterChatter
-            var chitterChatterZip = Path.Combine(distPath, "ChitterChatter-Setup.zip");
-            if (System.IO.File.Exists(chitterChatterZip))
+            _logger.LogWarning("Distribution path does not exist: {Path}", distPath);
+            return Ok(downloads);
+        }
+
+        // Look for ChitterChatter installer - prefer .exe over .zip
+        var chitterChatterExe = FindLatestFile(distPath, "ChitterChatter-Setup*.exe");
+        var chitterChatterZip = Path.Combine(distPath, "ChitterChatter-Setup.zip");
+
+        if (chitterChatterExe != null)
+        {
+            var fileInfo = new FileInfo(chitterChatterExe);
+            var version = ExtractVersionFromFilename(fileInfo.Name) ?? GetVersionFromFile(distPath);
+
+            downloads.Add(new DownloadInfo
             {
-                var fileInfo = new FileInfo(chitterChatterZip);
-                var version = "1.0.0";
+                Name = "ChitterChatter",
+                Description = "Voice chat client for teams - real-time communication with push-to-talk support.",
+                Filename = fileInfo.Name,
+                Version = version,
+                Size = fileInfo.Length,
+                Platform = "Windows",
+                LastModified = fileInfo.LastWriteTimeUtc
+            });
+        }
+        else if (System.IO.File.Exists(chitterChatterZip))
+        {
+            var fileInfo = new FileInfo(chitterChatterZip);
+            var version = GetVersionFromFile(distPath);
 
-                var versionPath = Path.Combine(distPath, "version.txt");
-                if (System.IO.File.Exists(versionPath))
-                {
-                    version = System.IO.File.ReadAllText(versionPath).Trim();
-                }
-
-                downloads.Add(new DownloadInfo
-                {
-                    Name = "ChitterChatter",
-                    Description = "Voice chat client for teams - real-time communication with push-to-talk support.",
-                    Filename = "ChitterChatter-Setup.zip",
-                    Version = version,
-                    Size = fileInfo.Length,
-                    Platform = "Windows",
-                    LastModified = fileInfo.LastWriteTimeUtc
-                });
-            }
-
-            // Add more downloads here as they become available
-            // Example:
-            // var otherApp = Path.Combine(distPath, "OtherApp-Setup.zip");
-            // if (System.IO.File.Exists(otherApp)) { ... }
+            downloads.Add(new DownloadInfo
+            {
+                Name = "ChitterChatter",
+                Description = "Voice chat client for teams - real-time communication with push-to-talk support.",
+                Filename = "ChitterChatter-Setup.zip",
+                Version = version,
+                Size = fileInfo.Length,
+                Platform = "Windows",
+                LastModified = fileInfo.LastWriteTimeUtc
+            });
         }
 
         return Ok(downloads);
@@ -83,13 +92,21 @@ public class DownloadController : ControllerBase
             userInfo.Name, userInfo.Email, userInfo.IP, filename);
 
         // Security: only allow specific filenames, no path traversal
-        if (string.IsNullOrEmpty(filename) || 
-            filename.Contains("..") || 
-            filename.Contains("/") || 
+        if (string.IsNullOrEmpty(filename) ||
+            filename.Contains("..") ||
+            filename.Contains("/") ||
             filename.Contains("\\"))
         {
             _logger.LogWarning("Invalid filename requested: {Filename}", filename);
             return BadRequest("Invalid filename");
+        }
+
+        // Only allow known file extensions
+        var extension = Path.GetExtension(filename).ToLowerInvariant();
+        if (extension != ".exe" && extension != ".zip" && extension != ".msi")
+        {
+            _logger.LogWarning("Disallowed file extension requested: {Filename}", filename);
+            return BadRequest("Invalid file type");
         }
 
         var filePath = Path.Combine(_options.DistributionPath, filename);
@@ -119,14 +136,7 @@ public class DownloadController : ControllerBase
     [AllowAnonymous]
     public IActionResult GetVersion()
     {
-        var versionPath = Path.Combine(_options.DistributionPath, "version.txt");
-
-        if (!System.IO.File.Exists(versionPath))
-        {
-            return Ok(new { version = "1.0.0" });
-        }
-
-        var version = System.IO.File.ReadAllText(versionPath).Trim();
+        var version = GetVersionFromFile(_options.DistributionPath);
         return Ok(new { version });
     }
 
@@ -140,13 +150,52 @@ public class DownloadController : ControllerBase
         return Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
     }
 
+    private static string? FindLatestFile(string directory, string pattern)
+    {
+        try
+        {
+            var files = Directory.GetFiles(directory, pattern);
+            if (files.Length == 0) return null;
+
+            return files
+                .Select(f => new FileInfo(f))
+                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .First()
+                .FullName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? ExtractVersionFromFilename(string filename)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            filename,
+            @"-(\d+\.\d+\.\d+)\.exe$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private static string GetVersionFromFile(string distPath)
+    {
+        var versionPath = Path.Combine(distPath, "version.txt");
+        if (System.IO.File.Exists(versionPath))
+        {
+            return System.IO.File.ReadAllText(versionPath).Trim();
+        }
+        return "1.0.0";
+    }
+
     private static string GetContentType(string filename)
     {
         var extension = Path.GetExtension(filename).ToLowerInvariant();
         return extension switch
         {
             ".zip" => "application/zip",
-            ".exe" => "application/octet-stream",
+            ".exe" => "application/vnd.microsoft.portable-executable",
             ".msi" => "application/x-msi",
             _ => "application/octet-stream"
         };
