@@ -19,13 +19,14 @@ echo "Building Distribution web service..."
 cd "$REPO_DIR/ChitterChatter/Distribution"
 dotnet publish -c Release -r linux-x64 --self-contained -o ./publish
 
-# Build the ChitterChatter client (for Windows - cross-compile)
+# Build the ChitterChatter client (for Windows - cross-compile from Linux)
 echo ""
 echo "Building ChitterChatter Windows client..."
 cd "$REPO_DIR/ChitterChatter/ChitterChatterClient"
 dotnet publish -c Release -r win-x64 --self-contained \
     -p:PublishSingleFile=true \
     -p:IncludeNativeLibrariesForSelfExtract=true \
+    -p:EnableWindowsTargeting=true \
     -p:Version=$VERSION \
     -o ./publish-win
 
@@ -104,7 +105,7 @@ if (-not $Silent) {
 INSTALLSCRIPT
 
 # Create the zip
-cd ..
+cd "$REPO_DIR/ChitterChatter/ChitterChatterClient"
 rm -f ChitterChatter-Setup.zip
 zip -r ChitterChatter-Setup.zip publish-win/*
 echo "$VERSION" > version.txt
