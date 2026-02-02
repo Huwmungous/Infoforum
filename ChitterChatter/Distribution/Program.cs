@@ -13,7 +13,7 @@ public class Program
             Description = "ChitterChatter Download Server",
             UseAuthentication = true,
             AuthType = AuthType.User,  // User-facing app, not service-to-service
-            PathBase = "/chitterchatter-download",
+            PathBase = "/nfoforum/download",
             ConfigureServices = (services, context) =>
             {
                 services.AddRazorPages();
