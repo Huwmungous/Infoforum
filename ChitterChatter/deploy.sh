@@ -141,8 +141,15 @@ sudo tee "$DEPLOY_DIR/appsettings.json" > /dev/null << EOF
 }
 EOF
 
-# Set permissions
-sudo chown -R www-data:www-data "$DEPLOY_DIR"
+# Set permissions (nginx on Fedora, www-data on Debian/Ubuntu)
+if id "nginx" &>/dev/null; then
+    WEB_USER="nginx"
+elif id "www-data" &>/dev/null; then
+    WEB_USER="www-data"
+else
+    WEB_USER="$USER"
+fi
+sudo chown -R "$WEB_USER:$WEB_USER" "$DEPLOY_DIR"
 
 # Create/update systemd service
 sudo tee /etc/systemd/system/chitterchatter-dist.service > /dev/null << EOF
@@ -156,7 +163,7 @@ ExecStart=$DEPLOY_DIR/ChitterChatterDistribution
 Restart=always
 RestartSec=10
 SyslogIdentifier=chitterchatter-dist
-User=www-data
+User=$WEB_USER
 Environment=ASPNETCORE_ENVIRONMENT=Production
 Environment=ASPNETCORE_URLS=http://localhost:5004
 
