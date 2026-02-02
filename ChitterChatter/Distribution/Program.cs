@@ -14,7 +14,7 @@ public class Program
             Description = "ChitterChatter Download Server",
             UseAuthentication = true,
             AuthType = AuthType.Service,
-            PathBase = "/infoforum/download",
+            // PathBase = "/infoforum/download",
             ConfigureServices = (services, context) =>
             {
                 services.AddRazorPages();
