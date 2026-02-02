@@ -12,7 +12,7 @@ public class Program
             ServiceName = "ChitterChatterDistribution",
             Description = "ChitterChatter Download Server",
             UseAuthentication = true,
-            AuthType = AuthType.User,  // User-facing app, not service-to-service
+            AuthType = AuthType.Service,
             PathBase = "/infoforum/download",
             ConfigureServices = (services, context) =>
             {
