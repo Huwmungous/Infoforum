@@ -28,7 +28,7 @@ public class IndexModel : PageModel
         // Look for the installer zip
         var zipPath = Path.Combine(distPath, "ChitterChatter-Setup.zip");
         
-        if (File.Exists(zipPath))
+        if (System.IO.File.Exists(zipPath))
         {
             IsAvailable = true;
             FileName = "ChitterChatter-Setup.zip";
@@ -38,9 +38,9 @@ public class IndexModel : PageModel
             
             // Try to read version from a version.txt file if present
             var versionPath = Path.Combine(distPath, "version.txt");
-            if (File.Exists(versionPath))
+            if (System.IO.File.Exists(versionPath))
             {
-                Version = File.ReadAllText(versionPath).Trim();
+                Version = System.IO.File.ReadAllText(versionPath).Trim();
             }
         }
         else

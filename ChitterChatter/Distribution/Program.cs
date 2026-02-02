@@ -1,3 +1,4 @@
+using IFGlobal.Configuration;
 using IFGlobal.WebServices;
 
 namespace ChitterChatterDistribution;
@@ -9,29 +10,28 @@ public class Program
         var options = new ServiceFactoryOptions
         {
             ServiceName = "ChitterChatterDistribution",
-            ServiceDescription = "ChitterChatter Download Server",
-            PortName = "chitterchatterdistribution",
-            DefaultPort = 5004,
-            AppDomain = "Infoforum",
-            RequireAuthentication = true,
-            EnableSwagger = false,
-            ConfigureServices = (services, config) =>
+            Description = "ChitterChatter Download Server",
+            UseAuthentication = true,
+            AuthType = AuthType.User,  // User-facing app, not service-to-service
+            PathBase = "/chitterchatter-download",
+            ConfigureServices = (services, context) =>
             {
                 services.AddRazorPages();
                 services.Configure<DistributionOptions>(opts =>
                 {
-                    opts.DistributionPath = config["DistributionPath"] 
+                    opts.DistributionPath = context.Configuration["DistributionPath"] 
                         ?? Path.Combine(AppContext.BaseDirectory, "dist");
                 });
             },
-            ConfigureApp = (app, env) =>
+            ConfigurePipeline = (app, context) =>
             {
                 app.UseStaticFiles();
                 app.MapRazorPages();
             }
         };
 
-        await ServiceFactory.RunAsync(args, options);
+        var app = await ServiceFactory.CreateAsync(options);
+        await app.RunAsync();
     }
 }
 
