@@ -26,5 +26,8 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         base.OnExit(e);
+        
+        // Force exit to terminate any lingering background threads
+        Environment.Exit(0);
     }
 }

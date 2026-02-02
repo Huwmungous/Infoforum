@@ -53,3 +53,7 @@ node_modules
 /IFLogViewer/dist
 /IFLogViewer/package-lock.json
 /IF.WebServices/LoggerWebService/bin
+/ChitterChatter/ChitterChatterClient/obj
+/ChitterChatter/ChitterChatterClient/bin
+/ChitterChatter/Distribution/obj
+/ChitterChatter/Distribution/bin

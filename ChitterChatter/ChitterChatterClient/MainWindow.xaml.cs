@@ -51,6 +51,13 @@ public partial class MainWindow : Window
 
     private void OnClosing(object? sender, System.ComponentModel.CancelEventArgs e)
     {
-        ViewModel?.Dispose();
+        try
+        {
+            ViewModel?.Dispose();
+        }
+        catch
+        {
+            // Ignore disposal errors on shutdown
+        }
     }
 }

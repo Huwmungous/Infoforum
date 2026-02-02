@@ -1,0 +1,222 @@
+@page
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.Extensions.Options
+@model ChitterChatterDistribution.Pages.IndexModel
+@attribute [Authorize]
+@{
+    ViewData["Title"] = "ChitterChatter Download";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        :root {
+            --if-light: #1d97a6;
+            --if-medium: #214c8c;
+            --if-dark: #0b2144;
+            --if-highlight: #faa236;
+            --if-window: #f5f5f5;
+            --if-paper: #fcfcfc;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--if-window);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: var(--if-dark);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        header img {
+            height: 40px;
+        }
+        
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .user-info {
+            margin-left: auto;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .download-card {
+            background: var(--if-paper);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 3rem;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .download-card h2 {
+            color: var(--if-dark);
+            margin-bottom: 1rem;
+        }
+        
+        .download-card p {
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .version {
+            display: inline-block;
+            background: var(--if-light);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--if-light);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            transition: background 0.2s, transform 0.2s;
+        }
+        
+        .download-btn:hover {
+            background: var(--if-medium);
+            transform: translateY(-2px);
+        }
+        
+        .download-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .file-info {
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .requirements {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+            text-align: left;
+        }
+        
+        .requirements h3 {
+            color: var(--if-dark);
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        .requirements ul {
+            color: #666;
+            font-size: 0.9rem;
+            padding-left: 1.5rem;
+        }
+        
+        .requirements li {
+            margin-bottom: 0.5rem;
+        }
+        
+        footer {
+            background: var(--if-dark);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .not-available {
+            color: #c00;
+            padding: 1rem;
+            background: #fff0f0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img src="/images/IF-Logo.png" alt="InfoForum" onerror="this.style.display='none'" />
+        <h1>ChitterChatter</h1>
+        <span class="user-info">Signed in as @User.Identity?.Name</span>
+    </header>
+    
+    <main>
+        <div class="download-card">
+            <h2>ChitterChatter Voice Chat</h2>
+            <span class="version">Version @Model.Version</span>
+            <p>
+                Real-time voice communication for InfoForum users. 
+                Join rooms, make private calls, and collaborate with your team.
+            </p>
+            
+            @if (Model.IsAvailable)
+            {
+                <a href="/download" class="download-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download Installer
+                </a>
+                <div class="file-info">
+                    @Model.FileName (@Model.FileSize)
+                </div>
+            }
+            else
+            {
+                <div class="not-available">
+                    Download not currently available. Please contact the administrator.
+                </div>
+            }
+            
+            <div class="requirements">
+                <h3>System Requirements</h3>
+                <ul>
+                    <li>Windows 10 or later (64-bit)</li>
+                    <li>WebView2 Runtime (usually pre-installed)</li>
+                    <li>Microphone for voice chat</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        &copy; @DateTime.Now.Year InfoForum
+    </footer>
+</body>
+</html>
