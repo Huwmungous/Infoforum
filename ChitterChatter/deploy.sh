@@ -12,8 +12,8 @@
 #
 # Inno Setup Installation (one-time):
 #   1. Download from https://jrsoftware.org/isdl.php
-#   2. Run: wine ~/Downloads/innosetup-6.x.x.exe
-#   3. Install to default location
+#   2. Run: xvfb-run wine ~/Downloads/innosetup.exe /VERYSILENT
+#   3. Or install via X11 forwarding
 #
 # Usage:
 #   ./deploy.sh <version>
@@ -85,7 +85,7 @@ if [ ! -f "$INNO_SETUP" ]; then
     echo -e "${RED}Error: Inno Setup not found under Wine${NC}"
     echo -e "${YELLOW}Install Inno Setup:${NC}"
     echo -e "  1. Download from https://jrsoftware.org/isdl.php"
-    echo -e "  2. Run: wine ~/Downloads/innosetup-6.x.x.exe"
+    echo -e "  2. Run: xvfb-run wine /tmp/innosetup.exe /VERYSILENT"
     exit 1
 fi
 
@@ -104,6 +104,7 @@ echo -e "${YELLOW}Step 2: Building ChitterChatter client for Windows...${NC}"
 cd "$CLIENT_DIR"
 
 dotnet publish -c Release -r win-x64 --self-contained \
+    -p:EnableWindowsTargeting=true \
     -p:PublishSingleFile=false \
     -p:IncludeNativeLibrariesForSelfExtract=false \
     -p:Version="${VERSION}" \
@@ -151,13 +152,21 @@ OUTPUT_DIR_WIN=$(winepath -w "${SCRIPT_DIR}/Output" 2>/dev/null || echo "Z:${SCR
 export CHITTERCHATTER_VERSION="$VERSION"
 export CHITTERCHATTER_SOURCE="$PUBLISH_DIR_WIN"
 
-# Run Inno Setup compiler
+# Run Inno Setup compiler (use xvfb-run if no display available)
 echo -e "  Running Inno Setup..."
-wine "$INNO_SETUP" \
-    "/DMyAppVersion=${VERSION}" \
-    "/DSourcePath=${PUBLISH_DIR_WIN}" \
-    "/O${OUTPUT_DIR_WIN}" \
-    "$ISS_FILE_WIN"
+if [ -z "$DISPLAY" ] && command -v xvfb-run &> /dev/null; then
+    xvfb-run wine "$INNO_SETUP" \
+        "/DMyAppVersion=${VERSION}" \
+        "/DSourcePath=${PUBLISH_DIR_WIN}" \
+        "/O${OUTPUT_DIR_WIN}" \
+        "$ISS_FILE_WIN"
+else
+    wine "$INNO_SETUP" \
+        "/DMyAppVersion=${VERSION}" \
+        "/DSourcePath=${PUBLISH_DIR_WIN}" \
+        "/O${OUTPUT_DIR_WIN}" \
+        "$ISS_FILE_WIN"
+fi
 
 INSTALLER_FILE="${SCRIPT_DIR}/Output/ChitterChatter-Setup-${VERSION}.exe"
 
