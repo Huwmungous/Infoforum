@@ -10,7 +10,12 @@
     <WarningsAsErrors />
     <AssemblyName>ChitterChatter</AssemblyName>
     <RootNamespace>ChitterChatterClient</RootNamespace>
+    <ApplicationIcon>if-icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="if-icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
