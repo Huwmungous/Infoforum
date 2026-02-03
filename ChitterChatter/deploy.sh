@@ -1,19 +1,19 @@
 #!/bin/bash
 #===============================================================================
-# ChitterChatter Client Build & Deploy Script
+# ChitterChatter Build & Deploy Script
 #
-# Builds the Windows client, creates an installer using Wine + Inno Setup,
-# and deploys to the distribution server.
+# Builds BOTH:
+#   1. Distribution backend service (ASP.NET on Linux)
+#   2. Windows client installer (via Wine + Inno Setup)
 #
 # Prerequisites:
 #   - .NET SDK 10.0+
 #   - Wine installed (sudo dnf install wine)
-#   - Inno Setup installed under Wine (see setup instructions below)
+#   - Inno Setup installed under Wine
 #
 # Inno Setup Installation (one-time):
 #   1. Download from https://jrsoftware.org/isdl.php
 #   2. Run: xvfb-run wine ~/Downloads/innosetup.exe /VERYSILENT
-#   3. Or install via X11 forwarding
 #
 # Usage:
 #   ./deploy.sh <version>
@@ -44,8 +44,10 @@ fi
 VERSION="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLIENT_DIR="${SCRIPT_DIR}/ChitterChatterClient"
+DIST_SRC_DIR="${SCRIPT_DIR}/Distribution"
 ISS_FILE="${SCRIPT_DIR}/ChitterChatter-Setup.iss"
-DIST_DIR="/var/www/chitterchatter-dist/dist"
+DIST_DEPLOY_DIR="/var/www/chitterchatter-dist"
+DIST_FILES_DIR="${DIST_DEPLOY_DIR}/dist"
 
 # Wine paths - adjust if your Inno Setup is installed elsewhere
 WINE_PREFIX="${WINEPREFIX:-$HOME/.wine}"
@@ -57,7 +59,7 @@ if [ ! -f "$INNO_SETUP" ]; then
 fi
 
 echo -e "${GREEN}==========================================${NC}"
-echo -e "${GREEN}ChitterChatter Client Build & Deploy${NC}"
+echo -e "${GREEN}ChitterChatter Build & Deploy${NC}"
 echo -e "${GREEN}Version: ${VERSION}${NC}"
 echo -e "${GREEN}==========================================${NC}"
 
@@ -66,6 +68,11 @@ echo -e "${BLUE}Checking prerequisites...${NC}"
 
 if [ ! -d "$CLIENT_DIR" ]; then
     echo -e "${RED}Error: Client directory not found at: ${CLIENT_DIR}${NC}"
+    exit 1
+fi
+
+if [ ! -d "$DIST_SRC_DIR" ]; then
+    echo -e "${RED}Error: Distribution directory not found at: ${DIST_SRC_DIR}${NC}"
     exit 1
 fi
 
@@ -91,17 +98,69 @@ fi
 
 echo -e "${GREEN}✓ All prerequisites met${NC}"
 
-# Step 1: Clean previous build
+#===============================================================================
+# PART 1: Build Distribution Backend Service
+#===============================================================================
 echo ""
-echo -e "${YELLOW}Step 1: Cleaning previous build...${NC}"
-rm -rf "${CLIENT_DIR}/bin/Release"
-rm -rf "${CLIENT_DIR}/obj/Release"
-rm -rf "${SCRIPT_DIR}/Output"
+echo -e "${YELLOW}Step 1: Building Distribution backend service...${NC}"
+cd "$DIST_SRC_DIR"
 
-# Step 2: Build the client
+rm -rf bin/Release obj/Release
+
+dotnet publish -c Release -r linux-x64 --self-contained \
+    -p:Version="${VERSION}" \
+    -p:AssemblyVersion="${VERSION}" \
+    -p:FileVersion="${VERSION}"
+
+# Find the publish directory
+DIST_PUBLISH_DIR=""
+for path in \
+    "${DIST_SRC_DIR}/bin/Release/net10.0/linux-x64/publish" \
+    "${DIST_SRC_DIR}/bin/Release/net9.0/linux-x64/publish" \
+    "${DIST_SRC_DIR}/bin/Release/net8.0/linux-x64/publish"
+do
+    if [ -d "$path" ]; then
+        DIST_PUBLISH_DIR="$path"
+        break
+    fi
+done
+
+if [ -z "$DIST_PUBLISH_DIR" ]; then
+    echo -e "${RED}Error: Distribution publish directory not found${NC}"
+    ls -la "${DIST_SRC_DIR}/bin/Release/" 2>/dev/null || true
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Distribution backend built successfully${NC}"
+
+#===============================================================================
+# PART 2: Deploy Distribution Backend
+#===============================================================================
 echo ""
-echo -e "${YELLOW}Step 2: Building ChitterChatter client for Windows...${NC}"
+echo -e "${YELLOW}Step 2: Deploying Distribution backend...${NC}"
+
+# Stop service before deploying
+if systemctl is-active --quiet chitterchatter-dist; then
+    echo -e "  Stopping chitterchatter-dist service..."
+    sudo systemctl stop chitterchatter-dist
+fi
+
+# Deploy backend files (preserve dist/ folder with installers)
+sudo mkdir -p "$DIST_DEPLOY_DIR"
+sudo mkdir -p "$DIST_FILES_DIR"
+sudo cp -r "${DIST_PUBLISH_DIR}"/* "$DIST_DEPLOY_DIR/"
+
+echo -e "${GREEN}✓ Distribution backend deployed to: ${DIST_DEPLOY_DIR}${NC}"
+
+#===============================================================================
+# PART 3: Build Windows Client
+#===============================================================================
+echo ""
+echo -e "${YELLOW}Step 3: Building ChitterChatter client for Windows...${NC}"
 cd "$CLIENT_DIR"
+
+rm -rf bin/Release obj/Release
+rm -rf "${SCRIPT_DIR}/Output"
 
 dotnet publish -c Release -r win-x64 --self-contained \
     -p:EnableWindowsTargeting=true \
@@ -111,7 +170,7 @@ dotnet publish -c Release -r win-x64 --self-contained \
     -p:AssemblyVersion="${VERSION}" \
     -p:FileVersion="${VERSION}"
 
-# Find the publish directory - try various possible paths
+# Find the publish directory
 PUBLISH_DIR=""
 for path in \
     "${CLIENT_DIR}/bin/Release/net10.0-windows/win-x64/publish" \
@@ -128,18 +187,18 @@ do
 done
 
 if [ -z "$PUBLISH_DIR" ]; then
-    echo -e "${RED}Error: Publish directory not found${NC}"
-    echo -e "${YELLOW}Searched in: ${CLIENT_DIR}/bin/Release/*/win-x64/publish${NC}"
+    echo -e "${RED}Error: Client publish directory not found${NC}"
     ls -la "${CLIENT_DIR}/bin/Release/" 2>/dev/null || true
     exit 1
 fi
 
 echo -e "${GREEN}✓ Client built successfully${NC}"
-echo -e "  Published to: ${PUBLISH_DIR}"
 
-# Step 3: Create installer with Inno Setup
+#===============================================================================
+# PART 4: Create Installer with Inno Setup
+#===============================================================================
 echo ""
-echo -e "${YELLOW}Step 3: Creating Windows installer with Inno Setup...${NC}"
+echo -e "${YELLOW}Step 4: Creating Windows installer with Inno Setup...${NC}"
 cd "$SCRIPT_DIR"
 mkdir -p Output
 
@@ -178,53 +237,69 @@ fi
 INSTALLER_SIZE=$(du -h "$INSTALLER_FILE" | cut -f1)
 echo -e "${GREEN}✓ Installer created: ChitterChatter-Setup-${VERSION}.exe (${INSTALLER_SIZE})${NC}"
 
-# Step 4: Deploy to distribution folder
+#===============================================================================
+# PART 5: Deploy Installer
+#===============================================================================
 echo ""
-echo -e "${YELLOW}Step 4: Deploying to distribution folder...${NC}"
-
-# Create dist directory if it doesn't exist
-sudo mkdir -p "$DIST_DIR"
+echo -e "${YELLOW}Step 5: Deploying installer to distribution folder...${NC}"
 
 # Remove old installers (keep last 3 versions for rollback)
 echo -e "  Cleaning old installers (keeping last 3)..."
-cd "$DIST_DIR"
+cd "$DIST_FILES_DIR"
 ls -t ChitterChatter-Setup-*.exe 2>/dev/null | tail -n +4 | xargs -r sudo rm -f
 
 # Copy new installer
-sudo cp "$INSTALLER_FILE" "$DIST_DIR/"
-sudo chown hugh:hugh "${DIST_DIR}/ChitterChatter-Setup-${VERSION}.exe"
-sudo chmod 644 "${DIST_DIR}/ChitterChatter-Setup-${VERSION}.exe"
+sudo cp "$INSTALLER_FILE" "$DIST_FILES_DIR/"
+sudo chown hugh:hugh "${DIST_FILES_DIR}/ChitterChatter-Setup-${VERSION}.exe"
+sudo chmod 644 "${DIST_FILES_DIR}/ChitterChatter-Setup-${VERSION}.exe"
 
 # Update version file
-echo "$VERSION" | sudo tee "${DIST_DIR}/version.txt" > /dev/null
-sudo chown hugh:hugh "${DIST_DIR}/version.txt"
+echo "$VERSION" | sudo tee "${DIST_FILES_DIR}/version.txt" > /dev/null
+sudo chown hugh:hugh "${DIST_FILES_DIR}/version.txt"
 
-echo -e "${GREEN}✓ Deployed to: ${DIST_DIR}/ChitterChatter-Setup-${VERSION}.exe${NC}"
+echo -e "${GREEN}✓ Installer deployed to: ${DIST_FILES_DIR}/${NC}"
 
-# Step 5: Restart distribution service (if running)
+#===============================================================================
+# PART 6: Start Distribution Service
+#===============================================================================
 echo ""
-echo -e "${YELLOW}Step 5: Restarting distribution service...${NC}"
+echo -e "${YELLOW}Step 6: Starting distribution service...${NC}"
+sudo systemctl start chitterchatter-dist
+
+# Wait briefly and verify
+sleep 2
 if systemctl is-active --quiet chitterchatter-dist; then
-    sudo systemctl restart chitterchatter-dist
-    echo -e "${GREEN}✓ Distribution service restarted${NC}"
+    echo -e "${GREEN}✓ Distribution service started${NC}"
 else
-    echo -e "${YELLOW}Distribution service not running - skipping restart${NC}"
+    echo -e "${RED}✗ Distribution service failed to start${NC}"
+    journalctl -u chitterchatter-dist --no-pager | tail -10
+    exit 1
 fi
 
+# Verify API is responding
+API_HEALTH=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5004/api/health 2>/dev/null || echo "000")
+if [ "$API_HEALTH" = "200" ]; then
+    echo -e "${GREEN}✓ API health check passed${NC}"
+else
+    echo -e "${YELLOW}⚠ API health check returned: ${API_HEALTH}${NC}"
+fi
+
+#===============================================================================
 # Summary
+#===============================================================================
 echo ""
 echo -e "${GREEN}==========================================${NC}"
 echo -e "${GREEN}Build & Deploy Complete!${NC}"
 echo -e "${GREEN}==========================================${NC}"
 echo ""
 echo -e "Version:    ${VERSION}"
-echo -e "Installer:  ChitterChatter-Setup-${VERSION}.exe"
-echo -e "Size:       ${INSTALLER_SIZE}"
-echo -e "Location:   ${DIST_DIR}/"
+echo -e "Installer:  ChitterChatter-Setup-${VERSION}.exe (${INSTALLER_SIZE})"
+echo -e "Backend:    ${DIST_DEPLOY_DIR}/"
+echo -e "Downloads:  ${DIST_FILES_DIR}/"
 echo ""
 echo -e "Download URL: ${BLUE}https://longmanrd.net/infoforum/downloads/${NC}"
 echo ""
 
 # List current installers
 echo -e "Available installers:"
-ls -lh "${DIST_DIR}"/ChitterChatter-Setup-*.exe 2>/dev/null | awk '{print "  " $9 " (" $5 ")"}'
+ls -lh "${DIST_FILES_DIR}"/ChitterChatter-Setup-*.exe 2>/dev/null | awk '{print "  " $9 " (" $5 ")"}'
