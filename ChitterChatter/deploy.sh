@@ -6,21 +6,25 @@
 #   1. Distribution backend service (ASP.NET on Linux)
 #   2. Windows client installer (via Wine + Inno Setup)
 #
+# Version Management:
+#   - Version is stored in version.txt (e.g. 1.0.2)
+#   - Each deploy auto-increments the patch number (1.0.2 → 1.0.3)
+#   - Git short hash is appended as build metadata (1.0.3+a1b2c3d)
+#   - Provide a version argument to override (saved to version.txt)
+#   - version.txt is committed to git after deployment
+#
 # Prerequisites:
 #   - .NET SDK 10.0+
 #   - Wine installed (sudo dnf install wine)
 #   - Inno Setup installed under Wine
 #
-# Inno Setup Installation (one-time):
-#   1. Download from https://jrsoftware.org/isdl.php
-#   2. Run: xvfb-run wine ~/Downloads/innosetup.exe /VERYSILENT
-#
 # Usage:
-#   ./deploy.sh <version>
+#   ./deploy.sh          # Auto-increment patch version
+#   ./deploy.sh 2.0.0    # Override with specific version
 #
 # Examples:
-#   ./deploy.sh 1.0.0
-#   ./deploy.sh 1.2.3
+#   ./deploy.sh           # 1.0.2 → 1.0.3
+#   ./deploy.sh 2.0.0     # Force version to 2.0.0
 #===============================================================================
 
 set -e  # Exit on any error
@@ -32,22 +36,51 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Colour
 
-# Check for required argument
-if [ -z "$1" ]; then
-    echo -e "${RED}Error: Version number required${NC}"
-    echo ""
-    echo "Usage: $0 <version>"
-    echo "Example: $0 1.0.0"
-    exit 1
-fi
-
-VERSION="$1"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLIENT_DIR="${SCRIPT_DIR}/ChitterChatterClient"
 DIST_SRC_DIR="${SCRIPT_DIR}/Distribution"
 ISS_FILE="${SCRIPT_DIR}/ChitterChatter-Setup.iss"
 DIST_DEPLOY_DIR="/var/www/chitterchatter-dist"
 DIST_FILES_DIR="${DIST_DEPLOY_DIR}/dist"
+VERSION_FILE="${SCRIPT_DIR}/version.txt"
+
+#===============================================================================
+# Version Management
+#===============================================================================
+
+# Ensure version.txt exists with a default
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "1.0.1" > "$VERSION_FILE"
+fi
+
+CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
+
+if [ -n "$1" ]; then
+    # Override version provided
+    VERSION="$1"
+    echo -e "${BLUE}Version override: ${VERSION}${NC}"
+else
+    # Auto-increment patch number
+    IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+    PATCH=$((PATCH + 1))
+    VERSION="${MAJOR}.${MINOR}.${PATCH}"
+    echo -e "${BLUE}Auto-incremented version: ${CURRENT_VERSION} → ${VERSION}${NC}"
+fi
+
+# Get git short hash for build metadata
+GIT_HASH=""
+if command -v git &> /dev/null && git -C "$SCRIPT_DIR" rev-parse --git-dir &> /dev/null 2>&1; then
+    GIT_HASH=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "")
+fi
+
+if [ -n "$GIT_HASH" ]; then
+    FULL_VERSION="${VERSION}+${GIT_HASH}"
+else
+    FULL_VERSION="${VERSION}"
+fi
+
+# Save version to file
+echo "$VERSION" > "$VERSION_FILE"
 
 # Wine paths - adjust if your Inno Setup is installed elsewhere
 WINE_PREFIX="${WINEPREFIX:-$HOME/.wine}"
@@ -60,7 +93,7 @@ fi
 
 echo -e "${GREEN}==========================================${NC}"
 echo -e "${GREEN}ChitterChatter Build & Deploy${NC}"
-echo -e "${GREEN}Version: ${VERSION}${NC}"
+echo -e "${GREEN}Version: ${FULL_VERSION}${NC}"
 echo -e "${GREEN}==========================================${NC}"
 
 # Verify prerequisites
@@ -110,7 +143,8 @@ rm -rf bin/Release obj/Release
 dotnet publish -c Release -r linux-x64 --self-contained \
     -p:Version="${VERSION}" \
     -p:AssemblyVersion="${VERSION}" \
-    -p:FileVersion="${VERSION}"
+    -p:FileVersion="${VERSION}" \
+    -p:InformationalVersion="${FULL_VERSION}"
 
 # Find the publish directory
 DIST_PUBLISH_DIR=""
@@ -168,7 +202,8 @@ dotnet publish -c Release -r win-x64 --self-contained \
     -p:IncludeNativeLibrariesForSelfExtract=false \
     -p:Version="${VERSION}" \
     -p:AssemblyVersion="${VERSION}" \
-    -p:FileVersion="${VERSION}"
+    -p:FileVersion="${VERSION}" \
+    -p:InformationalVersion="${FULL_VERSION}"
 
 # Find the publish directory
 PUBLISH_DIR=""
@@ -253,8 +288,8 @@ sudo cp "$INSTALLER_FILE" "$DIST_FILES_DIR/"
 sudo chown hugh:hugh "${DIST_FILES_DIR}/ChitterChatter-Setup-${VERSION}.exe"
 sudo chmod 644 "${DIST_FILES_DIR}/ChitterChatter-Setup-${VERSION}.exe"
 
-# Update version file
-echo "$VERSION" | sudo tee "${DIST_FILES_DIR}/version.txt" > /dev/null
+# Update version file in dist folder
+echo "$FULL_VERSION" | sudo tee "${DIST_FILES_DIR}/version.txt" > /dev/null
 sudo chown hugh:hugh "${DIST_FILES_DIR}/version.txt"
 
 echo -e "${GREEN}✓ Installer deployed to: ${DIST_FILES_DIR}/${NC}"
@@ -285,6 +320,21 @@ else
 fi
 
 #===============================================================================
+# PART 7: Commit version to git
+#===============================================================================
+echo ""
+echo -e "${YELLOW}Step 7: Committing version to git...${NC}"
+cd "$SCRIPT_DIR"
+
+if command -v git &> /dev/null && git rev-parse --git-dir &> /dev/null 2>&1; then
+    git add version.txt
+    git commit -m "Release ChitterChatter v${FULL_VERSION}" -- version.txt 2>/dev/null || echo -e "${YELLOW}  version.txt unchanged, nothing to commit${NC}"
+    echo -e "${GREEN}✓ version.txt committed to git${NC}"
+else
+    echo -e "${YELLOW}  Not a git repository, skipping commit${NC}"
+fi
+
+#===============================================================================
 # Summary
 #===============================================================================
 echo ""
@@ -292,7 +342,7 @@ echo -e "${GREEN}==========================================${NC}"
 echo -e "${GREEN}Build & Deploy Complete!${NC}"
 echo -e "${GREEN}==========================================${NC}"
 echo ""
-echo -e "Version:    ${VERSION}"
+echo -e "Version:    ${FULL_VERSION}"
 echo -e "Installer:  ChitterChatter-Setup-${VERSION}.exe (${INSTALLER_SIZE})"
 echo -e "Backend:    ${DIST_DEPLOY_DIR}/"
 echo -e "Downloads:  ${DIST_FILES_DIR}/"

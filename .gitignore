@@ -57,3 +57,5 @@ node_modules
 /ChitterChatter/ChitterChatterClient/bin
 /ChitterChatter/Distribution/obj
 /ChitterChatter/Distribution/bin
+/IF.WebServices/ChitterChatterWebService/obj
+/IF.WebServices/ChitterChatterWebService/bin

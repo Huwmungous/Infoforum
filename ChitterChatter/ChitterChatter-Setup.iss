@@ -9,7 +9,7 @@
 #if MyAppVersion == ""
 #define MyAppVersion "1.0.0"
 #endif
-#define MyAppPublisher "Infoforum"
+#define MyAppPublisher "Hugh Jones - The Information Forum"
 #define MyAppURL "https://longmanrd.net"
 #define MyAppExeName "ChitterChatter.exe"
 
@@ -44,7 +44,6 @@ WizardStyle=modern
 
 ; Privileges - admin required for Program Files
 PrivilegesRequired=admin
-PrivilegesRequiredOverridesAllowed=dialog
 
 ; Uninstall settings
 UninstallDisplayIcon={app}\{#MyAppExeName}
@@ -58,7 +57,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
 
 [Files]
 ; Main application files
@@ -74,14 +72,10 @@ Source: "{#SourcePath}\*.xml"; DestDir: "{app}"; Flags: ignoreversion skipifsour
 Source: "{#SourcePath}\runtimes\*"; DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 Source: "{#SourcePath}\wwwroot\*"; DestDir: "{app}\wwwroot"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
-; NOTE: Don't include .pdb files in production releases
-; Source: "{#SourcePath}\*.pdb"; DestDir: "{app}"; Flags: ignoreversion
-
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Run]
 ; Option to launch after install
