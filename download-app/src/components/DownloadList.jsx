@@ -14,6 +14,7 @@ const DownloadList = () => {
   const [downloads, setDownloads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(null);
 
   // Create logger for this component
   const logger = useMemo(() => createLogger('DownloadList'), [createLogger]);
@@ -25,17 +26,8 @@ const DownloadList = () => {
         setLoading(true);
         setError(null);
 
-        // Get access token for API call
-        const token = user?.access_token;
-        if (!token) {
-          throw new Error('No access token available');
-        }
-
-        const response = await fetch('/api/downloads', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        // fetch() is intercepted by setupFetchInterceptor which adds Bearer token automatically
+        const response = await fetch('/api/downloads');
 
         if (!response.ok) {
           throw new Error(`Failed to fetch downloads: ${response.statusText}`);
@@ -59,17 +51,43 @@ const DownloadList = () => {
     }
   }, [user, logger]);
 
-  const handleDownload = (download) => {
-    logger.info(`Download initiated: ${JSON.stringify({
-      filename: download.filename,
-      version: download.version,
-      userId: user?.profile?.sub,
-      username: user?.profile?.preferred_username,
-    })}`);
+  const handleDownload = async (download) => {
+    try {
+      setDownloading(download.filename);
 
-    // Open download in new tab with auth token
-    const token = user?.access_token;
-    window.open(`/api/downloads/${download.filename}?token=${encodeURIComponent(token)}`, '_blank');
+      logger.info(`Download initiated: ${JSON.stringify({
+        filename: download.filename,
+        version: download.version,
+        userId: user?.profile?.sub,
+        username: user?.profile?.preferred_username,
+      })}`);
+
+      // Use fetch (intercepted - Bearer token added automatically) to download the file
+      const response = await fetch(`/api/downloads/${download.filename}`);
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`);
+      }
+
+      // Get the file as a blob and trigger browser download
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = download.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      logger.info(`Download completed: ${download.filename}`);
+    } catch (err) {
+      console.error('Download error:', err);
+      logger.error(`Download failed: ${download.filename}`, err);
+      setError(`Failed to download ${download.filename}: ${err.message}`);
+    } finally {
+      setDownloading(null);
+    }
   };
 
   const formatFileSize = (bytes) => {
@@ -90,6 +108,13 @@ const DownloadList = () => {
     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+  );
+
+  const SpinnerIcon = () => (
+    <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>
   );
 
@@ -138,7 +163,7 @@ const DownloadList = () => {
             <h3 className="text-red-800 font-medium mb-2">Error Loading Downloads</h3>
             <p className="text-red-600">{error}</p>
             <button 
-              onClick={() => window.location.reload()}
+              onClick={() => { setError(null); window.location.reload(); }}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
             >
               Retry
@@ -174,10 +199,13 @@ const DownloadList = () => {
                   </div>
                   <button
                     onClick={() => handleDownload(download)}
-                    className="flex items-center gap-2 px-6 py-3 bg-if-hl-medium text-white rounded-lg shadow-if-lg border border-if-dark hover:bg-if-hl-dark transition-colors"
+                    disabled={downloading === download.filename}
+                    className="flex items-center gap-2 px-6 py-3 bg-if-hl-medium text-white rounded-lg shadow-if-lg border border-if-dark hover:bg-if-hl-dark transition-colors disabled:opacity-50 disabled:cursor-wait"
                   >
-                    <DownloadIcon />
-                    <span className="font-medium">Download</span>
+                    {downloading === download.filename ? <SpinnerIcon /> : <DownloadIcon />}
+                    <span className="font-medium">
+                      {downloading === download.filename ? 'Downloading...' : 'Download'}
+                    </span>
                   </button>
                 </div>
               </div>
