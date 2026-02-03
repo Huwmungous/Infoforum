@@ -14,7 +14,7 @@ using IFGlobal.Models;
 
 var app = await ServiceFactory.CreateWithPostgresAsync(
     serviceName: "SampleWebService",
-    databaseConfigName: "rozebowl",            // Rozebowl database config from ConfigWebService
+    databaseConfigName: "rozebowldb",            // Rozebowl database config from ConfigWebService
     description: "Sample service demonstrating IF infrastructure patterns",
     useIFLogger: true,
     configureServices: (services, context) =>
