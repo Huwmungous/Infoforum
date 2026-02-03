@@ -45,6 +45,10 @@ WizardStyle=modern
 ; Privileges - admin required for Program Files
 PrivilegesRequired=admin
 
+; 64-bit only
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+
 ; Uninstall settings
 UninstallDisplayIcon={app}\{#MyAppExeName}
 UninstallDisplayName={#MyAppName}
