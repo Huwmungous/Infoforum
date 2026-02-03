@@ -119,7 +119,7 @@ const DownloadList = () => {
   );
 
   return (
-    <div className="min-h-screen bg-if-window">
+    <div className="min-h-screen bg-if-window flex flex-col">
       {/* Header */}
       <header className="bg-[#333] text-if-window px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ const DownloadList = () => {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-6 flex-1">
         {/* Welcome Card */}
         <div className="bg-if-paper rounded-lg shadow-if border border-if-medium/30 p-6 mb-6">
           <h2 className="text-xl font-medium text-if-dark mb-2">Welcome, {user?.profile?.given_name || user?.profile?.preferred_username}!</h2>
@@ -223,7 +223,7 @@ const DownloadList = () => {
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#333] text-if-window text-center py-2 text-sm mt-8">
+      <footer className="bg-[#333] text-if-window text-center py-2 text-sm">
         Infoforum Downloads
       </footer>
     </div>
