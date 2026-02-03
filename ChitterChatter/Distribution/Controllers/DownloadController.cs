@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 namespace ChitterChatterDistribution.Controllers;
 
 [ApiController]
-[Authorize(Policy = "NginxOrJwt")]
 public class DownloadController : ControllerBase
 {
     private readonly DistributionOptions _options;
@@ -17,97 +16,196 @@ public class DownloadController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("/")]
-    public IActionResult Index()
+    /// <summary>
+    /// Lists all available downloads.
+    /// </summary>
+    [HttpGet("/api/downloads")]
+    [Authorize]
+    public IActionResult ListDownloads()
     {
         var userInfo = GetUserInfo();
 
         _logger.LogInformation(
-            "Download page visited - User: {User}, Email: {Email}, IP: {IP}, UserAgent: {UserAgent}, AuthMethod: {AuthMethod}",
-            userInfo.Name, userInfo.Email, userInfo.IP, userInfo.UserAgent, userInfo.AuthMethod);
+            "Downloads list requested - User: {User}, Email: {Email}, IP: {IP}",
+            userInfo.Name, userInfo.Email, userInfo.IP);
 
+        var downloads = new List<DownloadInfo>();
         var distPath = _options.DistributionPath;
-        var zipPath = Path.Combine(distPath, "ChitterChatter-Setup.zip");
 
-        var version = "1.0.0";
-        var fileSize = "";
-        var isAvailable = false;
-
-        if (System.IO.File.Exists(zipPath))
+        if (!Directory.Exists(distPath))
         {
-            isAvailable = true;
-            var fileInfo = new FileInfo(zipPath);
-            fileSize = FormatFileSize(fileInfo.Length);
+            _logger.LogWarning("Distribution path does not exist: {Path}", distPath);
+            return Ok(downloads);
+        }
 
-            var versionPath = Path.Combine(distPath, "version.txt");
-            if (System.IO.File.Exists(versionPath))
+        // Look for ChitterChatter installer - prefer .exe over .zip
+        var chitterChatterExe = FindLatestFile(distPath, "ChitterChatter-Setup*.exe");
+        var chitterChatterZip = Path.Combine(distPath, "ChitterChatter-Setup.zip");
+
+        if (chitterChatterExe != null)
+        {
+            var fileInfo = new FileInfo(chitterChatterExe);
+            var version = ExtractVersionFromFilename(fileInfo.Name) ?? GetVersionFromFile(distPath);
+
+            downloads.Add(new DownloadInfo
             {
-                version = System.IO.File.ReadAllText(versionPath).Trim();
-            }
+                Name = "ChitterChatter",
+                Description = "Voice chat client for teams - real-time communication with push-to-talk support.",
+                Filename = fileInfo.Name,
+                Version = version,
+                Size = fileInfo.Length,
+                Platform = "Windows",
+                LastModified = fileInfo.LastWriteTimeUtc
+            });
         }
-        else
+        else if (System.IO.File.Exists(chitterChatterZip))
         {
-            _logger.LogWarning("Distribution file not found: {Path}", zipPath);
+            var fileInfo = new FileInfo(chitterChatterZip);
+            var version = GetVersionFromFile(distPath);
+
+            downloads.Add(new DownloadInfo
+            {
+                Name = "ChitterChatter",
+                Description = "Voice chat client for teams - real-time communication with push-to-talk support.",
+                Filename = "ChitterChatter-Setup.zip",
+                Version = version,
+                Size = fileInfo.Length,
+                Platform = "Windows",
+                LastModified = fileInfo.LastWriteTimeUtc
+            });
         }
 
-        var html = GenerateHtml(version, fileSize, isAvailable, userInfo.Name);
-        return Content(html, "text/html");
+        return Ok(downloads);
     }
 
-    [HttpGet("/download")]
-    public IActionResult Download()
+    /// <summary>
+    /// Downloads a specific file.
+    /// </summary>
+    [HttpGet("/api/downloads/{filename}")]
+    [Authorize]
+    public IActionResult DownloadFile(string filename)
     {
-        var zipPath = Path.Combine(_options.DistributionPath, "ChitterChatter-Setup.zip");
         var userInfo = GetUserInfo();
 
         _logger.LogInformation(
-            "Download requested - User: {User}, Email: {Email}, IP: {IP}, UserAgent: {UserAgent}, AuthMethod: {AuthMethod}",
-            userInfo.Name, userInfo.Email, userInfo.IP, userInfo.UserAgent, userInfo.AuthMethod);
+            "Download requested - User: {User}, Email: {Email}, IP: {IP}, File: {Filename}",
+            userInfo.Name, userInfo.Email, userInfo.IP, filename);
 
-        if (!System.IO.File.Exists(zipPath))
+        // Security: only allow specific filenames, no path traversal
+        if (string.IsNullOrEmpty(filename) ||
+            filename.Contains("..") ||
+            filename.Contains("/") ||
+            filename.Contains("\\"))
+        {
+            _logger.LogWarning("Invalid filename requested: {Filename}", filename);
+            return BadRequest("Invalid filename");
+        }
+
+        // Only allow known file extensions
+        var extension = Path.GetExtension(filename).ToLowerInvariant();
+        if (extension != ".exe" && extension != ".zip" && extension != ".msi")
+        {
+            _logger.LogWarning("Disallowed file extension requested: {Filename}", filename);
+            return BadRequest("Invalid file type");
+        }
+
+        var filePath = Path.Combine(_options.DistributionPath, filename);
+
+        if (!System.IO.File.Exists(filePath))
         {
             _logger.LogWarning(
-                "Download failed - File not found: {Path}, User: {User}, IP: {IP}",
-                zipPath, userInfo.Name, userInfo.IP);
-            return NotFound("Distribution file not available");
+                "Download failed - File not found: {Path}, User: {User}",
+                filePath, userInfo.Name);
+            return NotFound("File not available");
         }
 
-        var fileInfo = new FileInfo(zipPath);
+        var fileInfo = new FileInfo(filePath);
         _logger.LogInformation(
-            "Download started - User: {User}, Email: {Email}, IP: {IP}, File: {FileName}, Size: {Size} bytes",
-            userInfo.Name, userInfo.Email, userInfo.IP, "ChitterChatter-Setup.zip", fileInfo.Length);
+            "Download started - User: {User}, Email: {Email}, IP: {IP}, File: {Filename}, Size: {Size} bytes",
+            userInfo.Name, userInfo.Email, userInfo.IP, filename, fileInfo.Length);
 
-        var stream = new FileStream(zipPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        return File(stream, "application/zip", "ChitterChatter-Setup.zip");
+        var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var contentType = GetContentType(filename);
+        return File(stream, contentType, filename);
     }
 
-    [HttpGet("/version")]
+    /// <summary>
+    /// Returns version information (public endpoint for update checks).
+    /// </summary>
+    [HttpGet("/api/version")]
     [AllowAnonymous]
     public IActionResult GetVersion()
     {
-        var versionPath = Path.Combine(_options.DistributionPath, "version.txt");
-
-        if (!System.IO.File.Exists(versionPath))
-        {
-            return Ok(new { version = "1.0.0" });
-        }
-
-        var version = System.IO.File.ReadAllText(versionPath).Trim();
+        var version = GetVersionFromFile(_options.DistributionPath);
         return Ok(new { version });
     }
 
-    private (string Name, string Email, string IP, string UserAgent, string AuthMethod) GetUserInfo()
+    /// <summary>
+    /// Health check endpoint.
+    /// </summary>
+    [HttpGet("/api/health")]
+    [AllowAnonymous]
+    public IActionResult Health()
+    {
+        return Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
+    }
+
+    private static string? FindLatestFile(string directory, string pattern)
+    {
+        try
+        {
+            var files = Directory.GetFiles(directory, pattern);
+            if (files.Length == 0) return null;
+
+            return files
+                .Select(f => new FileInfo(f))
+                .OrderByDescending(f => f.LastWriteTimeUtc)
+                .First()
+                .FullName;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string? ExtractVersionFromFilename(string filename)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(
+            filename,
+            @"-(\d+\.\d+\.\d+)\.exe$",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        return match.Success ? match.Groups[1].Value : null;
+    }
+
+    private static string GetVersionFromFile(string distPath)
+    {
+        var versionPath = Path.Combine(distPath, "version.txt");
+        if (System.IO.File.Exists(versionPath))
+        {
+            return System.IO.File.ReadAllText(versionPath).Trim();
+        }
+        return "1.0.0";
+    }
+
+    private static string GetContentType(string filename)
+    {
+        var extension = Path.GetExtension(filename).ToLowerInvariant();
+        return extension switch
+        {
+            ".zip" => "application/zip",
+            ".exe" => "application/vnd.microsoft.portable-executable",
+            ".msi" => "application/x-msi",
+            _ => "application/octet-stream"
+        };
+    }
+
+    private (string Name, string Email, string IP) GetUserInfo()
     {
         var name = User.Identity?.Name ?? "anonymous";
         var email = User.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? "unknown";
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var userAgent = Request.Headers.UserAgent.ToString();
-
-        var authMethod = User.Identity?.IsAuthenticated == true ? "JWT" : "Nginx-Proxy";
-        if (Request.Headers.TryGetValue("X-Nginx-Proxy", out var nginxHeader) && nginxHeader == "authenticated")
-        {
-            authMethod = User.Identity?.IsAuthenticated == true ? "JWT+Nginx" : "Nginx-Proxy";
-        }
 
         if (Request.Headers.TryGetValue("X-Forwarded-For", out var forwardedFor))
         {
@@ -118,126 +216,17 @@ public class DownloadController : ControllerBase
             ip = realIp.ToString();
         }
 
-        return (name, email, ip, userAgent, authMethod);
+        return (name, email, ip);
     }
+}
 
-    private static string FormatFileSize(long bytes)
-    {
-        string[] sizes = ["B", "KB", "MB", "GB"];
-        int order = 0;
-        double size = bytes;
-
-        while (size >= 1024 && order < sizes.Length - 1)
-        {
-            order++;
-            size /= 1024;
-        }
-
-        return $"{size:0.##} {sizes[order]}";
-    }
-
-    private static string GenerateHtml(string version, string fileSize, bool isAvailable, string userName)
-    {
-        var downloadSection = isAvailable
-            ? $"""
-                <div class="download-card">
-                    <h2>ChitterChatter Desktop Client</h2>
-                    <p class="version">Version {version}</p>
-                    <p class="size">Size: {fileSize}</p>
-                    <a href="download" class="download-btn">Download Installer</a>
-                </div>
-              """
-            : """
-                <div class="download-card unavailable">
-                    <h2>ChitterChatter Desktop Client</h2>
-                    <p>The installer is not currently available.</p>
-                    <p>Please contact your administrator.</p>
-                </div>
-              """;
-
-        return $$"""
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>ChitterChatter Download</title>
-                <style>
-                    * { box-sizing: border-box; margin: 0; padding: 0; }
-                    body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                        min-height: 100vh;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        color: #fff;
-                    }
-                    .container {
-                        text-align: center;
-                        padding: 2rem;
-                    }
-                    h1 {
-                        font-size: 2.5rem;
-                        margin-bottom: 0.5rem;
-                        background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                    }
-                    .subtitle {
-                        color: #8892b0;
-                        margin-bottom: 2rem;
-                    }
-                    .download-card {
-                        background: rgba(255, 255, 255, 0.05);
-                        border: 1px solid rgba(255, 255, 255, 0.1);
-                        border-radius: 16px;
-                        padding: 2rem 3rem;
-                        backdrop-filter: blur(10px);
-                    }
-                    .download-card h2 {
-                        font-size: 1.5rem;
-                        margin-bottom: 1rem;
-                    }
-                    .version, .size {
-                        color: #8892b0;
-                        margin-bottom: 0.5rem;
-                    }
-                    .download-btn {
-                        display: inline-block;
-                        margin-top: 1.5rem;
-                        padding: 1rem 2rem;
-                        background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-                        color: #fff;
-                        text-decoration: none;
-                        border-radius: 8px;
-                        font-weight: 600;
-                        transition: transform 0.2s, box-shadow 0.2s;
-                    }
-                    .download-btn:hover {
-                        transform: translateY(-2px);
-                        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-                    }
-                    .unavailable {
-                        border-color: rgba(255, 100, 100, 0.3);
-                    }
-                    .user-info {
-                        margin-top: 2rem;
-                        color: #8892b0;
-                        font-size: 0.9rem;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1>ChitterChatter</h1>
-                    <p class="subtitle">Voice Chat for Teams</p>
-                    {{downloadSection}}
-                    <p class="user-info">Logged in as: {{userName}}</p>
-                </div>
-            </body>
-            </html>
-            """;
-    }
+public class DownloadInfo
+{
+    public string Name { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string Filename { get; set; } = "";
+    public string Version { get; set; } = "";
+    public long Size { get; set; }
+    public string Platform { get; set; } = "";
+    public DateTime LastModified { get; set; }
 }
