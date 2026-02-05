@@ -1,0 +1,14 @@
+[
+  {
+    "Role": "user",
+    "Content": "hi",
+    "Timestamp": "2026-02-05T14:10:42.884Z",
+    "Attachments": null
+  },
+  {
+    "Role": "assistant",
+    "Content": "Hello! How can I help you today?",
+    "Timestamp": "2026-02-05T14:10:43.0479709Z",
+    "Attachments": null
+  }
+]
