@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>IFOllama.WebService</name>
+    </assembly>
+    <members>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.GetConversations(System.String)">
+            <summary>
+            Gets all conversations for a user.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.CreateConversation(System.String,System.String)">
+            <summary>
+            Creates a new conversation.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.GetMessages(System.String,System.String)">
+            <summary>
+            Gets all messages for a conversation.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.AppendMessage(System.String,IFOllama.Classes.Models.Message,System.String)">
+            <summary>
+            Appends a message to a conversation.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.AppendMessageWithFiles(System.String,System.String,System.String,System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile},System.String)">
+            <summary>
+            Appends a message with file attachments to a conversation.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.GetFile(System.String,System.String,System.String)">
+            <summary>
+            Gets a file attachment from a conversation.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.ConversationsController.RemoveConversation(System.String,System.String)">
+            <summary>
+            Deletes a conversation and all associated files.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.DiagController.Health">
+            <summary>
+            Basic health check endpoint.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.DiagController.Version">
+            <summary>
+            Returns service version information.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.McpController.GetMcpTools">
+            <summary>
+            Gets all available MCP tools from all configured servers.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.McpController.GetMcpServers">
+            <summary>
+            Gets the configured MCP server endpoints.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.McpController.CallMcpTool(IFOllama.WebService.Models.ToolCallRequest)">
+            <summary>
+            Calls a specific tool on an MCP server.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.McpController.ChatWithOllama(IFOllama.WebService.Models.ChatRequest)">
+            <summary>
+            Chat with Ollama using available tools.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Controllers.McpController.ChatWithOllamaWithFiles(System.String,System.String,System.String,System.String,System.Collections.Generic.List{Microsoft.AspNetCore.Http.IFormFile})">
+            <summary>
+            Chat with Ollama including file attachments.
+            </summary>
+        </member>
+        <member name="T:IFOllama.WebService.Data.IConversationStore">
+            <summary>
+            Minimal persistence contract used by the chat UI.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Data.IConversationStore.ListAsync(System.String)">
+            <summary>Returns the list of conversations (id + title), newest first.</summary>
+        </member>
+        <member name="M:IFOllama.WebService.Data.IConversationStore.CreateAsync(System.String,System.String)">
+            <summary>Creates a new conversation with the given title and returns its id + title.</summary>
+        </member>
+        <member name="M:IFOllama.WebService.Data.IConversationStore.ReadMessagesAsync(System.String,System.String)">
+            <summary>Loads all messages for a conversation (in order).</summary>
+        </member>
+        <member name="M:IFOllama.WebService.Data.IConversationStore.AppendMessageAsync(System.String,IFOllama.Classes.Models.Message,System.String)">
+            <summary>Appends a single message to a conversation.</summary>
+        </member>
+        <member name="M:IFOllama.WebService.Data.IConversationStore.RemoveAsync(System.String,System.String)">
+            <summary>Removes a conversation and all its data.</summary>
+        </member>
+        <member name="M:IFOllama.WebService.Data.IConversationStore.OwnsConversationAsync(System.String,System.String)">
+            <summary>Checks if a user owns a conversation.</summary>
+        </member>
+        <member name="M:IFOllama.WebService.Hubs.ChatHub.StreamChat(System.String,System.String[],System.String,System.String,System.Collections.Generic.List{System.String},System.Threading.CancellationToken)">
+            <summary>
+            Streams chat responses to the client using SignalR.
+            </summary>
+        </member>
+        <member name="M:IFOllama.WebService.Hubs.ChatHub.Chat(System.String,System.String[],System.String,System.String,System.Collections.Generic.List{System.String})">
+            <summary>
+            Simple non-streaming chat for quick responses.
+            </summary>
+        </member>
+        <member name="T:Program">
+            <summary>
+            Auto-generated public partial Program class for top-level statement apps.
+            </summary>
+        </member>
+    </members>
+</doc>
