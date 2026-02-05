@@ -130,13 +130,13 @@ cd "$PROJECT_DIR"
 
 echo "    Cleaning..."
 if [ "$EUID" -eq 0 ] && [ -n "$SUDO_USER" ]; then
-    sudo -u "$SUDO_USER" dotnet clean --configuration Release > /dev/null 2>&1 || true
+    sudo -u "$SUDO_USER" dotnet clean "$SERVER_NAME.csproj" --configuration Release > /dev/null 2>&1 || true
     echo "    Publishing..."
-    sudo -u "$SUDO_USER" dotnet publish --configuration Release --output "./publish" --self-contained false --runtime linux-x64
+    sudo -u "$SUDO_USER" dotnet publish "$SERVER_NAME.csproj" --configuration Release --output "./publish" --self-contained false --runtime linux-x64
 else
-    dotnet clean --configuration Release > /dev/null 2>&1 || true
+    dotnet clean "$SERVER_NAME.csproj" --configuration Release > /dev/null 2>&1 || true
     echo "    Publishing..."
-    dotnet publish --configuration Release --output "./publish" --self-contained false --runtime linux-x64
+    dotnet publish "$SERVER_NAME.csproj" --configuration Release --output "./publish" --self-contained false --runtime linux-x64
 fi
 
 if [ $? -ne 0 ]; then
@@ -316,4 +316,5 @@ echo ""
 echo "  Quick test:"
 echo "    curl http://localhost:${OLLAMA_PORT}/Health"
 echo "    curl http://localhost:${OLLAMA_PORT}/swagger/index.html"
+echo ""
 echo "==========================================================="
