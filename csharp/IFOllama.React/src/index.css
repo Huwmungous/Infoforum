@@ -12,3 +12,22 @@ html, body {
   display: flex;
   flex-direction: column;
 }
+
+/* Drawer layout */
+.app-layout {
+  position: relative;
+}
+
+.app-layout .chat-container {
+  transition: margin-left var(--if-transition-normal);
+}
+
+@media (min-width: 900px) {
+  .app-layout .chat-container {
+    margin-left: 48px;
+  }
+
+  .app-layout.drawer-open .chat-container {
+    margin-left: 300px;
+  }
+}

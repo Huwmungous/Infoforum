@@ -9,9 +9,10 @@ const logo = new URL('/IF-Logo.png', import.meta.url).href;
 
 interface ChatProps {
   initialConversationId?: string;
+  onConversationCreated?: (id: string) => void;
 }
 
-export function Chat({ initialConversationId }: ChatProps) {
+export function Chat({ initialConversationId, onConversationCreated }: ChatProps) {
   const [prompt, setPrompt] = useState('');
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolSelector, setShowToolSelector] = useState(false);
@@ -24,7 +25,6 @@ export function Chat({ initialConversationId }: ChatProps) {
     error,
     conversationId,
     sendMessage,
-    clearMessages,
     loadConversation,
   } = useChat({ enabledTools });
 
@@ -34,6 +34,13 @@ export function Chat({ initialConversationId }: ChatProps) {
       loadConversation(initialConversationId);
     }
   }, [initialConversationId, loadConversation]);
+
+  // Notify parent when a new conversation is created
+  useEffect(() => {
+    if (conversationId && conversationId !== initialConversationId) {
+      onConversationCreated?.(conversationId);
+    }
+  }, [conversationId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -80,9 +87,6 @@ export function Chat({ initialConversationId }: ChatProps) {
             onClick={() => setShowToolSelector(!showToolSelector)}
           >
             🔧 Tools ({enabledTools.length})
-          </button>
-          <button className="if-btn if-btn-secondary" onClick={clearMessages}>
-            New Chat
           </button>
         </div>
       </header>

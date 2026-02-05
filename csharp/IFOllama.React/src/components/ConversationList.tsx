@@ -1,59 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '@if/web-common-react';
-import { apiService } from '../services/apiService';
 import type { Conversation } from '../types';
 import './ConversationList.scss';
 
 interface ConversationListProps {
+  conversations: Conversation[];
+  loading: boolean;
+  error: string | null;
   onSelectConversation: (id: string) => void;
   selectedId: string | null;
   onNewChat: () => void;
+  onDelete: (id: string) => void;
 }
 
-export function ConversationList({ onSelectConversation, selectedId, onNewChat }: ConversationListProps) {
-  const auth = useAuth();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function ConversationList({
+  conversations,
+  loading,
+  error,
+  onSelectConversation,
+  selectedId,
+  onNewChat,
+  onDelete,
+}: ConversationListProps) {
 
-  const userId = auth.user?.profile?.sub;
-
-  useEffect(() => {
-    const loadConversations = async () => {
-      if (!userId) return;
-
-      try {
-        setLoading(true);
-        const convs = await apiService.getConversations(userId);
-        setConversations(convs);
-        setError(null);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to load conversations';
-        setError(message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadConversations();
-  }, [userId]);
-
-  const handleDelete = async (id: string, e: React.MouseEvent) => {
+  const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!userId) return;
-
     if (!confirm('Are you sure you want to delete this conversation?')) return;
-
-    try {
-      await apiService.deleteConversation(id, userId);
-      setConversations(prev => prev.filter(c => c.id !== id));
-      if (selectedId === id) {
-        onNewChat();
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete';
-      setError(message);
-    }
+    onDelete(id);
   };
 
   return (
