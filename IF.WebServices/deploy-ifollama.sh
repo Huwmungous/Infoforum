@@ -12,7 +12,7 @@ set -e
 # ----------------------------
 SERVICE_NAME="ifollama-ws"
 SERVER_NAME="IFOllama.WebService"
-REPO_ROOT="$HOME/repos/dotnet/IFOllama"
+REPO_ROOT="$HOME/repos/Infoforum/IF.WebServices"
 PROJECT_DIR="$REPO_ROOT/IFOllama.WebService"
 DEPLOY_ROOT="/srv/Infoforum/WebServices"
 DEPLOY_PATH="$DEPLOY_ROOT/$SERVER_NAME"
