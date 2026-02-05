@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\IFGlobal\IFGlobal.csproj" />
+		<ProjectReference Include="..\..\csharp\IFGlobal\IFGlobal.csproj" />
 		<ProjectReference Include="..\IFOllama.Classes\IFOllama.Classes.csproj" />
 	</ItemGroup>
 
