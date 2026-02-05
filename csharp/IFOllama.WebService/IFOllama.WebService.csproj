@@ -10,8 +10,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Compile Remove="IFGlobal\**" />
+		<Compile Remove="IFOllama.Classes\**" />
+		<Content Remove="IFGlobal\**" />
+		<Content Remove="IFOllama.Classes\**" />
+		<EmbeddedResource Remove="IFGlobal\**" />
+		<EmbeddedResource Remove="IFOllama.Classes\**" />
+		<None Remove="IFGlobal\**" />
+		<None Remove="IFOllama.Classes\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\IFGlobal\IFGlobal.csproj" />
 		<ProjectReference Include="..\IFOllama.Classes\IFOllama.Classes.csproj" />
-		<ProjectReference Include="..\..\IFGlobal\IFGlobal.csproj" />
 	</ItemGroup>
 
 </Project>

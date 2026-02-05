@@ -2,11 +2,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.2.11415.280
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.WebService", "IFOllama.WebService\IFOllama.WebService.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.WebService", "IFOllama.WebService.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.Classes", "IFOllama.Classes\IFOllama.Classes.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebService", "..\..\IF.WebServices\SampleWebService\SampleWebService.csproj", "{342C2E67-E5CD-1B40-32BF-763381B9D7CE}"
 EndProject

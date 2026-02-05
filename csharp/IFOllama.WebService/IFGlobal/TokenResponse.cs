@@ -1,4 +1,4 @@
-namespace IFGlobal
+namespace IFGlobal.Local // Changed from IFGlobal to IFGlobal.Local
 {
     using System.Text.Json;
     using System.Text.Json.Serialization;

@@ -10,7 +10,7 @@ var app = await ServiceFactory.CreateAsync(new ServiceFactoryOptions
     ServiceName = "IFOllama.WebService",
     Description = "AI Chat Service with Ollama and MCP Tool Integration",
     UseAuthentication = true,
-    UseSfdLogger = true,
+    UseIFLogger = true,
     UseSignalR = true,
     
     ConfigureServices = (services, context) =>

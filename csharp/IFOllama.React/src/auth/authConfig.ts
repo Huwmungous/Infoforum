@@ -2,7 +2,7 @@ import { AuthProviderProps } from 'react-oidc-context';
 
 const KEYCLOAK_BASE_URL = 'https://longmanrd.net/auth/realms/';
 const REALM = 'LongmanRd';
-const CLIENT_ID = 'ifollama-react';
+const CLIENT_ID = 'infoforum-user';
 
 // Get the app base URL dynamically
 const getBaseUrl = (): string => {

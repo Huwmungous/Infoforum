@@ -10,7 +10,7 @@ export class ChatService {
     this.accessToken = accessToken;
 
     this.connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${API_BASE_URL}/hubs/chat`, {
+      .withUrl(`${API_BASE_URL}/chathub`, {
         accessTokenFactory: () => this.accessToken || '',
       })
       .withAutomaticReconnect()
