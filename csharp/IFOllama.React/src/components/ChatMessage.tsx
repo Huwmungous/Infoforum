@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeBlock } from './CodeBlock';
 import type { Message } from '../types';
 import './ChatMessage.scss';
 
@@ -54,13 +53,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 
                 if (match) {
                   return (
-                    <SyntaxHighlighter
-                      style={vscDarkPlus}
-                      language={match[1]}
-                      PreTag="div"
-                    >
-                      {codeString}
-                    </SyntaxHighlighter>
+                    <CodeBlock language={match[1]} code={codeString} />
                   );
                 }
                 

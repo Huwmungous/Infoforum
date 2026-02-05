@@ -9,10 +9,11 @@ const logo = new URL('/IF-Logo.png', import.meta.url).href;
 
 interface ChatProps {
   initialConversationId?: string;
+  conversationTitle?: string | null;
   onConversationCreated?: (id: string) => void;
 }
 
-export function Chat({ initialConversationId, onConversationCreated }: ChatProps) {
+export function Chat({ initialConversationId, conversationTitle, onConversationCreated }: ChatProps) {
   const [prompt, setPrompt] = useState('');
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolSelector, setShowToolSelector] = useState(false);
@@ -77,9 +78,11 @@ export function Chat({ initialConversationId, onConversationCreated }: ChatProps
         <div className="if-header-left">
           <img src={logo} alt="IF" className="if-logo-sm" />
           <h1 className="if-app-title">IFOllama</h1>
-          <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
-            {isConnected ? '● Connected' : '○ Disconnected'}
-          </span>
+          {conversationTitle && (
+            <span className="conversation-title" title={conversationTitle}>
+              {conversationTitle}
+            </span>
+          )}
         </div>
         <div className="if-header-right">
           <button

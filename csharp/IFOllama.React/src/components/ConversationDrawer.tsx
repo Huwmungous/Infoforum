@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@if/web-common-react';
 import { apiService } from '../services/apiService';
 import { ConversationList } from './ConversationList';
@@ -12,6 +12,13 @@ interface ConversationDrawerProps {
   selectedId: string | null;
   onNewChat: () => void;
   refreshKey: number;
+  onTitleChange?: (title: string | null) => void;
+}
+
+interface TooltipState {
+  text: string;
+  top: number;
+  left: number;
 }
 
 export function ConversationDrawer({
@@ -21,11 +28,13 @@ export function ConversationDrawer({
   selectedId,
   onNewChat,
   refreshKey,
+  onTitleChange,
 }: ConversationDrawerProps) {
   const auth = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const userId = auth.user?.profile?.sub;
 
@@ -49,6 +58,16 @@ export function ConversationDrawer({
     loadConversations();
   }, [userId, refreshKey]);
 
+  // Notify parent of current conversation title whenever selection or list changes
+  useEffect(() => {
+    if (!selectedId) {
+      onTitleChange?.(null);
+      return;
+    }
+    const match = conversations.find(c => c.id === selectedId);
+    onTitleChange?.(match?.title ?? null);
+  }, [selectedId, conversations]);
+
   const handleDelete = async (id: string) => {
     if (!userId) return;
 
@@ -63,6 +82,19 @@ export function ConversationDrawer({
       setError(message);
     }
   };
+
+  const showTooltip = useCallback((e: React.MouseEvent<HTMLButtonElement>, title: string) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      text: title,
+      top: rect.top + rect.height / 2,
+      left: rect.right + 10,
+    });
+  }, []);
+
+  const hideTooltip = useCallback(() => {
+    setTooltip(null);
+  }, []);
 
   return (
     <>
@@ -99,18 +131,29 @@ export function ConversationDrawer({
                   key={conv.id}
                   className={`rail-icon conversation-icon ${selectedId === conv.id ? 'selected' : ''}`}
                   onClick={() => onSelectConversation(conv.id)}
+                  onMouseEnter={(e) => showTooltip(e, conv.title)}
+                  onMouseLeave={hideTooltip}
                   aria-label={conv.title}
                 >
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                   </svg>
-                  <span className="rail-tooltip">{conv.title}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
       </aside>
+
+      {/* Fixed-position tooltip rendered outside scroll container */}
+      {tooltip && (
+        <div
+          className="rail-tooltip"
+          style={{ top: tooltip.top, left: tooltip.left }}
+        >
+          {tooltip.text}
+        </div>
+      )}
 
       <button
         className={`drawer-toggle ${isOpen ? 'open' : ''}`}

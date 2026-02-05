@@ -6,19 +6,17 @@
   background-color: var(--if-window-colour);
 }
 
-.connection-status {
-  font-size: 0.75rem;
-  padding: var(--if-space-xs) var(--if-space-sm);
-  border-radius: var(--if-radius-sm);
-  background-color: rgba(255, 255, 255, 0.1);
-
-  &.connected {
-    color: #28a745;
-  }
-
-  &.disconnected {
-    color: var(--if-hl-medium-colour);
-  }
+.conversation-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgba(245, 245, 245, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-left: var(--if-space-sm);
+  border-left: 1px solid rgba(245, 245, 245, 0.2);
 }
 
 .error-banner {

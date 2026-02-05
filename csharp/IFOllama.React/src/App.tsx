@@ -5,6 +5,7 @@ import { ConversationDrawer } from './components/ConversationDrawer';
 function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [conversationTitle, setConversationTitle] = useState<string | null>(null);
   const [chatKey, setChatKey] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -39,10 +40,12 @@ function App() {
         selectedId={selectedConversationId}
         onNewChat={handleNewChat}
         refreshKey={refreshKey}
+        onTitleChange={setConversationTitle}
       />
       <Chat
         key={chatKey}
         initialConversationId={selectedConversationId ?? undefined}
+        conversationTitle={conversationTitle}
         onConversationCreated={handleConversationCreated}
       />
     </div>

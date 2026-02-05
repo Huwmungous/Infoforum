@@ -30,8 +30,8 @@
 
 .conversation-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: var(--if-space-sm);
   padding: var(--if-space-sm) var(--if-space-md);
   cursor: pointer;
   border-bottom: 1px solid var(--if-window-colour);
@@ -46,22 +46,27 @@
     color: var(--if-paper-colour);
 
     .delete-button {
-      color: var(--if-paper-colour);
+      color: var(--if-hl-dark-colour);
     }
   }
 
   .title {
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.4;
+    padding-top: 2px;
   }
 
   .delete-button {
+    flex-shrink: 0;
     background: none;
     border: none;
     cursor: pointer;
     padding: var(--if-space-xs);
+    color: var(--if-hl-medium-colour);
     opacity: 0;
     transition: opacity var(--if-transition-fast);
   }

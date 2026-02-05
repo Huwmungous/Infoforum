@@ -52,6 +52,7 @@ $rail-width: 48px;
   position: relative;
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,27 +92,22 @@ $rail-width: 48px;
   }
 }
 
-// --- Tooltip ---
+// --- Tooltip (rendered as fixed-position element outside scroll container) ---
 
 .rail-tooltip {
-  position: absolute;
-  left: calc(100% + 8px);
-  top: 50%;
+  position: fixed;
   transform: translateY(-50%);
-  white-space: nowrap;
-  max-width: 220px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: var(--if-space-xs) var(--if-space-sm);
+  max-width: 450px;
+  width: max-content;
+  padding: var(--if-space-sm);
   background: var(--if-dark-colour);
   color: var(--if-window-colour);
   font-size: 0.8125rem;
+  line-height: 1.4;
   border-radius: var(--if-radius-sm);
   box-shadow: var(--if-shadow);
   pointer-events: none;
-  opacity: 0;
-  transition: opacity var(--if-transition-fast);
-  z-index: 60;
+  z-index: 200;
 
   // Small arrow pointing left
   &::before {
@@ -123,10 +119,6 @@ $rail-width: 48px;
     border: 5px solid transparent;
     border-right-color: var(--if-dark-colour);
   }
-}
-
-.rail-icon:hover .rail-tooltip {
-  opacity: 1;
 }
 
 // --- Toggle button ---

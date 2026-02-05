@@ -1,0 +1,55 @@
+.code-block {
+  position: relative;
+  margin: var(--if-space-sm) 0;
+  border-radius: var(--if-radius-md);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--if-space-xs) var(--if-space-sm);
+  background: #1e1e1e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.code-block-language {
+  font-family: var(--if-font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--if-hl-light-colour);
+}
+
+.code-block-actions {
+  display: flex;
+  gap: var(--if-space-xs);
+}
+
+.code-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--if-radius-sm);
+  color: var(--if-hl-light-colour);
+  cursor: pointer;
+  transition: background var(--if-transition-fast), color var(--if-transition-fast);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
