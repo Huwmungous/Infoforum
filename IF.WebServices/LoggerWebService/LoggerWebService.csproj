@@ -5,7 +5,6 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>if-icon.ico</ApplicationIcon>
-	<Configurations>DBG;Release;PRD;DEV;SIT;UAT</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
     <PackageReference Include="Npgsql" Version="10.0.1" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.12.27" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.12.34" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.1" />
   </ItemGroup>
 

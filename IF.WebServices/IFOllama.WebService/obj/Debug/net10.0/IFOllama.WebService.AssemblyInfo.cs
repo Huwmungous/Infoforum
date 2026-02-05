@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("IFOllama.WebService")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+de059d44a14cd32410d7928c1029ec4699ad9dc0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b3833ba3bde192bcd2fb9bb2b4b88f32cedff6a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("IFOllama.WebService")]
 [assembly: System.Reflection.AssemblyTitleAttribute("IFOllama.WebService")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
