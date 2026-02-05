@@ -16,7 +16,7 @@ REPO_ROOT="$HOME/repos/Infoforum/IF.WebServices"
 PROJECT_DIR="$REPO_ROOT/IFOllama.WebService"
 DEPLOY_ROOT="/srv/Infoforum/WebServices"
 DEPLOY_PATH="$DEPLOY_ROOT/$SERVER_NAME"
-OLLAMA_PORT=6020
+OLLAMA_PORT=5028
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -317,4 +317,3 @@ echo "  Quick test:"
 echo "    curl http://localhost:${OLLAMA_PORT}/Health"
 echo "    curl http://localhost:${OLLAMA_PORT}/swagger/index.html"
 echo ""
-echo "==========================================================="
