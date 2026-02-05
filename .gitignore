@@ -59,3 +59,7 @@ node_modules
 /ChitterChatter/Distribution/bin
 /IF.WebServices/ChitterChatterWebService/obj
 /IF.WebServices/ChitterChatterWebService/bin
+/IF.WebServices/IFOllama.WebService/obj
+/IF.WebServices/IFOllama.WebService/bin
+/IF.WebServices/IFOllama.Classes/obj
+/IF.WebServices/IFOllama.Classes/bin
