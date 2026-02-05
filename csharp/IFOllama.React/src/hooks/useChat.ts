@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useAuth } from 'react-oidc-context';
+import { useAuth } from '@if/web-common-react';
 import type { ISubscription } from '@microsoft/signalr';
 import { chatService } from '../services/chatService';
 import { apiService } from '../services/apiService';
@@ -24,7 +24,7 @@ interface UseChatResult {
 }
 
 export function useChat(options: UseChatOptions = {}): UseChatResult {
-  const { model = 'qwen2.5:32b', enabledTools = [] } = options;
+  const { model = 'qwen3-coder:latest', enabledTools = [] } = options;
   const auth = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,12 +51,15 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
   // Connect to SignalR when authenticated
   useEffect(() => {
     const connect = async () => {
-      if (auth.isAuthenticated && auth.user?.access_token) {
+      if (auth.isAuthenticated) {
         try {
-          apiService.setAccessToken(auth.user.access_token);
-          await chatService.connect(auth.user.access_token);
-          setIsConnected(true);
-          setError(null);
+          const token = await auth.getAccessToken();
+          if (token) {
+            apiService.setAccessToken(token);
+            await chatService.connect(token);
+            setIsConnected(true);
+            setError(null);
+          }
         } catch (err) {
           const message = err instanceof Error ? err.message : 'Failed to connect';
           setError(message);
@@ -75,7 +78,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       chatService.disconnect();
       setIsConnected(false);
     };
-  }, [auth.isAuthenticated, auth.user?.access_token]);
+  }, [auth.isAuthenticated]);
 
   const cancelStream = useCallback(() => {
     if (subscriptionRef.current) {
@@ -85,11 +88,16 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     }
   }, []);
 
+  const getUserId = (): string | undefined => {
+    return auth.user?.profile?.sub;
+  };
+
   const loadConversation = useCallback(async (id: string) => {
-    if (!auth.user?.profile?.sub) return;
+    const userId = getUserId();
+    if (!userId) return;
 
     try {
-      const msgs = await apiService.getMessages(id, auth.user.profile.sub);
+      const msgs = await apiService.getMessages(id, userId);
       setMessages(msgs.map(m => ({
         ...m,
         id: crypto.randomUUID(),
@@ -100,7 +108,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       const message = err instanceof Error ? err.message : 'Failed to load conversation';
       setError(message);
     }
-  }, [auth.user?.profile?.sub]);
+  }, [auth.user]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -109,9 +117,18 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
   }, []);
 
   const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || !auth.user?.profile?.sub) return;
+    const userId = getUserId();
+    if (!content.trim() || !userId) return;
 
-    const userId = auth.user.profile.sub;
+    // Refresh token before sending
+    try {
+      const token = await auth.getAccessToken();
+      if (token) {
+        apiService.setAccessToken(token);
+      }
+    } catch {
+      // Token refresh failed, continue with existing token
+    }
 
     // Create conversation if needed
     let currentConversationId = conversationId;
@@ -233,7 +250,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
         });
       }
     );
-  }, [auth.user?.profile?.sub, conversationId, messages, model, enabledTools]);
+  }, [auth, conversationId, messages, model, enabledTools]);
 
   return {
     messages,

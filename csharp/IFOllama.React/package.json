@@ -4,34 +4,41 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dbg": "vite --mode dbg",
+    "dev": "vite --mode dev",
     "build": "tsc -b && vite build",
+    "rebuild": "npm --prefix ../../if-web-common-react run rebuild && npm install && rimraf node_modules/.vite && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:fresh": "rimraf node_modules/.vite && vite"
   },
   "dependencies": {
+    "@if/styles": "file:../IF.Styles",
+    "@if/web-common": "file:../if-web-common",
+    "@if/web-common-react": "file:../../if-web-common-react",
     "@microsoft/signalr": "^8.0.7",
-    "oidc-client-ts": "^3.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "react-markdown": "^9.0.1",
-    "react-oidc-context": "^3.2.0",
-    "react-router-dom": "^7.1.1",
     "react-syntax-highlighter": "^15.6.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
-    "@types/react": "^19.0.2",
-    "@types/react-dom": "^19.0.2",
+    "@eslint/js": "^9.39.1",
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@types/react-syntax-highlighter": "^15.5.13",
-    "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.17.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.16",
-    "globals": "^15.14.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "autoprefixer": "^10.4.22",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "rimraf": "^5.0.5",
     "sass": "^1.83.0",
+    "tailwindcss": "^4.1.17",
     "typescript": "~5.6.2",
     "typescript-eslint": "^8.18.2",
-    "vite": "^6.0.5"
+    "vite": "^7.2.2"
   }
 }

@@ -9,8 +9,8 @@ export function ThinkingProgress({ active }: ThinkingProgressProps) {
 
   return (
     <div className="thinking-overlay">
-      <div className="thinking-content">
-        <div className="thinking-spinner"></div>
+      <div className="thinking-panel">
+        <div className="if-spinner"></div>
         <span>Thinking...</span>
       </div>
     </div>

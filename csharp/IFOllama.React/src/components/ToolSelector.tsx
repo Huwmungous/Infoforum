@@ -73,30 +73,35 @@ export function ToolSelector({ enabledTools, onToolsChange, onClose }: ToolSelec
   };
 
   return (
-    <div className="tool-selector-overlay" onClick={onClose}>
-      <div className="tool-selector" onClick={(e) => e.stopPropagation()}>
-        <div className="tool-selector-header">
+    <div className="if-modal-overlay" onClick={onClose}>
+      <div className="if-modal tool-selector" onClick={(e) => e.stopPropagation()}>
+        <div className="if-modal-header">
           <h3>MCP Tool Servers</h3>
-          <button className="close-button" onClick={onClose}>
+          <button className="if-btn if-btn-ghost if-btn-sm" onClick={onClose}>
             ✕
           </button>
         </div>
 
         <div className="tool-selector-actions">
-          <button className="button button-secondary" onClick={selectAll}>
+          <button className="if-btn if-btn-secondary if-btn-sm" onClick={selectAll}>
             Select All
           </button>
-          <button className="button button-secondary" onClick={selectNone}>
+          <button className="if-btn if-btn-secondary if-btn-sm" onClick={selectNone}>
             Select None
           </button>
         </div>
 
-        {loading && <div className="loading">Loading tools...</div>}
+        {loading && (
+          <div className="tool-selector-loading">
+            <div className="if-spinner"></div>
+            <span>Loading tools...</span>
+          </div>
+        )}
 
-        {error && <div className="error">{error}</div>}
+        {error && <div className="tool-selector-error">{error}</div>}
 
         {!loading && !error && (
-          <div className="server-list">
+          <div className="if-modal-body server-list">
             {servers.map((server) => (
               <label key={server.name} className="server-item">
                 <input
@@ -115,9 +120,9 @@ export function ToolSelector({ enabledTools, onToolsChange, onClose }: ToolSelec
           </div>
         )}
 
-        <div className="tool-selector-footer">
-          <span>{enabledTools.length} server(s) enabled</span>
-          <button className="button" onClick={onClose}>
+        <div className="if-modal-footer">
+          <span className="if-text-muted">{enabledTools.length} server(s) enabled</span>
+          <button className="if-btn if-btn-primary" onClick={onClose}>
             Done
           </button>
         </div>

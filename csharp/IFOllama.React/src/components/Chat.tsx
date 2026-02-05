@@ -5,6 +5,8 @@ import { ThinkingProgress } from './ThinkingProgress';
 import { ToolSelector } from './ToolSelector';
 import './Chat.scss';
 
+const logo = new URL('/IF-Logo.png', import.meta.url).href;
+
 interface ChatProps {
   initialConversationId?: string;
 }
@@ -64,25 +66,26 @@ export function Chat({ initialConversationId }: ChatProps) {
     <div className="chat-container">
       <ThinkingProgress active={isLoading} />
 
-      <div className="chat-header">
-        <div className="header-left">
-          <h1>IFOllama</h1>
+      <header className="if-header">
+        <div className="if-header-left">
+          <img src={logo} alt="IF" className="if-logo-sm" />
+          <h1 className="if-app-title">IFOllama</h1>
           <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
             {isConnected ? '● Connected' : '○ Disconnected'}
           </span>
         </div>
-        <div className="header-right">
+        <div className="if-header-right">
           <button
-            className="button button-secondary"
+            className="if-btn if-btn-secondary"
             onClick={() => setShowToolSelector(!showToolSelector)}
           >
             🔧 Tools ({enabledTools.length})
           </button>
-          <button className="button button-secondary" onClick={clearMessages}>
+          <button className="if-btn if-btn-secondary" onClick={clearMessages}>
             New Chat
           </button>
         </div>
-      </div>
+      </header>
 
       {showToolSelector && (
         <ToolSelector
@@ -101,6 +104,7 @@ export function Chat({ initialConversationId }: ChatProps) {
       <div className="messages-container" ref={chatContainerRef}>
         {messages.length === 0 ? (
           <div className="empty-state">
+            <img src={logo} alt="IF" className="empty-state-logo" />
             <h2>Welcome to IFOllama</h2>
             <p>Start a conversation by typing a message below.</p>
             {enabledTools.length > 0 && (
@@ -118,7 +122,7 @@ export function Chat({ initialConversationId }: ChatProps) {
 
       <form className="input-form" onSubmit={handleSubmit}>
         <textarea
-          className="prompt-input"
+          className="if-form-input prompt-input"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -128,7 +132,7 @@ export function Chat({ initialConversationId }: ChatProps) {
         />
         <button
           type="submit"
-          className="button send-button"
+          className="if-btn if-btn-primary send-button"
           disabled={!isConnected || isLoading || !prompt.trim()}
         >
           {isLoading ? 'Sending...' : 'Send'}

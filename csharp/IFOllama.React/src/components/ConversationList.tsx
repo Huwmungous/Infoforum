@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from 'react-oidc-context';
+import { useAuth } from '@if/web-common-react';
 import { apiService } from '../services/apiService';
 import type { Conversation } from '../types';
 import './ConversationList.scss';
@@ -60,7 +60,7 @@ export function ConversationList({ onSelectConversation, selectedId, onNewChat }
     <div className="conversation-list">
       <div className="list-header">
         <h3>Conversations</h3>
-        <button className="button" onClick={onNewChat}>
+        <button className="if-btn if-btn-primary if-btn-sm" onClick={onNewChat}>
           + New
         </button>
       </div>

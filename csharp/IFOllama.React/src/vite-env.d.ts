@@ -1,9 +1,10 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_API_URL: string;
-  readonly VITE_KEYCLOAK_REALM: string;
-  readonly VITE_KEYCLOAK_CLIENT_ID: string;
+  readonly VITE_IF_CONFIG_SERVICE_URL: string;
+  readonly VITE_IF_APP_DOMAIN: string;
+  readonly VITE_IF_APP_NAME: string;
+  readonly VITE_IF_ENVIRONMENT: string;
 }
 
 interface ImportMeta {
