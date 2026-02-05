@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.WebService", "IFOl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFOllama.Classes", "IFOllama.Classes\IFOllama.Classes.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFGlobal", "..\IFGlobal\IFGlobal.csproj", "{8236CDE0-BCDE-0D59-56A4-07EBC40CE6CE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebService", "..\..\IF.WebServices\SampleWebService\SampleWebService.csproj", "{342C2E67-E5CD-1B40-32BF-763381B9D7CE}"
 EndProject

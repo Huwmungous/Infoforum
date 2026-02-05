@@ -11,7 +11,7 @@ export default defineConfig({
         target: 'http://localhost:5028',
         changeOrigin: true,
       },
-      '/hubs': {
+      '/chathub': {
         target: 'http://localhost:5028',
         changeOrigin: true,
         ws: true,

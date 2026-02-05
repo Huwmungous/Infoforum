@@ -239,6 +239,24 @@ public static partial class ServiceFactory
                     ValidAudiences = ["account", configService.ClientId],
                     ClockSkew = TimeSpan.FromMinutes(2)
                 };
+
+                // SignalR sends the access token via query string for WebSocket
+                // and SSE transports (they can't set Authorization headers).
+                if(options.UseSignalR)
+                {
+                    jwtOptions.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            if(!string.IsNullOrEmpty(accessToken))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
+                }
             });
 
             builder.Services.AddAuthorization();

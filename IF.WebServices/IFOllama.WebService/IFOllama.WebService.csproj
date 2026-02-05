@@ -9,19 +9,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Remove="IFGlobal\**" />
-		<Compile Remove="IFOllama.Classes\**" />
-		<Content Remove="IFGlobal\**" />
-		<Content Remove="IFOllama.Classes\**" />
-		<EmbeddedResource Remove="IFGlobal\**" />
-		<EmbeddedResource Remove="IFOllama.Classes\**" />
-		<None Remove="IFGlobal\**" />
-		<None Remove="IFOllama.Classes\**" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<ProjectReference Include="..\..\csharp\IFGlobal\IFGlobal.csproj" />
-		<ProjectReference Include="..\IFOllama.Classes\IFOllama.Classes.csproj" />
+	  <ProjectReference Include="..\..\csharp\IFGlobal\IFGlobal.csproj" />
+	  <ProjectReference Include="..\IFOllama.Classes\IFOllama.Classes.csproj" />
 	</ItemGroup>
 
 </Project>

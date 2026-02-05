@@ -13,7 +13,7 @@ public class OllamaService(
     ILogger<OllamaService> logger,
     IConfiguration config)
 {
-    private readonly string _ollamaBaseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
+    private readonly string _ollamaBaseUrl = config["Ollama:BaseUrl"] ?? throw new InvalidOperationException("Ollama:BaseUrl not configured");
     private readonly string _defaultModel = config["Ollama:Model"] ?? "qwen2.5:32b";
 
     public async Task<string> ChatWithToolsAsync(

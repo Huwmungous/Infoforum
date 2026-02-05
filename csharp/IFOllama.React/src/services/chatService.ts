@@ -7,9 +7,16 @@ export class ChatService {
   private accessToken: string | null = null;
 
   async connect(accessToken: string): Promise<void> {
+    // Stop any existing connection first
+    if (this.connection) {
+      const old = this.connection;
+      this.connection = null;
+      await old.stop();
+    }
+
     this.accessToken = accessToken;
 
-    this.connection = new signalR.HubConnectionBuilder()
+    const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${API_BASE_URL}/chathub`, {
         accessTokenFactory: () => this.accessToken || '',
       })
@@ -17,26 +24,28 @@ export class ChatService {
       .configureLogging(signalR.LogLevel.Information)
       .build();
 
-    this.connection.onreconnecting((error) => {
+    connection.onreconnecting((error) => {
       console.log('SignalR reconnecting...', error);
     });
 
-    this.connection.onreconnected((connectionId) => {
+    connection.onreconnected((connectionId) => {
       console.log('SignalR reconnected:', connectionId);
     });
 
-    this.connection.onclose((error) => {
+    connection.onclose((error) => {
       console.log('SignalR connection closed:', error);
     });
 
-    await this.connection.start();
+    await connection.start();
+    this.connection = connection;
     console.log('SignalR connected');
   }
 
   async disconnect(): Promise<void> {
-    if (this.connection) {
-      await this.connection.stop();
-      this.connection = null;
+    const conn = this.connection;
+    this.connection = null;
+    if (conn) {
+      await conn.stop();
     }
   }
 
