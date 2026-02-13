@@ -74,9 +74,105 @@
 
 .input-form {
   display: flex;
+  flex-direction: column;
   gap: var(--if-space-sm);
   padding: var(--if-space-md);
   background-color: var(--if-paper-colour);
+}
+
+.input-row {
+  display: flex;
+  gap: var(--if-space-sm);
+  align-items: flex-end;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.attach-button {
+  flex-shrink: 0;
+  align-self: flex-end;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--if-medium-colour);
+  border-radius: var(--if-radius-md);
+  cursor: pointer;
+  color: var(--if-hl-medium-colour);
+  transition: all var(--if-transition-fast);
+  padding: 0;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--if-hl-medium-colour);
+    background: rgba(250, 119, 51, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.file-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--if-space-xs);
+}
+
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px var(--if-space-sm);
+  background: var(--if-window-colour);
+  border: 1px solid var(--if-medium-colour);
+  border-radius: var(--if-radius-sm);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--if-dark-colour);
+}
+
+.file-chip-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--if-hl-medium-colour);
+}
+
+.file-chip-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-chip-size {
+  color: var(--if-medium-colour);
+  font-size: 0.75rem;
+}
+
+.file-chip-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--if-hl-dark-colour);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 2px;
+  margin-left: 2px;
+
+  &:hover {
+    color: var(--if-dark-colour);
+  }
 }
 
 .prompt-input {
@@ -112,12 +208,18 @@
     }
   }
 
-  .input-form {
+  .input-row {
     flex-direction: column;
   }
 
   .send-button {
     width: 100%;
     align-self: stretch;
+  }
+
+  .attach-button {
+    width: 100%;
+    align-self: stretch;
+    height: 35px;
   }
 }

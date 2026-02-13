@@ -15,7 +15,8 @@ public class ChatHub(
     IConfiguration config,
     ILogger<ChatHub> logger,
     IConversationStore conversationStore,
-    McpRouterService mcpRouter) : Hub
+    McpRouterService mcpRouter,
+    OllamaService ollamaService) : Hub
 {
     private readonly string _ollamaBaseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
     private readonly string _defaultModel = config["Ollama:Model"] ?? "qwen2.5:32b";
@@ -29,6 +30,7 @@ public class ChatHub(
         string conversationId,
         string userId,
         List<string>? enabledTools = null,
+        string? attachmentsJson = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation("StreamChat called for conversation {ConversationId} with {ToolCount} enabled tools",
@@ -38,6 +40,12 @@ public class ChatHub(
 
         // Build messages for the model
         var messages = BuildMessagesForModel(history, enabledTools);
+
+        // Process file attachments if present
+        if (!string.IsNullOrWhiteSpace(attachmentsJson))
+        {
+            await ProcessAttachmentsForMessages(messages, attachmentsJson);
+        }
 
         // Get tools if any are enabled
         List<OllamaTool>? ollamaTools = null;
@@ -261,6 +269,40 @@ public class ChatHub(
         }
 
         return result.ToString();
+    }
+
+    private async Task ProcessAttachmentsForMessages(List<OllamaMessage> messages, string attachmentsJson)
+    {
+        try
+        {
+            var attachments = JsonSerializer.Deserialize<List<FileAttachment>>(attachmentsJson,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            if (attachments == null || attachments.Count == 0) return;
+
+            logger.LogInformation("Processing {Count} attachment(s) for streaming", attachments.Count);
+
+            var (images, combinedText) = await ollamaService.ProcessAttachmentsAsync(attachments);
+
+            // Find the last user message and augment it
+            var lastUserMessage = messages.LastOrDefault(m => m.Role == "user");
+            if (lastUserMessage != null)
+            {
+                if (!string.IsNullOrWhiteSpace(combinedText))
+                {
+                    lastUserMessage.Content += "\n\n" + combinedText;
+                }
+
+                if (images.Count > 0)
+                {
+                    lastUserMessage.Images = images;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to process attachments for streaming");
+        }
     }
 
     private static List<OllamaMessage> BuildMessagesForModel(

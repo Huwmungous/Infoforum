@@ -55,6 +55,7 @@ export class ChatService {
     conversationId: string,
     userId: string,
     enabledTools: string[] | null,
+    attachmentsJson: string | null,
     onToken: (token: string) => void,
     onComplete: () => void,
     onError: (error: string) => void
@@ -70,7 +71,8 @@ export class ChatService {
       history,
       conversationId,
       userId,
-      enabledTools
+      enabledTools,
+      attachmentsJson
     );
 
     const subscription = stream.subscribe({

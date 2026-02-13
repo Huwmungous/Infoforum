@@ -1,4 +1,4 @@
-import type { Conversation, Message, ToolDefinition } from '../types';
+import type { Conversation, Message, FileAttachment, ToolDefinition } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -55,6 +55,38 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify(message),
     });
+  }
+
+  async appendMessageWithFiles(
+    conversationId: string,
+    content: string,
+    files: File[],
+    userId: string
+  ): Promise<FileAttachment[]> {
+    const formData = new FormData();
+    formData.append('role', 'user');
+    formData.append('content', content);
+    for (const file of files) {
+      formData.append('files', file);
+    }
+
+    const headers: HeadersInit = {};
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/conversations/${conversationId}/messages/with-files?userId=${encodeURIComponent(userId)}`,
+      { method: 'POST', headers, body: formData }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error: ${response.status} - ${errorText}`);
+    }
+
+    const result = await response.json();
+    return result.attachments ?? [];
   }
 
   async deleteConversation(conversationId: string, userId: string): Promise<void> {

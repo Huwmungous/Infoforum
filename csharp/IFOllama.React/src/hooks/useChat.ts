@@ -3,7 +3,7 @@ import { useAuth } from '@if/web-common-react';
 import type { ISubscription } from '@microsoft/signalr';
 import { chatService } from '../services/chatService';
 import { apiService } from '../services/apiService';
-import type { Message } from '../types';
+import type { Message, FileAttachment } from '../types';
 
 interface UseChatOptions {
   model?: string;
@@ -17,7 +17,7 @@ interface UseChatResult {
   isConnected: boolean;
   error: string | null;
   conversationId: string | null;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, files?: File[]) => Promise<void>;
   setConversationId: (id: string | null) => void;
   clearMessages: () => void;
   loadConversation: (id: string) => Promise<void>;
@@ -119,7 +119,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     setError(null);
   }, []);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, files?: File[]) => {
     const userId = getUserId();
     if (!content.trim() || !userId) return;
 
@@ -150,24 +150,47 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       }
     }
 
-    // Add user message
+    // Save user message (with or without files) and get attachment metadata
+    let attachments: FileAttachment[] | undefined;
+
+    const hasFiles = files && files.length > 0;
+
+    if (hasFiles) {
+      try {
+        attachments = await apiService.appendMessageWithFiles(
+          currentConversationId, content, files, userId
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to upload files';
+        setError(message);
+        return;
+      }
+    } else {
+      const userMsg: Message = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        content,
+        timestamp: new Date(),
+      };
+      try {
+        await apiService.appendMessage(currentConversationId, userMsg, userId);
+      } catch (err) {
+        console.error('Failed to save user message:', err);
+      }
+    }
+
+    // Add user message to UI
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
       content,
       timestamp: new Date(),
+      attachments,
     };
 
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setError(null);
-
-    // Save user message
-    try {
-      await apiService.appendMessage(currentConversationId, userMessage, userId);
-    } catch (err) {
-      console.error('Failed to save user message:', err);
-    }
 
     // Prepare assistant message
     const assistantMessage: Message = {
@@ -188,6 +211,11 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     const history = messages.map(m => `${m.role}:${m.content}`);
     history.push(`user:${content}`);
 
+    // Serialize attachments for SignalR
+    const attachmentsJson = attachments && attachments.length > 0
+      ? JSON.stringify(attachments)
+      : null;
+
     // Cancel any existing subscription
     if (subscriptionRef.current) {
       subscriptionRef.current.dispose();
@@ -199,6 +227,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       currentConversationId,
       userId,
       enabledTools.length > 0 ? enabledTools : null,
+      attachmentsJson,
       // onToken
       (token: string) => {
         let processedToken = token;

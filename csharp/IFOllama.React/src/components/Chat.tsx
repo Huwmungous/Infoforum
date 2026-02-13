@@ -18,7 +18,9 @@ export function Chat({ initialConversationId, conversationTitle, onConversationC
   const [prompt, setPrompt] = useState('');
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolSelector, setShowToolSelector] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     messages,
@@ -56,8 +58,11 @@ export function Chat({ initialConversationId, conversationTitle, onConversationC
     if (!prompt.trim() || isLoading) return;
 
     const messageText = prompt;
+    const files = selectedFiles.length > 0 ? [...selectedFiles] : undefined;
     setPrompt('');
-    await sendMessage(messageText);
+    setSelectedFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    await sendMessage(messageText, files);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -65,6 +70,23 @@ export function Chat({ initialConversationId, conversationTitle, onConversationC
       e.preventDefault();
       handleSubmit(e as unknown as FormEvent);
     }
+  };
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   const handleToolsChange = (tools: string[]) => {
@@ -129,22 +151,64 @@ export function Chat({ initialConversationId, conversationTitle, onConversationC
       </div>
 
       <form className="input-form" onSubmit={handleSubmit}>
-        <textarea
-          className="if-form-input prompt-input"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={isConnected ? "Type your message... (Enter to send, Shift+Enter for new line)" : "Connecting..."}
-          disabled={!isConnected || isLoading}
-          rows={3}
-        />
-        <button
-          type="submit"
-          className="if-btn if-btn-primary send-button"
-          disabled={!isConnected || isLoading || !prompt.trim()}
-        >
-          {isLoading ? 'Sending...' : 'Send'}
-        </button>
+        {selectedFiles.length > 0 && (
+          <div className="file-chips">
+            {selectedFiles.map((file, index) => (
+              <span key={`${file.name}-${index}`} className="file-chip">
+                <svg className="file-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                </svg>
+                <span className="file-chip-name">{file.name}</span>
+                <span className="file-chip-size">({formatFileSize(file.size)})</span>
+                <button
+                  type="button"
+                  className="file-chip-remove"
+                  onClick={() => removeFile(index)}
+                  title="Remove file"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="input-row">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="file-input-hidden"
+            onChange={handleFilesSelected}
+            accept=".txt,.md,.cs,.ts,.tsx,.js,.jsx,.json,.xml,.csv,.log,.py,.java,.cpp,.c,.h,.css,.scss,.html,.sql,.sh,.yml,.yaml,.zip"
+          />
+          <button
+            type="button"
+            className="attach-button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!isConnected || isLoading}
+            title="Attach files"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+            </svg>
+          </button>
+          <textarea
+            className="if-form-input prompt-input"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={isConnected ? "Type your message... (Enter to send, Shift+Enter for new line)" : "Connecting..."}
+            disabled={!isConnected || isLoading}
+            rows={3}
+          />
+          <button
+            type="submit"
+            className="if-btn if-btn-primary send-button"
+            disabled={!isConnected || isLoading || !prompt.trim()}
+          >
+            {isLoading ? 'Sending...' : 'Send'}
+          </button>
+        </div>
       </form>
 
       {conversationId && (
