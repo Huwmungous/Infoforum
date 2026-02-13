@@ -42,7 +42,7 @@ public class BaseRepository : IBaseRepository
         get => _transaction;
         set
         {
-            if (value != _transaction)
+            if(value != _transaction)
                 _transaction = value;
         }
     }
@@ -52,7 +52,7 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<NpgsqlConnection> GetConnectionAsync(CancellationToken ct = default)
     {
-        if (_transaction is not null)
+        if(_transaction is not null)
             return _transaction.Connection!;
 
         var connection = new NpgsqlConnection(_connectionString);
@@ -61,17 +61,22 @@ public class BaseRepository : IBaseRepository
     }
 
     /// <summary>
-    /// Creates and opens a new connection synchronously.
+    /// Creates and returns a new unopened connection, or returns the transaction's connection if set.
+    /// The caller is responsible for opening and disposing the connection.
     /// </summary>
     public NpgsqlConnection GetConnection()
     {
-        if (_transaction is not null)
+        if(_transaction is not null)
             return _transaction.Connection!;
 
-        var connection = new NpgsqlConnection(_connectionString);
-        connection.Open();
-        return connection;
+        return new NpgsqlConnection(_connectionString);
     }
+
+    /// <summary>
+    /// Returns true if the caller should dispose the connection (i.e., no active transaction).
+    /// When in a transaction, the connection is owned by the transaction.
+    /// </summary>
+    protected bool ShouldDisposeConnection => _transaction is null;
 
     /// <summary>
     /// Executes a query and maps results using the provided mapper function.
@@ -81,10 +86,17 @@ public class BaseRepository : IBaseRepository
         Func<DbDataReader, T?> mapper,
         CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
-        await using var command = new NpgsqlCommand(sql, connection);
-
-        return await ReadResultsAsync(command, mapper, ct);
+        var connection = await GetConnectionAsync(ct);
+        try
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            return await ReadResultsAsync(command, mapper, ct);
+        }
+        finally
+        {
+            if(ShouldDisposeConnection)
+                await connection.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -96,12 +108,18 @@ public class BaseRepository : IBaseRepository
         Func<DbDataReader, T?> mapper,
         CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
-        await using var command = new NpgsqlCommand(sql, connection);
-
-        configureParameters(command.Parameters);
-
-        return await ReadResultsAsync(command, mapper, ct);
+        var connection = await GetConnectionAsync(ct);
+        try
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            configureParameters(command.Parameters);
+            return await ReadResultsAsync(command, mapper, ct);
+        }
+        finally
+        {
+            if(ShouldDisposeConnection)
+                await connection.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -109,11 +127,18 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<T?> ExecuteScalarAsync<T>(string sql, CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
-        await using var command = new NpgsqlCommand(sql, connection);
-
-        var result = await command.ExecuteScalarAsync(ct);
-        return result is DBNull or null ? default : (T)Convert.ChangeType(result, typeof(T));
+        var connection = await GetConnectionAsync(ct);
+        try
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            var result = await command.ExecuteScalarAsync(ct);
+            return result is DBNull or null ? default : (T)Convert.ChangeType(result, typeof(T));
+        }
+        finally
+        {
+            if(ShouldDisposeConnection)
+                await connection.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -124,13 +149,19 @@ public class BaseRepository : IBaseRepository
         Action<NpgsqlParameterCollection> configureParameters,
         CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
-        await using var command = new NpgsqlCommand(sql, connection);
-
-        configureParameters(command.Parameters);
-
-        var result = await command.ExecuteScalarAsync(ct);
-        return result is DBNull or null ? default : (T)Convert.ChangeType(result, typeof(T));
+        var connection = await GetConnectionAsync(ct);
+        try
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            configureParameters(command.Parameters);
+            var result = await command.ExecuteScalarAsync(ct);
+            return result is DBNull or null ? default : (T)Convert.ChangeType(result, typeof(T));
+        }
+        finally
+        {
+            if(ShouldDisposeConnection)
+                await connection.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -138,10 +169,17 @@ public class BaseRepository : IBaseRepository
     /// </summary>
     protected async Task<int> ExecuteNonQueryAsync(string sql, CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
-        await using var command = new NpgsqlCommand(sql, connection);
-
-        return await command.ExecuteNonQueryAsync(ct);
+        var connection = await GetConnectionAsync(ct);
+        try
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            return await command.ExecuteNonQueryAsync(ct);
+        }
+        finally
+        {
+            if(ShouldDisposeConnection)
+                await connection.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -152,12 +190,18 @@ public class BaseRepository : IBaseRepository
         Action<NpgsqlParameterCollection> configureParameters,
         CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
-        await using var command = new NpgsqlCommand(sql, connection);
-
-        configureParameters(command.Parameters);
-
-        return await command.ExecuteNonQueryAsync(ct);
+        var connection = await GetConnectionAsync(ct);
+        try
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            configureParameters(command.Parameters);
+            return await command.ExecuteNonQueryAsync(ct);
+        }
+        finally
+        {
+            if(ShouldDisposeConnection)
+                await connection.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -181,7 +225,8 @@ public class BaseRepository : IBaseRepository
         Func<NpgsqlTransaction, Task> operations,
         CancellationToken ct = default)
     {
-        await using var connection = await GetConnectionAsync(ct);
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync(ct);
         await using var transaction = await connection.BeginTransactionAsync(ct);
 
         try
@@ -211,13 +256,14 @@ public class BaseRepository : IBaseRepository
         CancellationToken ct = default)
     {
         // If already in a transaction, just execute the operation
-        if (_transaction != null)
+        if(_transaction != null)
         {
             return await operation();
         }
 
         // Create a new transaction scope
-        await using var connection = await GetConnectionAsync(ct);
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync(ct);
         await using var transaction = await connection.BeginTransactionAsync(ct);
 
         var previousTransaction = _transaction;
@@ -252,14 +298,15 @@ public class BaseRepository : IBaseRepository
         CancellationToken ct = default)
     {
         // If already in a transaction, just execute the operation
-        if (_transaction != null)
+        if(_transaction != null)
         {
             await operation();
             return;
         }
 
         // Create a new transaction scope
-        await using var connection = await GetConnectionAsync(ct);
+        await using var connection = new NpgsqlConnection(_connectionString);
+        await connection.OpenAsync(ct);
         await using var transaction = await connection.BeginTransactionAsync(ct);
 
         var previousTransaction = _transaction;
@@ -283,14 +330,37 @@ public class BaseRepository : IBaseRepository
 
     /// <summary>
     /// Opens a synchronous query reader.
+    /// 
+    /// When not in a transaction, uses CommandBehavior.CloseConnection so the
+    /// underlying connection is automatically closed when the reader is disposed.
+    /// 
+    /// Usage:
+    ///   using var reader = repo.OpenQuery("SELECT ...");
+    ///   while (reader.Read()) { ... }
+    ///   // Connection is closed automatically when reader is disposed
     /// </summary>
     public NpgsqlDataReader OpenQuery(string sql)
     {
-        var connection = GetConnection();
+        // When in a transaction, use the transaction's connection (don't auto-close it)
+        if(_transaction is not null)
+        {
+            var txCommand = _transaction.Connection!.CreateCommand();
+            txCommand.CommandText = sql;
+            txCommand.CommandType = CommandType.Text;
+            txCommand.Transaction = _transaction;
+            return txCommand.ExecuteReader();
+        }
+
+        // No transaction: create a new connection and use CloseConnection behaviour
+        // so the connection is closed when the reader is disposed.
+        // This fixes the original which leaked both the command and connection.
+        var connection = new NpgsqlConnection(_connectionString);
+        connection.Open();
+
         var command = connection.CreateCommand();
         command.CommandText = sql;
         command.CommandType = CommandType.Text;
-        return command.ExecuteReader();
+        return command.ExecuteReader(CommandBehavior.CloseConnection);
     }
 
     private static async Task<List<T>> ReadResultsAsync<T>(
@@ -302,10 +372,10 @@ public class BaseRepository : IBaseRepository
 
         await using var reader = await command.ExecuteReaderAsync(ct);
 
-        while (await reader.ReadAsync(ct))
+        while(await reader.ReadAsync(ct))
         {
             var item = mapper(reader);
-            if (item is not null)
+            if(item is not null)
                 results.Add(item);
         }
 

@@ -18,4 +18,10 @@
   gap: var(--if-space-md);
   color: var(--if-window-colour);
   font-size: 1rem;
+
+  .thinking-gif {
+    width: 160px;
+    height: 160px;
+    border-radius: var(--if-border-radius);
+  }
 }

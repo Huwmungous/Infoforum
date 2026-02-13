@@ -10,7 +10,7 @@ export function ThinkingProgress({ active }: ThinkingProgressProps) {
   return (
     <div className="thinking-overlay">
       <div className="thinking-panel">
-        <div className="if-spinner"></div>
+        <img src={`${import.meta.env.BASE_URL}ai_thinking.gif`} alt="Thinking..." className="thinking-gif" />
         <span>Thinking...</span>
       </div>
     </div>

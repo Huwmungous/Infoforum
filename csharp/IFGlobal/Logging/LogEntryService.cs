@@ -10,6 +10,18 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
     private readonly string _connectionString = dbConfig.ToString();
     private readonly ILogger<LogEntryService> _logger = logger;
 
+    /// <summary>
+    /// Known safe field names that can appear in log_data JSON.
+    /// Used to validate filter fields and prevent SQL injection.
+    /// </summary>
+    private static readonly HashSet<string> KnownLogFields = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "level", "category", "message", "text", "exception",
+        "clientId", "application", "environment", "machineName",
+        "serviceName", "port", "hostname", "buildConfiguration",
+        "timestamp", "eventType"
+    };
+
     public async Task<int> AddLogEntryAsync(LogEntryRequest logEntry)
     {
 
@@ -146,6 +158,9 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
         return null;
     }
 
+    // FIX 5: Added OFFSET @offset to the SQL query. The original declared the
+    // parameter but never referenced it, so pagination beyond page 1 always
+    // returned the same results.
     public async Task<List<LogEntryResponse>> GetLogEntriesAsync(int limit, int offset)
     {
         var results = new List<LogEntryResponse>();
@@ -159,7 +174,7 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
                   SELECT idx, realm, client, log_data, created_at, environment, application, log_level
                   FROM log_entries
                   ORDER BY idx DESC
-                  LIMIT @limit
+                  LIMIT @limit OFFSET @offset
                 ) t
                 ORDER BY idx ASC;",
             connection);
@@ -630,11 +645,58 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
 
     // ============ HELPER METHODS ============
 
+    /// <summary>
+    /// Validates that a field name is safe for use in SQL.
+    /// Only allows alphanumeric characters, underscores, and hyphens.
+    /// This prevents SQL injection via the filter.Field property which
+    /// is interpolated into the jsonb field accessor expression.
+    /// </summary>
+    private static bool IsValidFieldName(string field)
+    {
+        return !string.IsNullOrEmpty(field)
+            && field.Length <= 64
+            && field.All(c => char.IsLetterOrDigit(c) || c == '_' || c == '-');
+    }
+
+    /// <summary>
+    /// Escapes LIKE/ILIKE pattern metacharacters in user input.
+    /// Without this, characters like % and _ in search terms are
+    /// interpreted as wildcards rather than literal characters.
+    /// </summary>
+    private static string EscapeLikePattern(string input)
+    {
+        return input
+            .Replace(@"\", @"\\")
+            .Replace("%", @"\%")
+            .Replace("_", @"\_");
+    }
+
+    // FIX 4: Validates filter.Field before interpolating into SQL.
+    //
+    // The original code did:
+    //     var fieldAccessor = $"log_data->>'{filter.Field}'";
+    //
+    // Since filter.Field comes from the HTTP request body, an attacker could
+    // inject arbitrary SQL. For example:
+    //     { "field": "x'; DROP TABLE log_entries; --" }
+    //
+    // The fix validates that field names contain only safe characters before
+    // interpolation.
+    //
+    // FIX 4b: LIKE/ILIKE operators now escape % and _ in user values.
+    // Without this, searching for "100%" would match "100" + any character.
     private static string BuildFilterClause(
         FilterCondition filter,
         ref int paramIndex,
         List<NpgsqlParameter> parameters)
     {
+        // Validate the field name to prevent SQL injection
+        if(!IsValidFieldName(filter.Field))
+        {
+            return string.Empty;
+        }
+
+        // Safe because we validated the field name above
         var fieldAccessor = $"log_data->>'{filter.Field}'";
 
         switch(filter.Operator)
@@ -656,28 +718,32 @@ public partial class LogEntryService(PGConnectionConfig dbConfig, ILogger<LogEnt
             case FilterOperator.Contains:
                 {
                     var paramName = $"@p{paramIndex++}";
-                    parameters.Add(new NpgsqlParameter(paramName, $"%{filter.Value}%"));
+                    var escapedValue = EscapeLikePattern(filter.Value ?? string.Empty);
+                    parameters.Add(new NpgsqlParameter(paramName, $"%{escapedValue}%"));
                     return $"{fieldAccessor} ILIKE {paramName}";
                 }
 
             case FilterOperator.NotContains:
                 {
                     var paramName = $"@p{paramIndex++}";
-                    parameters.Add(new NpgsqlParameter(paramName, $"%{filter.Value}%"));
+                    var escapedValue = EscapeLikePattern(filter.Value ?? string.Empty);
+                    parameters.Add(new NpgsqlParameter(paramName, $"%{escapedValue}%"));
                     return $"{fieldAccessor} NOT ILIKE {paramName}";
                 }
 
             case FilterOperator.StartsWith:
                 {
                     var paramName = $"@p{paramIndex++}";
-                    parameters.Add(new NpgsqlParameter(paramName, $"{filter.Value}%"));
+                    var escapedValue = EscapeLikePattern(filter.Value ?? string.Empty);
+                    parameters.Add(new NpgsqlParameter(paramName, $"{escapedValue}%"));
                     return $"{fieldAccessor} ILIKE {paramName}";
                 }
 
             case FilterOperator.EndsWith:
                 {
                     var paramName = $"@p{paramIndex++}";
-                    parameters.Add(new NpgsqlParameter(paramName, $"%{filter.Value}"));
+                    var escapedValue = EscapeLikePattern(filter.Value ?? string.Empty);
+                    parameters.Add(new NpgsqlParameter(paramName, $"%{escapedValue}"));
                     return $"{fieldAccessor} ILIKE {paramName}";
                 }
 
