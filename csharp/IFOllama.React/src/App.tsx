@@ -31,6 +31,10 @@ function App() {
     setRefreshKey(prev => prev + 1);
   }, []);
 
+  const handleTitleGenerated = useCallback(() => {
+    setRefreshKey(prev => prev + 1);
+  }, []);
+
   return (
     <div className={`if-app-container app-layout ${drawerOpen ? 'drawer-open' : ''}`}>
       <ConversationDrawer
@@ -47,6 +51,7 @@ function App() {
         initialConversationId={selectedConversationId ?? undefined}
         conversationTitle={conversationTitle}
         onConversationCreated={handleConversationCreated}
+        onTitleGenerated={handleTitleGenerated}
       />
     </div>
   );

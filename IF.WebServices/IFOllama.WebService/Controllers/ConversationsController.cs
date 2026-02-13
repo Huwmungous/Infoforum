@@ -12,6 +12,7 @@ namespace IFOllama.WebService.Controllers;
 public class ConversationsController(
     IConversationStore store,
     FileStorageService fileStorage,
+    OllamaService ollamaService,
     ILogger<ConversationsController> logger) : ControllerBase
 {
     /// <summary>
@@ -154,6 +155,47 @@ public class ConversationsController(
         catch (FileNotFoundException)
         {
             return NotFound(new { error = "File not found on disk" });
+        }
+    }
+
+    /// <summary>
+    /// Updates the title of a conversation.
+    /// </summary>
+    [HttpPatch("{id}/title")]
+    public async Task<IActionResult> UpdateTitle(string id, [FromBody] string title, [FromQuery] string userId)
+    {
+        if (!await store.OwnsConversationAsync(id, userId))
+            return Forbid();
+
+        if (string.IsNullOrWhiteSpace(title))
+            return BadRequest(new { error = "title is required" });
+
+        await store.UpdateTitleAsync(id, title.Trim(), userId);
+        return Ok(new { title = title.Trim() });
+    }
+
+    /// <summary>
+    /// Generates an AI summary title for a conversation based on the user's first message.
+    /// </summary>
+    [HttpPost("{id}/generate-title")]
+    public async Task<IActionResult> GenerateTitle(string id, [FromBody] string userMessage, [FromQuery] string userId)
+    {
+        if (!await store.OwnsConversationAsync(id, userId))
+            return Forbid();
+
+        if (string.IsNullOrWhiteSpace(userMessage))
+            return BadRequest(new { error = "userMessage is required" });
+
+        try
+        {
+            var title = await ollamaService.GenerateTitleAsync(userMessage);
+            await store.UpdateTitleAsync(id, title, userId);
+            return Ok(new { title });
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to generate title for conversation {Id}", id);
+            return StatusCode(500, new { error = "Failed to generate title" });
         }
     }
 

@@ -116,6 +116,24 @@ public class ConversationStore : IConversationStore
         );
     }
 
+    public async Task UpdateTitleAsync(string conversationId, string newTitle, string userId)
+    {
+        var metaPath = Path.Combine(_conversationsPath, conversationId, "meta.json");
+        if (!File.Exists(metaPath))
+            throw new FileNotFoundException($"Conversation {conversationId} not found");
+
+        var meta = JsonSerializer.Deserialize<ConversationListItem>(
+            await File.ReadAllTextAsync(metaPath));
+
+        if (meta?.UserId != userId)
+            throw new UnauthorizedAccessException();
+
+        var updated = new ConversationListItem(meta.Id, newTitle, meta.UserId);
+        await File.WriteAllTextAsync(metaPath, JsonSerializer.Serialize(updated));
+
+        _logger.LogInformation("Updated title for conversation {Id}: {Title}", conversationId, newTitle);
+    }
+
     public async Task RemoveAsync(string conversationId, string userId)
     {
         var metaPath = Path.Combine(_conversationsPath, conversationId, "meta.json");

@@ -8,10 +8,10 @@ $rail-width: 48px;
   height: 100vh;
   z-index: 50;
   transition: width var(--if-transition-normal);
+  box-shadow: 4px 0 16px rgba(11, 33, 68, 0.2);
 
   &.open {
     width: $drawer-width;
-    box-shadow: 4px 0 16px rgba(11, 33, 68, 0.2);
   }
 
   &.closed {
@@ -27,15 +27,11 @@ $rail-width: 48px;
   height: 100%;
   width: $rail-width;
   background: var(--if-paper-colour);
-  border-right: 1px solid var(--if-medium-colour);
 }
 
 .rail-header {
-  display: flex;
   justify-content: center;
   padding: var(--if-space-sm) 0;
-  background: #333;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .rail-conversations {
@@ -69,11 +65,11 @@ $rail-width: 48px;
 }
 
 .new-chat-icon {
-  background: var(--if-light-colour);
-  color: var(--if-paper-colour);
+  background: var(--if-hl-medium-colour);
+  color: white;
 
   &:hover {
-    background: var(--if-medium-colour);
+    background: var(--if-hl-dark-colour);
   }
 }
 

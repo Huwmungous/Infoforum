@@ -19,6 +19,9 @@ public interface IConversationStore
     /// <summary>Appends a single message to a conversation.</summary>
     Task AppendMessageAsync(string conversationId, Message message, string userId);
 
+    /// <summary>Updates the title of a conversation.</summary>
+    Task UpdateTitleAsync(string conversationId, string newTitle, string userId);
+
     /// <summary>Removes a conversation and all its data.</summary>
     Task RemoveAsync(string conversationId, string userId);
 

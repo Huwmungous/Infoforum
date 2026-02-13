@@ -64,3 +64,4 @@ node_modules
 /IF.WebServices/IFOllama.Classes/obj
 /IF.WebServices/IFOllama.Classes/bin
 /csharp/IFOllama.React/package-lock.json
+/csharp/IFOllama.React/dist

@@ -63,6 +63,28 @@ class ApiService {
     });
   }
 
+  async generateTitle(conversationId: string, userMessage: string, userId: string): Promise<string> {
+    const result = await this.fetch<{ title: string }>(
+      `/api/conversations/${conversationId}/generate-title?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(userMessage),
+      }
+    );
+    return result.title;
+  }
+
+  async updateTitle(conversationId: string, title: string, userId: string): Promise<string> {
+    const result = await this.fetch<{ title: string }>(
+      `/api/conversations/${conversationId}/title?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(title),
+      }
+    );
+    return result.title;
+  }
+
   // MCP Tools
   async getTools(): Promise<{ tools: ToolDefinition[]; count: number }> {
     return this.fetch<{ tools: ToolDefinition[]; count: number }>('/api/mcp/tools');

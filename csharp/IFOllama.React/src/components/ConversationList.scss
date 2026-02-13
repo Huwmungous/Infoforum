@@ -3,21 +3,11 @@
   flex-direction: column;
   height: 100%;
   background-color: var(--if-paper-colour);
-  border-right: 1px solid var(--if-medium-colour);
 }
 
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--if-space-md);
-  background-color: #333;
-  color: var(--if-window-colour);
-
-  h3 {
-    margin: 0;
-    font-weight: 500;
-  }
+.if-sidebar-header h3 {
+  margin: 0;
+  font-weight: 500;
 }
 
 .conversations {
@@ -44,10 +34,6 @@
   &.selected {
     background-color: var(--if-light-colour);
     color: var(--if-paper-colour);
-
-    .delete-button {
-      color: var(--if-hl-dark-colour);
-    }
   }
 
   .title {
@@ -60,19 +46,58 @@
     padding-top: 2px;
   }
 
-  .delete-button {
+  .title-edit-input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: inherit;
+    line-height: 1.4;
+    padding: 2px var(--if-space-xs);
+    border: 1px solid var(--if-hl-medium-colour);
+    border-radius: 3px;
+    background-color: var(--if-paper-colour);
+    color: inherit;
+    outline: none;
+
+    &:focus {
+      border-color: var(--if-hl-light-colour);
+    }
+  }
+
+  .action-buttons {
+    display: flex;
     flex-shrink: 0;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity var(--if-transition-fast);
+  }
+
+  &:hover .action-buttons {
+    opacity: 1;
+  }
+
+  .action-button {
     background: none;
     border: none;
     cursor: pointer;
     padding: var(--if-space-xs);
     color: var(--if-hl-medium-colour);
-    opacity: 0;
-    transition: opacity var(--if-transition-fast);
+    line-height: 1;
+    transition: color var(--if-transition-fast);
+
+    svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+
+    &:hover {
+      color: var(--if-hl-dark-colour);
+    }
   }
 
-  &:hover .delete-button {
-    opacity: 1;
+  &.selected .action-button {
+    color: var(--if-hl-dark-colour);
   }
 }
 

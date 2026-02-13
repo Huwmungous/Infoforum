@@ -8,6 +8,7 @@ import type { Message } from '../types';
 interface UseChatOptions {
   model?: string;
   enabledTools?: string[];
+  onTitleGenerated?: () => void;
 }
 
 interface UseChatResult {
@@ -24,7 +25,7 @@ interface UseChatResult {
 }
 
 export function useChat(options: UseChatOptions = {}): UseChatResult {
-  const { model = 'qwen3-coder:latest', enabledTools = [] } = options;
+  const { model = 'qwen3-coder:latest', enabledTools = [], onTitleGenerated } = options;
   const auth = useAuth();
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -37,6 +38,8 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
   const thinkBufferRef = useRef('');
   const insideThinkRef = useRef(false);
   const subscriptionRef = useRef<ISubscription<string> | null>(null);
+  const isNewConversationRef = useRef(false);
+  const firstMessageRef = useRef<string | null>(null);
 
   // Cleanup subscription on unmount
   useEffect(() => {
@@ -138,6 +141,8 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
         const conv = await apiService.createConversation(title, userId);
         currentConversationId = conv.id;
         setConversationId(currentConversationId);
+        isNewConversationRef.current = true;
+        firstMessageRef.current = content;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to create conversation';
         setError(message);
@@ -231,6 +236,21 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       () => {
         subscriptionRef.current = null;
         setIsLoading(false);
+
+        // Generate AI title for new conversations
+        if (isNewConversationRef.current && firstMessageRef.current && currentConversationId) {
+          isNewConversationRef.current = false;
+          const msg = firstMessageRef.current;
+          firstMessageRef.current = null;
+
+          apiService.generateTitle(currentConversationId, msg, userId)
+            .then(() => {
+              onTitleGenerated?.();
+            })
+            .catch((err) => {
+              console.error('Failed to generate title:', err);
+            });
+        }
       },
       // onError
       (errorMsg: string) => {
@@ -250,7 +270,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
         });
       }
     );
-  }, [auth, conversationId, messages, model, enabledTools]);
+  }, [auth, conversationId, messages, model, enabledTools, onTitleGenerated]);
 
   return {
     messages,

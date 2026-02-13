@@ -16,6 +16,66 @@ public class OllamaService(
     private readonly string _ollamaBaseUrl = config["Ollama:BaseUrl"] ?? throw new InvalidOperationException("Ollama:BaseUrl not configured");
     private readonly string _defaultModel = config["Ollama:Model"] ?? "qwen2.5:32b";
 
+    public async Task<string> GenerateTitleAsync(string userMessage, string? model = null)
+    {
+        model ??= _defaultModel;
+
+        var messages = new List<OllamaMessage>
+        {
+            new()
+            {
+                Role = "system",
+                Content = "You are a title generator. Given a user's message, generate a short, descriptive title (maximum 8 words) that summarises the topic. Respond with ONLY the title, no quotes, no punctuation at the end, no explanation."
+            },
+            new()
+            {
+                Role = "user",
+                Content = userMessage
+            }
+        };
+
+        var request = new OllamaChatRequest
+        {
+            Model = model,
+            Messages = messages,
+            Stream = false
+        };
+
+        logger.LogInformation("Generating title for conversation using model {Model}", model);
+
+        var response = await httpClient.PostAsJsonAsync($"{_ollamaBaseUrl}/api/chat", request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            logger.LogError("Ollama title generation error: {Error}", error);
+            throw new InvalidOperationException($"Ollama API error: {error}");
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<OllamaChatResponse>();
+        var title = result?.Message?.Content?.Trim() ?? userMessage[..Math.Min(50, userMessage.Length)];
+
+        // Strip any <think>...</think> blocks from the title
+        var thinkPattern = new System.Text.RegularExpressions.Regex(@"<think>[\s\S]*?</think>");
+        title = thinkPattern.Replace(title, "").Trim();
+
+        // Clean up: remove surrounding quotes if present
+        if ((title.StartsWith('"') && title.EndsWith('"')) ||
+            (title.StartsWith('\'') && title.EndsWith('\'')))
+        {
+            title = title[1..^1];
+        }
+
+        // Ensure it's not too long
+        if (title.Length > 80)
+        {
+            title = title[..77] + "...";
+        }
+
+        logger.LogInformation("Generated title: {Title}", title);
+        return title;
+    }
+
     public async Task<string> ChatWithToolsAsync(
         string userMessage,
         List<OllamaMessage> history,

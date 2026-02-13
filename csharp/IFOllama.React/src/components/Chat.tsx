@@ -11,9 +11,10 @@ interface ChatProps {
   initialConversationId?: string;
   conversationTitle?: string | null;
   onConversationCreated?: (id: string) => void;
+  onTitleGenerated?: () => void;
 }
 
-export function Chat({ initialConversationId, conversationTitle, onConversationCreated }: ChatProps) {
+export function Chat({ initialConversationId, conversationTitle, onConversationCreated, onTitleGenerated }: ChatProps) {
   const [prompt, setPrompt] = useState('');
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolSelector, setShowToolSelector] = useState(false);
@@ -27,7 +28,7 @@ export function Chat({ initialConversationId, conversationTitle, onConversationC
     conversationId,
     sendMessage,
     loadConversation,
-  } = useChat({ enabledTools });
+  } = useChat({ enabledTools, onTitleGenerated });
 
   // Load initial conversation if provided
   useEffect(() => {

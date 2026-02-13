@@ -34,7 +34,9 @@
   flex-direction: column;
   overflow-y: auto;
   padding: var(--if-space-md);
+  padding-left: calc(var(--if-space-md) + 5px);
   gap: var(--if-space-sm);
+  box-shadow: 0 2px 6px rgba(11, 33, 68, 0.15);
 }
 
 .empty-state {
@@ -75,7 +77,6 @@
   gap: var(--if-space-sm);
   padding: var(--if-space-md);
   background-color: var(--if-paper-colour);
-  border-top: 1px solid var(--if-medium-colour);
 }
 
 .prompt-input {

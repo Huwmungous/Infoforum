@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@if/web-common-react';
 import { apiService } from '../services/apiService';
 import { ConversationList } from './ConversationList';
@@ -83,6 +83,20 @@ export function ConversationDrawer({
     }
   };
 
+  const handleRename = async (id: string, newTitle: string) => {
+    if (!userId) return;
+
+    try {
+      const title = await apiService.updateTitle(id, newTitle, userId);
+      setConversations(prev =>
+        prev.map(c => c.id === id ? { ...c, title } : c)
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to rename';
+      setError(message);
+    }
+  };
+
   const showTooltip = useCallback((e: React.MouseEvent<HTMLButtonElement>, title: string) => {
     const rect = e.currentTarget.getBoundingClientRect();
     setTooltip({
@@ -108,10 +122,11 @@ export function ConversationDrawer({
             selectedId={selectedId}
             onNewChat={onNewChat}
             onDelete={handleDelete}
+            onRename={handleRename}
           />
         ) : (
           <div className="drawer-rail">
-            <div className="rail-header">
+            <div className="rail-header if-sidebar-header">
               <button
                 className="rail-icon new-chat-icon"
                 onClick={onNewChat}
