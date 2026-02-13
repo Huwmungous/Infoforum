@@ -1,4 +1,7 @@
 import type { Conversation, Message, FileAttachment, ToolDefinition } from '../types';
+import { IfLoggerProvider } from '@if/web-common-react';
+
+const logger = IfLoggerProvider.createLogger('ApiService');
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -86,6 +89,14 @@ class ApiService {
     }
 
     const result = await response.json();
+
+    // Log context extraction status for debugging
+    logger.info(`File upload complete: ${result.attachmentCount} attachment(s), ` +
+      `contextStored=${result.contextStored}, contextLength=${result.contextLength}`);
+    logger.debug(`File upload details: ${JSON.stringify(result.attachments?.map((a: Record<string, unknown>) => ({
+      fileName: a.fileName, fileType: a.fileType, sizeBytes: a.sizeBytes
+    })))}`);
+
     return result.attachments ?? [];
   }
 
@@ -115,6 +126,12 @@ class ApiService {
       }
     );
     return result.title;
+  }
+
+  async getContextStatus(conversationId: string, userId: string): Promise<{ hasContext: boolean; lengthChars: number }> {
+    return this.fetch<{ hasContext: boolean; lengthChars: number }>(
+      `/api/conversations/${conversationId}/context?userId=${encodeURIComponent(userId)}`
+    );
   }
 
   // MCP Tools

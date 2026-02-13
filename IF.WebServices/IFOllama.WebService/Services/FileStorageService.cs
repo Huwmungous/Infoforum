@@ -12,7 +12,7 @@ public class FileStorageService
     {
         _logger = logger;
         _storageBasePath = config["FileStorage:BasePath"] ?? Path.Combine(AppContext.BaseDirectory, "uploads");
-        _maxFileSizeBytes = config.GetValue<long>("FileStorage:MaxFileSizeBytes", 10 * 1024 * 1024); // Default 10MB
+        _maxFileSizeBytes = config.GetValue<long>("FileStorage:MaxFileSizeBytes", 20 * 1024 * 1024); // Default 20MB
 
         if (!Directory.Exists(_storageBasePath))
         {
@@ -33,7 +33,7 @@ public class FileStorageService
             FileName = file.FileName,
             ContentType = file.ContentType,
             SizeBytes = file.Length,
-            FileType = DetermineFileType(file.ContentType)
+            FileType = DetermineFileType(file.ContentType, file.FileName)
         };
 
         var conversationPath = Path.Combine(_storageBasePath, conversationId);
@@ -106,17 +106,56 @@ public class FileStorageService
         }
     }
 
-    private static FileContentType DetermineFileType(string contentType)
+    private static readonly HashSet<string> TextExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
+        ".txt", ".md", ".cs", ".ts", ".tsx", ".js", ".jsx", ".json", ".xml", ".csv",
+        ".log", ".py", ".java", ".cpp", ".c", ".h", ".hpp", ".css", ".scss", ".html",
+        ".htm", ".sql", ".sh", ".bash", ".yml", ".yaml", ".toml", ".ini", ".cfg",
+        ".config", ".csproj", ".sln", ".props", ".targets", ".razor", ".vue", ".svelte",
+        ".rb", ".go", ".rs", ".swift", ".kt", ".gradle", ".ps1", ".psm1", ".psd1",
+        ".dockerfile", ".env", ".gitignore", ".editorconfig", ".eslintrc", ".prettierrc",
+        ".tf", ".proto", ".graphql", ".r", ".m", ".mm", ".pl", ".lua", ".ex", ".exs",
+        ".erl", ".hs", ".fs", ".fsx", ".clj", ".scala", ".pas", ".dfm", ".dpr"
+    };
+
+    private static readonly HashSet<string> ZipExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".zip", ".gz", ".tar", ".7z", ".rar"
+    };
+
+    private static FileContentType DetermineFileType(string contentType, string fileName)
+    {
+        var ext = Path.GetExtension(fileName)?.ToLowerInvariant() ?? "";
+
+        // Extension-based detection first (more reliable than browser content-type)
+        if (TextExtensions.Contains(ext))
+            return FileContentType.Text;
+
+        if (ZipExtensions.Contains(ext))
+            return FileContentType.Zip;
+
+        if (ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" or ".svg")
+            return FileContentType.Image;
+
+        if (ext is ".pdf")
+            return FileContentType.Pdf;
+
+        if (ext is ".doc" or ".docx" or ".odt" or ".rtf")
+            return FileContentType.Document;
+
+        // Fall back to content-type
         var ct = contentType.ToLowerInvariant();
 
         return ct switch
         {
             _ when ct.StartsWith("image/") => FileContentType.Image,
             _ when ct.StartsWith("text/") => FileContentType.Text,
+            "application/json" or "application/xml" or "application/javascript"
+                or "application/x-yaml" or "application/x-sh" => FileContentType.Text,
             "application/pdf" => FileContentType.Pdf,
             _ when ct.Contains("document") || ct.Contains("word") => FileContentType.Document,
-            _ when ct.Contains("zip") || ct == "application/x-zip-compressed" => FileContentType.Zip,
+            _ when ct.Contains("zip") || ct == "application/x-zip-compressed"
+                || ct == "application/x-gzip" => FileContentType.Zip,
             _ => FileContentType.Unknown
         };
     }

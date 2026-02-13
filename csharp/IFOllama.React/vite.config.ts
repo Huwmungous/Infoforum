@@ -26,6 +26,11 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         secure: true,
       },
+      '/logger': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/logger/, ''),
+      },
       '/api': {
         target: 'http://localhost:5028',
         changeOrigin: true,

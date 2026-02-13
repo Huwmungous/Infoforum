@@ -22,6 +22,12 @@ public interface IConversationStore
     /// <summary>Updates the title of a conversation.</summary>
     Task UpdateTitleAsync(string conversationId, string newTitle, string userId);
 
+    /// <summary>Appends extracted file content to the conversation's persistent context.</summary>
+    Task AppendContextAsync(string conversationId, string contextText, string userId);
+
+    /// <summary>Reads the full persistent context for a conversation. Returns empty string if none.</summary>
+    Task<string> ReadContextAsync(string conversationId, string userId);
+
     /// <summary>Removes a conversation and all its data.</summary>
     Task RemoveAsync(string conversationId, string userId);
 

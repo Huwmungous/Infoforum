@@ -227,6 +227,10 @@ public class OllamaService(
 
         foreach (var attachment in attachments)
         {
+            logger.LogInformation(
+                "Processing attachment: {FileName}, FileType={FileType}, ContentType={ContentType}, Path={Path}",
+                attachment.FileName, attachment.FileType, attachment.ContentType, attachment.StoragePath);
+
             try
             {
                 switch (attachment.FileType)
@@ -262,29 +266,60 @@ public class OllamaService(
                     case FileContentType.Zip:
                         {
                             using var zip = ZipFile.OpenRead(attachment.StoragePath);
+                            var processedEntries = 0;
+                            var skippedEntries = 0;
 
                             foreach (var entry in zip.Entries)
                             {
                                 if (string.IsNullOrEmpty(entry.Name)) continue; // skip directories
+
+                                // Skip binary/compiled/large files
+                                var entryExt = Path.GetExtension(entry.Name).ToLowerInvariant();
+                                if (!IsTextFileExtension(entryExt))
+                                {
+                                    skippedEntries++;
+                                    continue;
+                                }
+
+                                // Skip known non-source directories
+                                var fullName = entry.FullName.Replace('\\', '/');
+                                if (fullName.Contains("/bin/") || fullName.Contains("/obj/") ||
+                                    fullName.Contains("/node_modules/") || fullName.Contains("/dist/") ||
+                                    fullName.Contains("/.git/") || fullName.Contains("/packages/"))
+                                {
+                                    skippedEntries++;
+                                    continue;
+                                }
+
+                                // Skip very large individual files (>100KB)
+                                if (entry.Length > 100 * 1024)
+                                {
+                                    skippedEntries++;
+                                    logger.LogInformation("Skipping large zip entry: {Entry} ({Size}KB)",
+                                        entry.FullName, entry.Length / 1024);
+                                    continue;
+                                }
 
                                 try
                                 {
                                     using var reader = new StreamReader(entry.Open(), Encoding.UTF8, true);
                                     var content = await reader.ReadToEndAsync();
 
-                                    combinedText.AppendLine($"""
-                                        --- Begin ZIP entry: {entry.FullName} ---
-                                        {content}
-                                        --- End ZIP entry: {entry.FullName} ---
-                                        """);
+                                    combinedText.AppendLine($"--- Begin: {entry.FullName} ---");
+                                    combinedText.AppendLine(content);
+                                    combinedText.AppendLine($"--- End: {entry.FullName} ---");
+                                    combinedText.AppendLine();
+                                    processedEntries++;
                                 }
                                 catch
                                 {
-                                    combinedText.AppendLine($"--- Could not read ZIP entry: {entry.FullName} ---");
+                                    skippedEntries++;
                                 }
                             }
 
-                            logger.LogInformation("Processed ZIP file: {FileName}", attachment.FileName);
+                            logger.LogInformation(
+                                "Processed ZIP {FileName}: {Processed} text entries, {Skipped} skipped",
+                                attachment.FileName, processedEntries, skippedEntries);
                             break;
                         }
 
@@ -307,6 +342,25 @@ public class OllamaService(
             }
         }
 
+        logger.LogInformation(
+            "ProcessAttachmentsAsync complete: {ImageCount} images, {TextLength} chars of text from {Total} attachments",
+            images.Count, combinedText.Length, attachments.Count);
+
         return (images, combinedText.ToString());
     }
+
+    private static readonly HashSet<string> TextFileExtensions = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ".txt", ".md", ".cs", ".ts", ".tsx", ".js", ".jsx", ".json", ".xml", ".csv",
+        ".log", ".py", ".java", ".cpp", ".c", ".h", ".hpp", ".css", ".scss", ".html",
+        ".htm", ".sql", ".sh", ".bash", ".yml", ".yaml", ".toml", ".ini", ".cfg",
+        ".config", ".csproj", ".sln", ".props", ".targets", ".razor", ".vue", ".svelte",
+        ".rb", ".go", ".rs", ".swift", ".kt", ".gradle", ".ps1", ".psm1", ".psd1",
+        ".dockerfile", ".env", ".gitignore", ".editorconfig", ".eslintrc", ".prettierrc",
+        ".tf", ".proto", ".graphql", ".r", ".m", ".mm", ".pl", ".lua", ".ex", ".exs",
+        ".erl", ".hs", ".fs", ".fsx", ".clj", ".scala", ".pas", ".dfm", ".dpr"
+    };
+
+    private static bool IsTextFileExtension(string extension) =>
+        TextFileExtensions.Contains(extension) || string.IsNullOrEmpty(extension);
 }

@@ -24,7 +24,7 @@ var app = await ServiceFactory.CreateAsync(new ServiceFactoryOptions
         // Configure file upload limits
         services.Configure<FormOptions>(options =>
         {
-            options.MultipartBodyLengthLimit = 20 * 1024 * 1024; // 20MB
+            options.MultipartBodyLengthLimit = 100 * 1024 * 1024; // 100MB
         });
         
         // Configure authorization policy for ChatHub

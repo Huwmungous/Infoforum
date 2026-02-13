@@ -68,7 +68,7 @@ public class ConversationsController(
     /// Appends a message with file attachments to a conversation.
     /// </summary>
     [HttpPost("{id}/messages/with-files")]
-    [RequestSizeLimit(20 * 1024 * 1024)]
+    [RequestSizeLimit(100 * 1024 * 1024)]
     public async Task<IActionResult> AppendMessageWithFiles(
         string id,
         [FromForm] string role,
@@ -114,10 +114,47 @@ public class ConversationsController(
 
         await store.AppendMessageAsync(id, message, userId ?? "anonymous");
 
+        // Extract text content from uploaded files and store as persistent conversation context
+        var contextStored = false;
+        var contextLength = 0;
+
+        if (message.Attachments.Count > 0)
+        {
+            try
+            {
+                logger.LogInformation(
+                    "Extracting context from {Count} attachment(s): {Types}",
+                    message.Attachments.Count,
+                    string.Join(", ", message.Attachments.Select(a => $"{a.FileName} ({a.FileType})")));
+
+                var (_, combinedText) = await ollamaService.ProcessAttachmentsAsync(message.Attachments);
+
+                if (!string.IsNullOrWhiteSpace(combinedText))
+                {
+                    await store.AppendContextAsync(id, combinedText, userId ?? "anonymous");
+                    contextStored = true;
+                    contextLength = combinedText.Length;
+                    logger.LogInformation("Stored {Length} chars of file context for conversation {Id}",
+                        combinedText.Length, id);
+                }
+                else
+                {
+                    logger.LogWarning("No text content extracted from {Count} attachment(s) for conversation {Id}",
+                        message.Attachments.Count, id);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to extract file context for conversation {Id}", id);
+            }
+        }
+
         return Ok(new
         {
             ok = true,
             attachmentCount = message.Attachments.Count,
+            contextStored,
+            contextLength,
             attachments = message.Attachments.Select(a => new
             {
                 a.Id,
@@ -156,6 +193,61 @@ public class ConversationsController(
         {
             return NotFound(new { error = "File not found on disk" });
         }
+    }
+
+    /// <summary>
+    /// Gets the context status for a conversation.
+    /// </summary>
+    [HttpGet("{id}/context")]
+    public async Task<IActionResult> GetContextStatus(string id, [FromQuery] string userId)
+    {
+        if (!await store.OwnsConversationAsync(id, userId))
+            return Forbid();
+
+        var context = await store.ReadContextAsync(id, userId);
+        return Ok(new
+        {
+            hasContext = !string.IsNullOrWhiteSpace(context),
+            lengthChars = context.Length
+        });
+    }
+
+    /// <summary>
+    /// Debug endpoint: shows file processing details for a conversation.
+    /// </summary>
+    [HttpGet("{id}/debug")]
+    public async Task<IActionResult> GetDebugInfo(string id, [FromQuery] string userId)
+    {
+        if (!await store.OwnsConversationAsync(id, userId))
+            return Forbid();
+
+        var messages = await store.ReadMessagesAsync(id, userId);
+        var context = await store.ReadContextAsync(id, userId);
+
+        var allAttachments = messages
+            .SelectMany(m => m.Attachments ?? [])
+            .ToList();
+
+        var fileStatuses = allAttachments.Select(a => new
+        {
+            a.FileName,
+            a.FileType,
+            a.ContentType,
+            a.SizeBytes,
+            a.StoragePath,
+            fileExists = !string.IsNullOrEmpty(a.StoragePath) && System.IO.File.Exists(a.StoragePath)
+        }).ToList();
+
+        return Ok(new
+        {
+            conversationId = id,
+            messageCount = messages.Count,
+            attachmentCount = allAttachments.Count,
+            contextExists = !string.IsNullOrWhiteSpace(context),
+            contextLengthChars = context.Length,
+            contextPreview = context.Length > 500 ? context[..500] + "..." : context,
+            files = fileStatuses
+        });
     }
 
     /// <summary>

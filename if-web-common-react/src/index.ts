@@ -19,6 +19,10 @@ export type { AppContextValue, Logger } from './contexts';
 export { AuthProvider, useAuthInternal } from './contexts';
 export type { AuthContextValue } from './contexts';
 
+// Re-export logger utilities for direct use in non-component code (services, etc.)
+export { IfLoggerProvider, IfLogger } from '@if/web-common';
+export type { LogLevel, IfLoggerConfiguration } from '@if/web-common';
+
 // Components
 export { ProtectedRoute, SigninCallback, SignoutCallback, SilentCallback } from './components';
 export type { ProtectedRouteProps, SigninCallbackProps, SignoutCallbackProps } from './components';

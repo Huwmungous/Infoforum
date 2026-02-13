@@ -1,4 +1,7 @@
 import * as signalR from '@microsoft/signalr';
+import { IfLoggerProvider } from '@if/web-common-react';
+
+const logger = IfLoggerProvider.createLogger('ChatService');
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
@@ -25,20 +28,20 @@ export class ChatService {
       .build();
 
     connection.onreconnecting((error) => {
-      console.log('SignalR reconnecting...', error);
+      logger.warn('SignalR reconnecting', error instanceof Error ? error : undefined);
     });
 
     connection.onreconnected((connectionId) => {
-      console.log('SignalR reconnected:', connectionId);
+      logger.info(`SignalR reconnected: ${connectionId}`);
     });
 
     connection.onclose((error) => {
-      console.log('SignalR connection closed:', error);
+      logger.warn('SignalR connection closed');
     });
 
     await connection.start();
     this.connection = connection;
-    console.log('SignalR connected');
+    logger.info('SignalR connected');
   }
 
   async disconnect(): Promise<void> {
@@ -55,7 +58,6 @@ export class ChatService {
     conversationId: string,
     userId: string,
     enabledTools: string[] | null,
-    attachmentsJson: string | null,
     onToken: (token: string) => void,
     onComplete: () => void,
     onError: (error: string) => void
@@ -71,8 +73,7 @@ export class ChatService {
       history,
       conversationId,
       userId,
-      enabledTools,
-      attachmentsJson
+      enabledTools
     );
 
     const subscription = stream.subscribe({

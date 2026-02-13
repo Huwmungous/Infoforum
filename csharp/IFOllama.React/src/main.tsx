@@ -42,8 +42,8 @@ if (!urlConfig) {
   );
 } else {
   // We have URL config - initialise the app
-  console.log('URL Config:', urlConfig);
-  console.log('Config Service URL:', configServiceUrl);
+  // Note: IfLoggerProvider may not be configured yet at this point,
+  // so these will just go to console via the default config
   
   root.render(
     <AppInitializer 

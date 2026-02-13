@@ -1,9 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '@if/web-common-react';
 import type { ISubscription } from '@microsoft/signalr';
+import { IfLoggerProvider } from '@if/web-common-react';
 import { chatService } from '../services/chatService';
 import { apiService } from '../services/apiService';
 import type { Message, FileAttachment } from '../types';
+
+const logger = IfLoggerProvider.createLogger('useChat');
 
 interface UseChatOptions {
   model?: string;
@@ -154,13 +157,17 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     let attachments: FileAttachment[] | undefined;
 
     const hasFiles = files && files.length > 0;
+    logger.debug(`sendMessage: hasFiles=${hasFiles}, fileCount=${files?.length}, conversationId=${currentConversationId}`);
 
     if (hasFiles) {
       try {
+        logger.info(`Uploading ${files.length} file(s) for conversation ${currentConversationId}`);
         attachments = await apiService.appendMessageWithFiles(
           currentConversationId, content, files, userId
         );
+        logger.info(`Upload complete: ${attachments?.length ?? 0} attachment(s)`);
       } catch (err) {
+        logger.error('File upload failed', err instanceof Error ? err : undefined);
         const message = err instanceof Error ? err.message : 'Failed to upload files';
         setError(message);
         return;
@@ -175,7 +182,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       try {
         await apiService.appendMessage(currentConversationId, userMsg, userId);
       } catch (err) {
-        console.error('Failed to save user message:', err);
+        logger.error('Failed to save user message', err instanceof Error ? err : undefined);
       }
     }
 
@@ -211,15 +218,12 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
     const history = messages.map(m => `${m.role}:${m.content}`);
     history.push(`user:${content}`);
 
-    // Serialize attachments for SignalR
-    const attachmentsJson = attachments && attachments.length > 0
-      ? JSON.stringify(attachments)
-      : null;
-
     // Cancel any existing subscription
     if (subscriptionRef.current) {
       subscriptionRef.current.dispose();
     }
+
+    logger.debug(`Starting streamChat: conversation=${currentConversationId}, historyLength=${history.length}, tools=${enabledTools.length > 0 ? enabledTools.join(',') : 'none'}`);
 
     subscriptionRef.current = chatService.streamChat(
       model,
@@ -227,7 +231,6 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
       currentConversationId,
       userId,
       enabledTools.length > 0 ? enabledTools : null,
-      attachmentsJson,
       // onToken
       (token: string) => {
         let processedToken = token;
@@ -277,7 +280,7 @@ export function useChat(options: UseChatOptions = {}): UseChatResult {
               onTitleGenerated?.();
             })
             .catch((err) => {
-              console.error('Failed to generate title:', err);
+              logger.error('Failed to generate title', err instanceof Error ? err : undefined);
             });
         }
       },

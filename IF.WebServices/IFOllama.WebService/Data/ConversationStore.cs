@@ -134,6 +134,34 @@ public class ConversationStore : IConversationStore
         _logger.LogInformation("Updated title for conversation {Id}: {Title}", conversationId, newTitle);
     }
 
+    public async Task AppendContextAsync(string conversationId, string contextText, string userId)
+    {
+        var metaPath = Path.Combine(_conversationsPath, conversationId, "meta.json");
+        if (!File.Exists(metaPath))
+            throw new FileNotFoundException($"Conversation {conversationId} not found");
+
+        var meta = JsonSerializer.Deserialize<ConversationListItem>(
+            await File.ReadAllTextAsync(metaPath));
+
+        if (meta?.UserId != userId)
+            throw new UnauthorizedAccessException();
+
+        var contextPath = Path.Combine(_conversationsPath, conversationId, "context.txt");
+        await File.AppendAllTextAsync(contextPath, contextText);
+
+        _logger.LogInformation("Appended {Length} chars of context to conversation {Id}",
+            contextText.Length, conversationId);
+    }
+
+    public async Task<string> ReadContextAsync(string conversationId, string userId)
+    {
+        var contextPath = Path.Combine(_conversationsPath, conversationId, "context.txt");
+        if (!File.Exists(contextPath))
+            return string.Empty;
+
+        return await File.ReadAllTextAsync(contextPath);
+    }
+
     public async Task RemoveAsync(string conversationId, string userId)
     {
         var metaPath = Path.Combine(_conversationsPath, conversationId, "meta.json");

@@ -16,6 +16,17 @@ public class OllamaChatRequest
 
     [JsonPropertyName("stream")]
     public bool Stream { get; set; }
+
+    [JsonPropertyName("options")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public OllamaOptions? Options { get; set; }
+}
+
+public class OllamaOptions
+{
+    [JsonPropertyName("num_ctx")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int NumCtx { get; set; }
 }
 
 public class OllamaChatResponse

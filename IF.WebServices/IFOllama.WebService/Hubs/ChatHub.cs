@@ -15,8 +15,7 @@ public class ChatHub(
     IConfiguration config,
     ILogger<ChatHub> logger,
     IConversationStore conversationStore,
-    McpRouterService mcpRouter,
-    OllamaService ollamaService) : Hub
+    McpRouterService mcpRouter) : Hub
 {
     private readonly string _ollamaBaseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
     private readonly string _defaultModel = config["Ollama:Model"] ?? "qwen2.5:32b";
@@ -30,7 +29,6 @@ public class ChatHub(
         string conversationId,
         string userId,
         List<string>? enabledTools = null,
-        string? attachmentsJson = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         logger.LogInformation("StreamChat called for conversation {ConversationId} with {ToolCount} enabled tools",
@@ -41,10 +39,41 @@ public class ChatHub(
         // Build messages for the model
         var messages = BuildMessagesForModel(history, enabledTools);
 
-        // Process file attachments if present
-        if (!string.IsNullOrWhiteSpace(attachmentsJson))
+        // Load persistent file context for this conversation
+        try
         {
-            await ProcessAttachmentsForMessages(messages, attachmentsJson);
+            var context = await conversationStore.ReadContextAsync(conversationId, userId);
+            if (!string.IsNullOrWhiteSpace(context))
+            {
+                // Cap context to avoid overwhelming the model's context window
+                const int maxContextChars = 200_000; // ~50K tokens
+                if (context.Length > maxContextChars)
+                {
+                    logger.LogWarning(
+                        "File context for {ConversationId} is {Length} chars, truncating to {Max}",
+                        conversationId, context.Length, maxContextChars);
+                    context = context[..maxContextChars] +
+                        "\n\n[Context truncated - files too large to include in full]";
+                }
+
+                logger.LogInformation("Injecting {Length} chars of file context for conversation {ConversationId}",
+                    context.Length, conversationId);
+
+                // Insert file context as a system message right after any tool system prompt
+                var insertIndex = messages.FindIndex(m => m.Role == "user");
+                if (insertIndex < 0) insertIndex = messages.Count;
+
+                messages.Insert(insertIndex, new OllamaMessage
+                {
+                    Role = "system",
+                    Content = "The following files have been uploaded by the user as context for this conversation. " +
+                              "Use this content to answer their questions.\n\n" + context
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to load file context for conversation {ConversationId}", conversationId);
         }
 
         // Get tools if any are enabled
@@ -61,6 +90,18 @@ public class ChatHub(
             Tools = ollamaTools,
             Stream = true
         };
+
+        // Calculate required context window based on total message content
+        var totalChars = messages.Sum(m => m.Content?.Length ?? 0);
+        var estimatedTokens = (int)(totalChars / 3.5); // conservative chars-per-token estimate
+        var requiredCtx = Math.Max(8192, estimatedTokens + 4096); // add headroom for response
+        requiredCtx = Math.Min(requiredCtx, 131072); // cap at 128K
+
+        request.Options = new OllamaOptions { NumCtx = requiredCtx };
+
+        logger.LogInformation(
+            "Ollama request: model={Model}, messages={MessageCount}, totalChars={TotalChars}, num_ctx={NumCtx}",
+            model, messages.Count, totalChars, requiredCtx);
 
         // Try to connect to Ollama - capture error outside try/catch for yielding
         using var httpClient = new HttpClient();
@@ -269,40 +310,6 @@ public class ChatHub(
         }
 
         return result.ToString();
-    }
-
-    private async Task ProcessAttachmentsForMessages(List<OllamaMessage> messages, string attachmentsJson)
-    {
-        try
-        {
-            var attachments = JsonSerializer.Deserialize<List<FileAttachment>>(attachmentsJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            if (attachments == null || attachments.Count == 0) return;
-
-            logger.LogInformation("Processing {Count} attachment(s) for streaming", attachments.Count);
-
-            var (images, combinedText) = await ollamaService.ProcessAttachmentsAsync(attachments);
-
-            // Find the last user message and augment it
-            var lastUserMessage = messages.LastOrDefault(m => m.Role == "user");
-            if (lastUserMessage != null)
-            {
-                if (!string.IsNullOrWhiteSpace(combinedText))
-                {
-                    lastUserMessage.Content += "\n\n" + combinedText;
-                }
-
-                if (images.Count > 0)
-                {
-                    lastUserMessage.Images = images;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to process attachments for streaming");
-        }
     }
 
     private static List<OllamaMessage> BuildMessagesForModel(
