@@ -68,3 +68,4 @@ node_modules
 /IF.WebServices/IFOllama.WebService/Data/Conversations
 /IF.WebServices/IFOllama.WebService/Data/Uploads
 /IF.WebServices/ConfigWebService/bin
+/IF.WebServices/IFOllama.WebService/Data
