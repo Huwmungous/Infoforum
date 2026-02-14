@@ -1,0 +1,54 @@
+.add-repo-modal {
+  max-width: 520px;
+  width: 95vw;
+}
+
+.add-repo-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--if-space-md);
+  padding: var(--if-space-lg);
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--if-space-xs);
+
+    label {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--if-dark-colour);
+    }
+
+    .if-form-input {
+      width: 100%;
+    }
+
+    select.if-form-input {
+      cursor: pointer;
+    }
+
+    .form-hint {
+      font-size: 0.75rem;
+      color: var(--if-medium-colour);
+    }
+  }
+}
+
+.add-repo-error {
+  padding: var(--if-space-sm) var(--if-space-md);
+  background-color: var(--if-hl-light-colour);
+  color: var(--if-dark-colour);
+  border-left: 4px solid var(--if-hl-dark-colour);
+  border-radius: var(--if-radius-sm);
+  font-size: 0.8125rem;
+}
+
+.add-repo-progress {
+  padding: var(--if-space-sm) var(--if-space-md);
+  background-color: rgba(var(--if-light-colour-rgb, 72, 149, 239), 0.1);
+  color: var(--if-light-colour);
+  border-left: 4px solid var(--if-light-colour);
+  border-radius: var(--if-radius-sm);
+  font-size: 0.8125rem;
+}

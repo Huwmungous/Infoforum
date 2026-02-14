@@ -3,6 +3,7 @@ import { useChat } from '../hooks/useChat';
 import { ChatMessage } from './ChatMessage';
 import { ThinkingProgress } from './ThinkingProgress';
 import { ToolSelector } from './ToolSelector';
+import { RepoSelector } from './RepoSelector';
 import './Chat.scss';
 
 const logo = new URL('/IF-Logo.png', import.meta.url).href;
@@ -108,6 +109,10 @@ export function Chat({ initialConversationId, conversationTitle, onConversationC
           )}
         </div>
         <div className="if-header-right">
+          <RepoSelector
+            conversationId={conversationId ?? null}
+            conversationTitle={conversationTitle}
+          />
           <button
             className="if-btn if-btn-secondary"
             onClick={() => setShowToolSelector(!showToolSelector)}

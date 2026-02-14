@@ -15,6 +15,8 @@ public class ChatHub(
     IConfiguration config,
     ILogger<ChatHub> logger,
     IConversationStore conversationStore,
+    IGitRepositoryStore gitRepoStore,
+    GitWorkspaceService gitWorkspace,
     McpRouterService mcpRouter) : Hub
 {
     private readonly string _ollamaBaseUrl = config["Ollama:BaseUrl"] ?? "http://localhost:11434";
@@ -74,6 +76,72 @@ public class ChatHub(
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Failed to load file context for conversation {ConversationId}", conversationId);
+        }
+
+        // Inject git repository context for enabled repos
+        try
+        {
+            var repoLinks = await gitRepoStore.GetConversationReposAsync(conversationId);
+            var enabledLinks = repoLinks.Where(l => l.Enabled).ToList();
+
+            if (enabledLinks.Count > 0)
+            {
+                var repoContextBuilder = new System.Text.StringBuilder();
+                repoContextBuilder.AppendLine("The user has the following git repositories linked to this conversation.");
+                repoContextBuilder.AppendLine("All questions and prompts should be assumed to relate to these repositories unless stated otherwise.");
+                repoContextBuilder.AppendLine("You can modify files by outputting ===FILE:path=== blocks. The system will write the files, build, and report errors.");
+                repoContextBuilder.AppendLine("You can request to read a file by outputting READ_FILE:path");
+                repoContextBuilder.AppendLine();
+
+                foreach (var link in enabledLinks)
+                {
+                    var repo = await gitRepoStore.GetAsync(link.RepositoryId, userId);
+                    if (repo == null) continue;
+
+                    try
+                    {
+                        var repoContext = await gitWorkspace.BuildRepoContextAsync(repo, link.BranchName);
+
+                        // Cap per-repo context
+                        const int maxRepoContextChars = 100_000;
+                        if (repoContext.Length > maxRepoContextChars)
+                        {
+                            logger.LogWarning(
+                                "Repo context for {RepoName} is {Length} chars, truncating to {Max}",
+                                repo.Name, repoContext.Length, maxRepoContextChars);
+                            repoContext = repoContext[..maxRepoContextChars] +
+                                "\n\n[Repository context truncated — use READ_FILE:path to read specific files]";
+                        }
+
+                        repoContextBuilder.AppendLine(repoContext);
+                        repoContextBuilder.AppendLine();
+                    }
+                    catch (Exception repoEx)
+                    {
+                        logger.LogWarning(repoEx, "Failed to build context for repo {RepoName}", repo.Name);
+                    }
+                }
+
+                var repoContextText = repoContextBuilder.ToString();
+                if (!string.IsNullOrWhiteSpace(repoContextText))
+                {
+                    logger.LogInformation("Injecting {Length} chars of repo context for conversation {ConversationId}",
+                        repoContextText.Length, conversationId);
+
+                    var insertIndex = messages.FindIndex(m => m.Role == "user");
+                    if (insertIndex < 0) insertIndex = messages.Count;
+
+                    messages.Insert(insertIndex, new OllamaMessage
+                    {
+                        Role = "system",
+                        Content = repoContextText
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to load repo context for conversation {ConversationId}", conversationId);
         }
 
         // Get tools if any are enabled

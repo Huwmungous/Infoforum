@@ -17,7 +17,9 @@ var app = await ServiceFactory.CreateAsync(new ServiceFactoryOptions
     {
         // Register application services
         services.AddSingleton<IConversationStore, ConversationStore>();
+        services.AddSingleton<IGitRepositoryStore, GitRepositoryStore>();
         services.AddSingleton<FileStorageService>();
+        services.AddSingleton<GitWorkspaceService>();
         services.AddHttpClient<McpRouterService>();
         services.AddHttpClient<OllamaService>();
         

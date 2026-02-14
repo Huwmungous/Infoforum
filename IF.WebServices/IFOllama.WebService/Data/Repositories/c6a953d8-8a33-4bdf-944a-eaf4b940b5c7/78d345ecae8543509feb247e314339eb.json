@@ -1,0 +1,13 @@
+{
+  "Id": "78d345ecae8543509feb247e314339eb",
+  "UserId": "c6a953d8-8a33-4bdf-944a-eaf4b940b5c7",
+  "Name": "Infoforum",
+  "Url": "https://github.com/Huwmungous/Infoforum.git",
+  "CredentialType": 0,
+  "Credential": "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",
+  "LocalPath": "/data/repos\\c6a953d8-8a33-4bdf-944a-eaf4b940b5c7\\Infoforum",
+  "DefaultBranch": "main",
+  "DetectedProjectType": 1,
+  "ClonedAt": "2026-02-13T15:28:28.2570949Z",
+  "LastPulledAt": "2026-02-13T15:37:37.6314848Z"
+}

@@ -1,4 +1,4 @@
-import type { Conversation, Message, FileAttachment, ToolDefinition } from '../types';
+import type { Conversation, Message, FileAttachment, ToolDefinition, GitRepository, ConversationRepo, GitCredentialType, BuildResult } from '../types';
 import { IfLoggerProvider } from '@if/web-common-react';
 
 const logger = IfLoggerProvider.createLogger('ApiService');
@@ -146,6 +146,127 @@ class ApiService {
   // Health check
   async healthCheck(): Promise<{ status: string; service: string; timestamp: string }> {
     return this.fetch<{ status: string; service: string; timestamp: string }>('/api/diag/health');
+  }
+
+  // ── Repositories ────────────────────────────────────────────────
+
+  async getRepositories(userId: string): Promise<GitRepository[]> {
+    return this.fetch<GitRepository[]>(`/api/repositories?userId=${encodeURIComponent(userId)}`);
+  }
+
+  async cloneRepository(
+    userId: string,
+    name: string,
+    url: string,
+    credentialType: GitCredentialType,
+    credential: string
+  ): Promise<GitRepository> {
+    return this.fetch<GitRepository>(`/api/repositories/clone?userId=${encodeURIComponent(userId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ name, url, credentialType, credential }),
+    });
+  }
+
+  async pullRepository(repoId: string, userId: string): Promise<void> {
+    await this.fetch(`/api/repositories/${repoId}/pull?userId=${encodeURIComponent(userId)}`, {
+      method: 'POST',
+    });
+  }
+
+  async deleteRepository(repoId: string, userId: string): Promise<void> {
+    await this.fetch(`/api/repositories/${repoId}?userId=${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // ── Conversation-repo linking ───────────────────────────────────
+
+  async getConversationRepos(conversationId: string, userId: string): Promise<ConversationRepo[]> {
+    return this.fetch<ConversationRepo[]>(
+      `/api/repositories/conversation/${conversationId}?userId=${encodeURIComponent(userId)}`
+    );
+  }
+
+  async linkRepoToConversation(
+    conversationId: string,
+    repositoryId: string,
+    conversationTitle: string,
+    userId: string
+  ): Promise<ConversationRepo> {
+    return this.fetch<ConversationRepo>(
+      `/api/repositories/conversation/${conversationId}/link?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ repositoryId, conversationTitle }),
+      }
+    );
+  }
+
+  async setRepoEnabled(
+    conversationId: string,
+    repoId: string,
+    enabled: boolean,
+    userId: string
+  ): Promise<void> {
+    await this.fetch(
+      `/api/repositories/conversation/${conversationId}/${repoId}/enabled?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ enabled }),
+      }
+    );
+  }
+
+  async unlinkRepo(conversationId: string, repoId: string, userId: string): Promise<void> {
+    await this.fetch(
+      `/api/repositories/conversation/${conversationId}/${repoId}?userId=${encodeURIComponent(userId)}`,
+      { method: 'DELETE' }
+    );
+  }
+
+  // ── Build, commit, merge ────────────────────────────────────────
+
+  async buildRepo(repoId: string, userId: string, projectPath?: string): Promise<BuildResult> {
+    return this.fetch<BuildResult>(
+      `/api/repositories/${repoId}/build?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ projectPath: projectPath ?? null }),
+      }
+    );
+  }
+
+  async commitRepo(repoId: string, message: string, userId: string): Promise<{ success: boolean; output: string }> {
+    return this.fetch<{ success: boolean; output: string }>(
+      `/api/repositories/${repoId}/commit?userId=${encodeURIComponent(userId)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ message }),
+      }
+    );
+  }
+
+  async mergeAndPush(
+    conversationId: string,
+    repoId: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
+    return this.fetch<{ success: boolean; message: string }>(
+      `/api/repositories/conversation/${conversationId}/${repoId}/merge?userId=${encodeURIComponent(userId)}`,
+      { method: 'POST' }
+    );
+  }
+
+  async getRepoStatus(repoId: string, userId: string): Promise<{ status: string }> {
+    return this.fetch<{ status: string }>(
+      `/api/repositories/${repoId}/status?userId=${encodeURIComponent(userId)}`
+    );
+  }
+
+  async getRepoFileTree(repoId: string, userId: string): Promise<{ tree: string }> {
+    return this.fetch<{ tree: string }>(
+      `/api/repositories/${repoId}/tree?userId=${encodeURIComponent(userId)}`
+    );
   }
 }
 
